@@ -1,0 +1,14 @@
+{
+  "name": "dashbet-game",
+  "version": "1.0.0",
+  "description": "Shamo Games Online Implementation",
+  "main": "admin_server.js",
+  "scripts": {
+    "start": "node admin_server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.1",
+    "mongoose": "^8.24.8"
+  }
+}
