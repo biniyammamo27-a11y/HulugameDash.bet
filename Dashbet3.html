@@ -280,28 +280,38 @@ function loadDrawHistoryFromServer() {
 }
 
 function loginUser() {
-    const phoneInput = document.getElementById('login-phone').value; 
-    const passwordInput = document.getElementById('login-password').value;
-    if (!phoneInput || !passwordInput) { alert("⚠️ እባክዎ ስልክ ቁጥር እና የይለፍ ቃል ያስገቡ!"); return; }
+    const phone = document.getElementById('login-phone').value.trim();
+    const password = document.getElementById('login-password').value;
+    
     fetch(`${SERVER_URL}/login`, { 
         method: 'POST', 
         headers: { 'Content-Type': 'application/json' }, 
-        body: JSON.stringify({ phone: phoneInput, password: passwordInput }) 
+        body: JSON.stringify({ phone, password }) 
     })
     .then(res => res.json())
-    .then(data => { 
-        if (data.success) { 
-            document.getElementById('auth-section').style.display = 'none'; 
-            document.getElementById('main-content-section').style.display = 'block'; 
-            document.getElementById('user-phone-display').innerText = data.user.phone; 
-            updateLiveBalanceDisplays(data.user.balance); 
-            switchTab('game'); 
-            loadDrawHistoryFromServer();
+    .then(data => {
+        if (data.success) {
+            document.getElementById('auth-section').style.display = 'none';
+            document.getElementById('main-content-section').style.display = 'block';
+            document.getElementById('user-phone-display').innerText = data.user.phone;
+            updateLiveBalanceDisplays(data.user.balance);
+            switchTab('game');
+            
+            // 🎯 ወሳኝ ማሻሻያ፦ ተጫዋቹ ሎጊን እንዳደረገ የዕጣ ታሪክ እና ስታቲስቲክስ በቋሚነት ከክላውድ ተጠርተው እንዲቀመጡ ያደርጋል!
+            if(typeof loadDrawHistoryFromServer === 'function') loadDrawHistoryFromServer();
+            if(typeof renderStatisticsToUI === 'function') renderStatisticsToUI();
+
             if(balanceInterval) clearInterval(balanceInterval);
             balanceInterval = setInterval(fetchLiveBalanceFromServer, 3000);
-        } else { alert(data.message); }
-    }).catch(err => alert("❌ ከሰርቨር ጋር መገናኘት አልተቻለም!"));
+        } else { 
+            alert(data.message); 
+        }
+    }).catch(err => {
+        console.error("Login Error:", err);
+        alert("❌ ከሰርቨር ጋር መገናኘት አልተቻለም!");
+    });
 }
+
 
 function registerUser() {
     const phoneInput = document.getElementById('register-phone').value; 
