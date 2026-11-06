@@ -97,7 +97,7 @@
     <img id="modalTargetImage" class="image-modal-content" src="">
 </div>
 <script>
-const SERVER_URL = "https://onrender.com";
+const SERVER_URL = "https://hulugamedash-bet.onrender.com";
 let autoRefreshInterval = null; 
 
 function switchAdminTab(tabName) {
