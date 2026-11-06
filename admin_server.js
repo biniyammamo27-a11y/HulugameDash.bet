@@ -11,18 +11,18 @@ const MONGO_URI = "mongodb+srv://biniyammamo27_db_user:DxPcujpJIbfPJDLJ@cluster0
 
 app.use(express.json({ limit: '100mb' }));
 app.use(express.urlencoded({ limit: '100mb', extended: true }));
-app.use(cors());
+app.use(cors()); // 🔓 ሎካል ላይም ሆነ ኦንላይን ላይ አድሚን ፓናሉን ያለምንም መከልከል እንዲያገናኝ ያደርጋል
 
 // 🔌 ከ MongoDB Cloud ጋር ግንኙነት መፍጠር
 mongoose.connect(MONGO_URI)
 .then(() => console.log("🟢 MongoDB Cloud Database Connected Successfully!"))
 .catch(err => console.log("❌ MongoDB Connection Error: ", err));
 
-// 📝 1. የተጫዋቾች መረጃ ሰንጠረዥ (User Schema)
+// 📝 1. የተጫዋቾች መረጃ ሰንጠረዥ (🎯 መነሻ ባላንስ 0.00 ተደርጓል!)
 const UserSchema = new mongoose.Schema({
     phone: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-    balance: { type: Number, default: 1803.00 }
+    balance: { type: Number, default: 0.00 } 
 });
 const User = mongoose.model('User', UserSchema);
 
@@ -52,6 +52,14 @@ const WithdrawalSchema = new mongoose.Schema({
 });
 const Withdrawal = mongoose.model('Withdrawal', WithdrawalSchema);
 
+// 📝 4. የኬኖ የዕጣዎች ታሪክ ሰንጠረዥ (Draw Schema)
+const DrawSchema = new mongoose.Schema({
+    roundNumber: Number,
+    results: [Number],
+    date: { type: Date, default: Date.now }
+});
+const Draw = mongoose.model('Draw', DrawSchema);
+
 // ----------------- የገጾች ማሳያ መንገዶች -----------------
 app.get('/', (req, res) => { res.sendFile(path.join(__dirname, 'Dashbet3.html')); });
 app.get('/admin-panel', (req, res) => { res.sendFile(path.join(__dirname, 'admin.html')); });
@@ -76,7 +84,7 @@ app.post('/register', async (req, res) => {
         const existing = await User.findOne({ phone: phone.trim() });
         if (existing) return res.json({ success: false, message: "❌ ይህ ስልክ ቁጥር ቀድሞ የተመዘገበ ነው!" });
         
-        const newUser = new User({ phone: phone.trim(), password, balance: 1803.00 });
+        const newUser = new User({ phone: phone.trim(), password, balance: 0.00 }); // 🎯 እዚህም 0 መሆኑ ተረጋግጧል
         await newUser.save();
         res.json({ success: true, message: "✅ ምዝገባዎ በቋሚነት በ MongoDB ተጠናቋል! አሁን መግባት ይችላሉ።" });
     } catch (e) { res.json({ success: false, message: "❌ ስህተት ተፈጥሯል" }); }
@@ -104,7 +112,6 @@ app.post('/api/claim-win', async (req, res) => {
     } catch (e) { res.json({ success: false }); }
 });
 
-// 🎯 ፎቶ መደራረብን የሚከላከል የተሻሻለው የዲፖዚት መቀበያ መስመር
 app.post('/api/deposit', async (req, res) => {
     let { userPhone, amount, senderPhone, method, screenshot } = req.body;
     try {
@@ -112,10 +119,9 @@ app.post('/api/deposit', async (req, res) => {
             return res.json({ success: false, message: "⚠️ እባክዎ መጀመሪያ የክፍያ ማረጋገጫ ፎቶ ይጫኑ!" });
         }
 
-        // 🛡️ የደህንነት ጋሻ ቼከር፦ ይህ ፎቶ ቀድሞ በዳታቤዙ ውስጥ መኖሩን ይፈትሻል
         const duplicateImage = await Deposit.findOne({ screenshot: screenshot });
         if (duplicateImage) {
-            return res.json({ success: false, message: "❌ ይህ የክፍያ ማረጋገጫ (Screenshot) ቀድሞ ጥቅም ላይ ውሏል! ማጭበርበር አይቻልም።" });
+            return res.json({ success: false, message: "❌ ይህ የክፍያ ማረጋገጫ (Screenshot) ቀድሞ ጥቅም ላይ ውሏል!" });
         }
 
         const newDep = new Deposit({ id: 'DEP-' + Date.now(), userPhone: userPhone.trim(), amount: parseFloat(amount), senderPhone, method, screenshot });
@@ -138,6 +144,23 @@ app.post('/api/withdraw', async (req, res) => {
         await newWith.save();
         res.json({ success: true, message: "✅ የዊዝድሮው ጥያቄዎ በክላውድ በተሳካ ሁኔታ ለአድሚን ተልኳል!" });
     } catch (e) { res.json({ success: false, message: "❌ ስህተት ተፈጥሯል!" }); }
+});
+
+app.post('/api/save-draw', async (req, res) => {
+    const { roundNumber, results } = req.body;
+    try {
+        const newDraw = new Draw({ roundNumber, results });
+        await newDraw.save();
+        res.json({ success: true });
+    } catch (e) { res.json({ success: false }); }
+});
+
+app.get('/api/draw-history', async (req, res) => {
+    try {
+        const oily = new Date(Date.now() - 24 * 60 * 60 * 1000);
+        const history = await Draw.find({ date: { $gte: oily } }).sort({ _id: -1 });
+        res.json(history);
+    } catch (e) { res.json([]); }
 });
 
 app.get('/admin/users', async (req, res) => { 
@@ -173,7 +196,7 @@ app.post('/admin/approve-withdraw', async (req, res) => {
 });
 
 app.listen(PORT, () => {
-    console.log(`==================================================`);
-    console.log(`🚀 ሰርቨሩ በኦንላይን ፖርት ${PORT} ላይ በተሳካ ሁኔታ ተነስቷል!`);
-    console.log(`==================================================`);
+    console.log('==================================================');
+    console.log(`🚀 ሰርቨሩ በሎካል ፖርት ${PORT} ላይ በተሳካ ሁኔታ ተነስቷል!`);
+    console.log('==================================================');
 });
