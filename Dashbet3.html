@@ -198,531 +198,290 @@
 </div>
 
 <script>
-const SERVER_URL = "https://hulugamedash-bet.onrender.com";
-let globalScreenshotBase64 = ""; 
+const SERVER_URL = "https://hulugamedash-bet.onrender.com/";
 let balanceInterval = null;
-function toggleSecretProfileMenu(event) {
-    event.stopPropagation();
-    document.getElementById("secretProfileMenuBox").classList.toggle("show");
-}
+let selectedNumbers = [];
+let activeTickets = []; 
+let isDrawingActive = false;
+let timerInterval = null;
+let kenoTimeLeft = 60;
+let currentRoundNumber = 1001;
 
-function executeUserLogoutAction() {
-    if(balanceInterval) clearInterval(balanceInterval);
-    balanceInterval = null;
-    globalScreenshotBase64 = "";
-    activeTickets = [];
-    selectedNumbers = [];
-    document.getElementById('login-phone').value = "";
-    document.getElementById('login-password').value = "";
-    document.getElementById('main-content-section').style.display = 'none';
-    document.getElementById('auth-section').style.display = 'block';
-    switchAuthTab('login');
-    document.getElementById("secretProfileMenuBox").classList.remove("show");
-}
+const KENO_PAYOUT_ODDS = { 1: { 1: 3 }, 2: { 2: 5 }, 3: { 3: 50 }, 4: { 4: 80 }, 5: { 5: 200 } };
 
-window.onclick = function(event) {
-    const box = document.getElementById("secretProfileMenuBox");
-    if(box) box.classList.remove("show");
-}
-
-function triggerFileInputClick() {
-    const fileInput = document.getElementById('deposit-screenshot-file');
-    if (fileInput) fileInput.click();
-}
-
-function displaySelectedScreenshot(input) {
-    const uploadBox = document.getElementById('custom-upload-container-box');
-    if (input && input.files && input.files[0]) { 
-        const file = input.files[0]; 
-        const reader = new FileReader();
-        reader.onload = function(e) { 
-            uploadBox.innerHTML = '<img src="' + e.target.result + '" style="width: 100%; height: 100%; object-fit: contain; border-radius: 8px;">'; 
-            globalScreenshotBase64 = e.target.result;
-        };
-        reader.readAsDataURL(file); 
-    }
-}
+function toggleSecretProfileMenu(event) { event.stopPropagation(); document.getElementById("secretProfileMenuBox").classList.toggle("show"); }
+function executeUserLogoutAction() { window.location.reload(); }
 
 function fetchLiveBalanceFromServer() {
-    const userPhoneDisplayElement = document.getElementById('user-phone-display');
-    if (!userPhoneDisplayElement || document.getElementById('main-content-section').style.display === 'none') return;
-    const userPhone = userPhoneDisplayElement.innerText.trim();
-    fetch(`${SERVER_URL}/admin/users`)
-        .then(res => res.json())
-        .then(users => {
-            const currentUser = users.find(u => u.phone === userPhone);
-            if (currentUser) updateLiveBalanceDisplays(currentUser.balance);
-        }).catch(err => console.log("ባላንስ ማመሳሰል..."));
-}
-
-function loadDrawHistoryFromServer() {
-    fetch(`${SERVER_URL}/api/draw-history`)
-        .then(res => res.json())
-        .then(history => {
-            const ExtresultsMasterContainer = document.getElementById('results-master-history-container');
-            if (!history || history.length === 0) return;
-            
-            if (ExtresultsMasterContainer) {
-                ExtresultsMasterContainer.innerHTML = '';
-                [...history].reverse().forEach(round => {
-                    const resultBlock = document.createElement('div'); resultBlock.className = 'result-round-block';
-                    resultBlock.innerHTML = `<div style="color:#ffcc00; font-weight:bold; margin-bottom:5px; font-size:13px;">🎰 ROUND #${round.roundNumber} RESULTS</div>`;
-                    const row1 = document.createElement('div'); row1.className = 'result-row-grid';
-                    const row2 = document.createElement('div'); row2.className = 'result-row-grid';
-                    round.results.forEach((num, index) => {
-                        const ball = document.createElement('div'); ball.className = 'result-ball'; ball.innerText = num;
-                        if (index < 10) row1.appendChild(ball); else row2.appendChild(ball);
-                    });
-                    resultBlock.appendChild(row1); resultBlock.appendChild(row2); ExtresultsMasterContainer.appendChild(resultBlock);
-                });
-            }
-        }).catch(err => console.log("የዕጣ ታሪክ በመጫን ላይ..."));
+    const el = document.getElementById('user-phone-display');
+    if (!el || document.getElementById('main-content-section').style.display === 'none') return;
+    fetch(`${SERVER_URL}/admin/users`).then(res => res.json()).then(users => {
+        const u = users.find(x => x.phone === el.innerText.trim());
+        if (u) updateLiveBalanceDisplays(u.balance);
+    });
 }
 
 function loginUser() {
     const phone = document.getElementById('login-phone').value.trim();
     const password = document.getElementById('login-password').value;
-    
-    fetch(`${SERVER_URL}/login`, { 
-        method: 'POST', 
-        headers: { 'Content-Type': 'application/json' }, 
-        body: JSON.stringify({ phone, password }) 
-    })
-    .then(res => res.json())
-    .then(data => {
+    fetch(`${SERVER_URL}/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone, password }) })
+    .then(res => res.json()).then(data => {
         if (data.success) {
             document.getElementById('auth-section').style.display = 'none';
             document.getElementById('main-content-section').style.display = 'block';
             document.getElementById('user-phone-display').innerText = data.user.phone;
             updateLiveBalanceDisplays(data.user.balance);
             switchTab('game');
-            
-            // 🎯 ወሳኝ ማሻሻያ፦ ተጫዋቹ ሎጊን እንዳደረገ የዕጣ ታሪክ እና ስታቲስቲክስ በቋሚነት ከክላውድ ተጠርተው እንዲቀመጡ ያደርጋል!
-            if(typeof loadDrawHistoryFromServer === 'function') loadDrawHistoryFromServer();
-            if(typeof renderStatisticsToUI === 'function') renderStatisticsToUI();
-
             if(balanceInterval) clearInterval(balanceInterval);
             balanceInterval = setInterval(fetchLiveBalanceFromServer, 3000);
-        } else { 
-            alert(data.message); 
-        }
-    }).catch(err => {
-        console.error("Login Error:", err);
-        alert("❌ ከሰርቨር ጋር መገናኘት አልተቻለም!");
+        } else { alert(data.message); }
     });
 }
-
 
 function registerUser() {
-    const phoneInput = document.getElementById('register-phone').value; 
-    const passwordInput = document.getElementById('register-password').value;
-    if (!phoneInput || !passwordInput) { alert("⚠️ እባክዎ ምዝገባውን ለመጨረስ ስልክ ቁጥር እና የይለፍ ቃል ይፍጠሩ!"); return; }
-    fetch(`${SERVER_URL}/register`, { 
-        method: 'POST', 
-        headers: { 'Content-Type': 'application/json' }, 
-        body: JSON.stringify({ phone: phoneInput, password: passwordInput }) 
-    })
-    .then(res => res.json())
-    .then(data => { 
-        alert(data.message); 
-        if (data.success) { switchAuthTab('login'); }
-    }).catch(err => alert("❌ በምዝገባ ወቅት ከሰርቨር ጋር መገናኘት አልተቻለም!"));
-}
-function submitDeposit() {
-    const amount = document.getElementById('deposit-amount').value.trim(); 
-    const senderPhone = document.getElementById('deposit-phone').value.trim(); 
-    const method = document.getElementById('deposit-method').value; 
-    const userPhone = document.getElementById('user-phone-display').innerText.trim();
-    
-    if(!amount || !senderPhone) { alert("⚠️ እባክዎ ሁሉንም ፎርሞች ይሙሉ!"); return; }
-    if(!globalScreenshotBase64 || globalScreenshotBase64 === "") { alert("⚠️ እባክዎ መጀመሪያ የክፍያውን ማረጋገጫ ፎቶ ይጫኑ!"); return; }
-    
-    // 🎯 ፎቶውን ያለምንም የደህንነት መከልከል ወደ ሰርቨር በሰላም የሚልከው የተስተካከለው ፌች (Fetch)
-    fetch(`${SERVER_URL}/api/deposit`, { 
-        method: 'POST', 
-        headers: { 
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-        }, 
-        body: JSON.stringify({ userPhone, amount, senderPhone, method, screenshot: globalScreenshotBase64 }) 
-    })
-    .then(res => res.json())
-    .then(data => {
-        alert(data.message); 
-        globalScreenshotBase64 = ""; 
-        document.getElementById('custom-upload-container-box').innerHTML = '<div style="font-size: 26px;">📷 / 📁</div><div style="font-size: 13px; color: #ffcc00; font-weight: bold; margin-top: 2px;">Upload Screenshot</div>'; 
-        document.getElementById('deposit-amount').value = ""; 
-        document.getElementById('deposit-phone').value = ""; 
-        backToWalletMenu(); 
-    })
-    .catch(err => {
-        console.error(err);
-        alert("❌ የዲፖዚት ጥያቄ መላክ አልተቻለም! እባክዎ የሰርቨር ግንኙነትዎን ያረጋግጡ።");
-    });
+    const phone = document.getElementById('register-phone').value.trim();
+    const password = document.getElementById('register-password').value;
+    fetch(`${SERVER_URL}/register`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone, password }) })
+    .then(res => res.json()).then(data => { alert(data.message); if (data.success) switchAuthTab('login'); });
 }
 
-function executeActualDepositSubmissionFetch(userPhone, amount, senderPhone, method, submitBtn) {
-    fetch(`${SERVER_URL}/api/deposit`, { 
-        method: 'POST', 
-        headers: { 'Content-Type': 'application/json' }, 
-        body: JSON.stringify({ userPhone, amount, senderPhone, method, screenshot: globalScreenshotBase64 }) 
-    })
-    .then(res => res.json())
-    .then(data => {
-        alert(data.message);
-        globalScreenshotBase64 = ""; 
-        document.getElementById('custom-upload-container-box').innerHTML = '<div style="font-size: 26px;">📷 / 📁</div><div style="font-size: 13px; color: #ffcc00; font-weight: bold; margin-top: 2px;">Upload Screenshot</div>'; 
-        document.getElementById('deposit-amount').value = "";
-        document.getElementById('deposit-phone').value = "";
-        if(submitBtn && submitBtn.tagName === "BUTTON") submitBtn.disabled = false;
-        backToWalletMenu(); 
-    }).catch(err => {
-        alert("❌ ዲፖዚት ጥያቄ መላክ አልተቻለም!");
-        if(submitBtn && submitBtn.tagName === "BUTTON") submitBtn.disabled = false;
-    });
-}
-
-function submitWithdraw() {
-    const amount = document.getElementById('withdraw-amount').value; 
-    const accountNumber = document.getElementById('withdraw-account').value; 
-    const fullName = document.getElementById('withdraw-name').value; 
-    const method = document.getElementById('withdraw-method').value; 
-    const userPhone = document.getElementById('user-phone-display').innerText;
-    if(!amount || !accountNumber || !fullName) { alert("⚠️ እባክዎ ሁሉንም ፎርሞች በትክክል ይሙሉ!"); return; }
-    
-    fetch(`${SERVER_URL}/api/withdraw`, { 
-        method: 'POST', 
-        headers: { 'Content-Type': 'application/json' }, 
-        body: JSON.stringify({ userPhone, amount, accountNumber, fullName, method }) 
-    })
-    .then(res => res.json())
-    .then(data => { 
-        if(data.success) { 
-            alert(data.message); 
-            fetchLiveBalanceFromServer(); 
-            backToWalletMenu(); 
-        } else { alert(data.message); }
-    }).catch(err => alert("❌ የዊዝድሮው ጥያቄ መላክ አልተቻለም!"));
-}
-function updateLiveBalanceDisplays(newBalance) {
-    const formattedBal = parseFloat(newBalance).toFixed(2);
-    const balanceDisplay = document.getElementById('user-balance-display');
-    if (balanceDisplay) balanceDisplay.innerText = formattedBal;
-    const withdrawDisplay = document.getElementById('withdraw-available-amount-display');
-    if (withdrawDisplay) withdrawDisplay.innerText = formattedBal;
-}
-
-function switchActiveGame(gameName) {
-    document.getElementById('games-visual-list-menu-block').style.display = gameName === 'menu' ? 'block' : 'none';
-    document.getElementById('keno-game-main-block').style.display = gameName === 'keno' ? 'block' : 'none';
+function updateLiveBalanceDisplays(b) {
+    document.getElementById('user-balance-display').innerText = parseFloat(b).toFixed(2);
 }
 
 function switchAuthTab(type) {
     document.getElementById('login-form').style.display = type === 'login' ? 'block' : 'none';
     document.getElementById('register-form').style.display = type === 'register' ? 'block' : 'none';
-    document.getElementById('tab-login-btn').classList.toggle('active', type === 'login'); document.getElementById('tab-register-btn').classList.toggle('active', type === 'register');
 }
 
-function switchTab(tabName) {
-    document.getElementById('home-tab').style.display = tabName === 'home' ? 'block' : 'none';
-    document.getElementById('wallet-tab').style.display = tabName === 'wallet' ? 'block' : 'none';
-    document.getElementById('game-tab').style.display = tabName === 'game' ? 'block' : 'none';
-    document.getElementById('nav-home').classList.toggle('active', tabName === 'home'); document.getElementById('nav-wallet').classList.toggle('active', tabName === 'wallet'); document.getElementById('nav-game').classList.toggle('active', tabName === 'game');
-    if (tabName === 'game') switchActiveGame('menu');
+function switchTab(tab) {
+    document.getElementById('home-tab').style.display = tab === 'home' ? 'block' : 'none';
+    document.getElementById('game-tab').style.display = tab === 'game' ? 'block' : 'none';
+    if(tab === 'game') switchActiveGame('menu');
 }
-
-function switchSubTab(subName) {
-    document.getElementById('content-all').style.display = subName === 'all' ? 'block' : 'none';
-    document.getElementById('content-history').style.display = subName === 'history' ? 'block' : 'none';
-    document.getElementById('content-result').style.display = subName === 'result' ? 'block' : 'none';
-    document.getElementById('content-stats').style.display = subName === 'stats' ? 'block' : 'none';
-    document.getElementById('sub-all-btn').classList.toggle('active', subName === 'all'); document.getElementById('sub-history-btn').classList.toggle('active', subName === 'history'); document.getElementById('sub-result-btn').classList.toggle('active', subName === 'result'); document.getElementById('sub-stats-btn').classList.toggle('active', subName === 'stats');
-    if(subName === 'stats') { renderStatisticsToUI(); }
-}
-
-function showWalletForm(type) {
-    document.getElementById('wallet-main-buttons').style.display = 'none';
-    document.getElementById('deposit-form-block').style.display = type === 'deposit' ? 'block' : 'none';
-    document.getElementById('withdraw-form-block').style.display = type === 'withdraw' ? 'block' : 'none';
-}
-
-function backToWalletMenu() { document.getElementById('wallet-main-buttons').style.display = 'block'; document.getElementById('deposit-form-block').style.display = 'none'; document.getElementById('withdraw-form-block').style.display = 'none'; }
-let selectedNumbers = []; let currentBet = 4.00; let activeTickets = []; let totalActiveBetAmount = 0; let isDrawingActive = false; let timerInterval = null; let kenoTimeLeft = 60; let currentRoundNumber = 1001;
-
-const KENO_PAYOUT_ODDS = {
-    1: { 1: 3 }, 2: { 2: 5 }, 3: { 2: 2, 3: 50 }, 4: { 2: 1, 3: 5, 4: 80 }, 5: { 3: 3, 4: 15, 5: 200 },
-    6: { 3: 1, 4: 6, 5: 50, 6: 500 }, 7: { 4: 3, 5: 15, 6: 100, 7: 700 }, 8: { 4: 1, 5: 10, 6: 50, 7: 300, 8: 800 },
-    9: { 4: 1, 5: 5, 6: 25, 7: 150, 8: 500, 9: 1000 }, 10: { 4: 1, 5: 3, 6: 15, 7: 50, 8: 300, 9: 500, 10: 1200 }
-};
 
 function startKenoTimer() {
-    kenoTimeLeft = 60; const timerDisplay = document.getElementById('keno-timer');
+    kenoTimeLeft = 60;
+    const timerDisplay = document.getElementById('keno-timer');
     if (timerInterval) clearInterval(timerInterval);
     timerInterval = setInterval(() => {
-        if (isDrawingActive) return; kenoTimeLeft--;
-        if (kenoTimeLeft <= 0) { clearInterval(timerInterval); checkAdminControlBeforeDraw(); return; }
-        if(timerDisplay) timerDisplay.innerText = "00:" + kenoTimeLeft.toString().padStart(2, '0');
+        if (isDrawingActive) return;
+        kenoTimeLeft--;
+        if (kenoTimeLeft <= 0) { clearInterval(timerInterval); runKenoDrawNow(); return; }
+        if (timerDisplay) timerDisplay.innerText = "00:" + kenoTimeLeft.toString().padStart(2, '0');
     }, 1000);
 }
-
-function checkAdminControlBeforeDraw() {
-    fetch(`${SERVER_URL}/api/next-numbers`)
-        .then(res => res.json())
-        .then(data => {
-            if (data && data.forcedNumbers && data.forcedNumbers.length === 20) {
-                startAnimatedKenoDraw(data.forcedNumbers);
-            } else {
-                let localFallback = [];
-                while(localFallback.length < 20) {
-                    let r = Math.floor(Math.random() * 80) + 1;
-                    if(!localFallback.includes(r)) localFallback.push(r);
+function runKenoDrawNow() {
+    isDrawingActive = true;
+    let res = [];
+    while(res.length < 20) {
+        let r = Math.floor(Math.random() * 80) + 1;
+        if(!res.includes(r)) res.push(r);
+    }
+    let count = 0;
+    const els = document.querySelectorAll('.keno-num');
+    const interval = setInterval(() => {
+        if(count >= 20) {
+            clearInterval(interval);
+            let totalWin = 0;
+            activeTickets.forEach(t => {
+                let hits = t.numbers.filter(x => res.includes(x)).length;
+                if(KENO_PAYOUT_ODDS[t.numbers.length] && KENO_PAYOUT_ODDS[t.numbers.length][hits]) {
+                    totalWin += t.bet * KENO_PAYOUT_ODDS[t.numbers.length][hits];
                 }
-                startAnimatedKenoDraw(localFallback.sort((a,b) => a-b));
+            });
+            if (totalWin > 0) {
+                const userPhone = document.getElementById('user-phone-display').innerText.trim();
+                fetch(`${SERVER_URL}/api/claim-win`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userPhone, winAmount: totalWin }) })
+                .then(res => res.json()).then(data => { if (data.success) updateLiveBalanceDisplays(data.newBalance); });
             }
-        })
-        .catch(err => {
-            console.log("ከሰርቨር ጋር ግንኙነት ተቋርጧል፦", err);
-            let netFallback = [];
-            while(netFallback.length < 20) {
-                let r = Math.floor(Math.random() * 80) + 1;
-                if(!netFallback.includes(r)) netFallback.push(r);
-            }
-            startAnimatedKenoDraw(netFallback.sort((a,b) => a-b));
-        });
+            executePostDrawHistoryAndCleanup(res);
+            return;
+        }
+        let num = res[count];
+        if (els[num - 1]) els[num - 1].classList.add('drawn');
+        count++;
+    }, 500);
 }
 
-function renderTicketsToUI() {
-    const ticketsContainer = document.getElementById('my-tickets-list-container'); const sortedContainer = document.getElementById('bt-sorted-list-container');
-    if (!ticketsContainer || !sortedContainer) return;
-    ticketsContainer.innerHTML = ''; sortedContainer.innerHTML = '';
-    activeTickets.forEach(ticket => {
-        const ticketDiv = document.createElement('div'); ticketDiv.className = 'ticket-item';
-        let numbersHTML = ticket.numbers.map(num => ticket.hitNumbers.includes(num) ? '<span class="hit-num-text">' + num + '</span>' : num).join(',');
-        let liveWinAmount = 0; let pickedCount = ticket.numbers.length; let hitCount = ticket.hitNumbers.length;
-        if (KENO_PAYOUT_ODDS[pickedCount] && KENO_PAYOUT_ODDS[pickedCount][hitCount]) {
-            let odds = KENO_PAYOUT_ODDS[pickedCount][hitCount]; let rawWin = ticket.bet * odds;
-            liveWinAmount = rawWin > 30000 ? 30000 : rawWin;
-        }
-        let winText = liveWinAmount > 0 ? '<span style="color:#00ff00; font-weight:bold;">[🏆 +' + liveWinAmount.toFixed(2) + ']</span> ' : '';
-        ticketDiv.innerHTML = `<span style="color:#94a3b8;">${ticket.ticketId}</span> | ` + winText + ticket.bet + ' ETB - [' + numbersHTML + ']'; ticketsContainer.appendChild(ticketDiv);
-    });
-    const sortedTickets = [...activeTickets].sort((a, b) => b.bet - a.bet);
-    sortedTickets.forEach(ticket => {
-        const sortedDiv = document.createElement('div'); sortedDiv.className = 'bt-sorted-item';
-        let numbersHTML = ticket.numbers.map(num => ticket.hitNumbers.includes(num) ? '<span class="hit-num-text">' + num + '</span>' : num).join(',');
-        let liveWinAmount = 0; let pickedCount = ticket.numbers.length; let hitCount = ticket.hitNumbers.length;
-        if (KENO_PAYOUT_ODDS[pickedCount] && KENO_PAYOUT_ODDS[pickedCount][hitCount]) {
-            let odds = KENO_PAYOUT_ODDS[pickedCount][hitCount]; let rawWin = ticket.bet * odds;
-            liveWinAmount = rawWin > 30000 ? 30000 : rawWin;
-        }
-        let winText = liveWinAmount > 0 ? '<span style="color:#00ff00; font-weight:bold;">[🏆 +' + liveWinAmount.toFixed(2) + ']</span> ' : '';
-        sortedDiv.innerHTML = `<span style="color:#94a3b8;">${ticket.ticketId}</span> | ` + winText + ticket.bet + ' ETB - [' + numbersHTML + ']'; sortedContainer.appendChild(sortedDiv);
-    });
-}
-function changeBet(val) {
-    const betInput = document.getElementById('bet-amount-input');
-    if (!betInput) return;
-    let currentVal = parseFloat(betInput.value) || 0;
-    currentVal += val;
-    if (currentVal < 1) currentVal = 1; 
-    betInput.value = currentVal.toFixed(2);
-}
-
-function multiplyBet(factor) {
-    const betInput = document.getElementById('bet-amount-input');
-    if (!betInput) return;
-    let currentVal = parseFloat(betInput.value) || 0;
-    currentVal *= factor;
-    betInput.value = currentVal.toFixed(2);
+function executePostDrawHistoryAndCleanup(drawResults) {
+    fetch(`${SERVER_URL}/api/save-draw`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ roundNumber: currentRoundNumber, results: drawResults }) });
+    currentRoundNumber++;
+    setTimeout(() => {
+        activeTickets = []; // 🎯 ዙሩ ሲያልቅ በዋናው ገጽ ላይ ያሉት ወቅታዊ ቲኬቶች ይጠፋሉ
+        document.getElementById('my-tickets-list-container').innerHTML = '';
+        document.querySelectorAll('.keno-num').forEach(e => e.className = 'keno-num');
+        isDrawingActive = false;
+        startKenoTimer();
+    }, 5000);
 }
 
 function placeKenoBet() {
     if (isDrawingActive || selectedNumbers.length === 0) return;
-    
-    const betInput = document.getElementById('bet-amount-input');
-    if (!betInput) return;
-    
-    const typedBetAmount = parseFloat(betInput.value) || 0;
-    if (typedBetAmount <= 0) { 
-        alert("⚠️ እባክዎ በትክክል የውርርድ መጠን ያስገቡ!"); 
-        return; 
-    }
-
-    const balanceElement = document.getElementById('user-balance-display'); 
+    const typed = parseFloat(document.getElementById('bet-amount-input').value) || 0;
+    const bal = parseFloat(document.getElementById('user-balance-display').innerText) || 0;
+    if(bal < typed) return alert("❌ በቂ ቀሪ ሂሳብ የሎትም!");
     const userPhone = document.getElementById('user-phone-display').innerText.trim();
-    let currentBalance = parseFloat(balanceElement.innerText.trim()) || 0;
-    
-    if (currentBalance < typedBetAmount) { 
-        document.getElementById('my-bets-status-text').innerText = "❌ በቂ ቀሪ ሂሳብ የሎትም!"; 
-        return; 
-    }
-    
-    fetch(`${SERVER_URL}/api/place-bet`, { 
-        method: 'POST', 
-        headers: { 'Content-Type': 'application/json' }, 
-        body: JSON.stringify({ userPhone, betAmount: typedBetAmount }) 
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
+    fetch(`${SERVER_URL}/api/place-bet`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userPhone, betAmount: typed }) })
+    .then(res => res.json()).then(data => {
+        if(data.success) {
             updateLiveBalanceDisplays(data.newBalance);
-            let randomId = 'TK-' + Math.floor(100000 + Math.random() * 900000);
-            const ticket = { 
-                ticketId: randomId, 
-                id: Date.now(), 
-                numbers: [...selectedNumbers], 
-                bet: typedBetAmount, 
-                hitNumbers: [], 
-                winAmount: 0 
-            };
-            activeTickets.push(ticket); 
-            totalActiveBetAmount += typedBetAmount; 
-            renderTicketsToUI();
-            document.getElementById('ticket-count-label').innerText = activeTickets.length; 
-            document.getElementById('total-bet-label').innerText = totalActiveBetAmount.toFixed(2);
-            document.getElementById('my-bets-status-text').innerText = "✅ ቲኬትዎ ተቆርጧል!";
-            selectedNumbers = []; 
-            document.querySelectorAll('.keno-num').forEach(el => el.classList.remove('selected'));
+            const generatedId = 'TK-' + Math.floor(1000 + Math.random() * 9000);
+            fetch(`${SERVER_URL}/api/save-ticket`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ticketId: generatedId, userPhone, roundNumber: currentRoundNumber, numbers: selectedNumbers, bet: typed }) });
+            activeTickets.push({ ticketId: generatedId, numbers: [...selectedNumbers], bet: typed });
+            document.getElementById('my-tickets-list-container').innerHTML = activeTickets.map(t => `<div class="ticket-item">🎫 ${t.ticketId} | Bet: ${t.bet} ETB | [${t.numbers.join(',')}]</div>`).join('');
+            selectedNumbers = [];
+            document.querySelectorAll('.keno-num').forEach(e => e.classList.remove('selected'));
         }
-    }).catch(() => { alert("❌ ከሰርቨር ጋር መገናኘት አልተቻለም!"); });
+    });
 }
 
-function startAnimatedKenoDraw(drawResults) {
-    isDrawingActive = true; 
-    document.getElementById('bet-submit-btn').style.opacity = "0.5";
-    let count = 0; 
-    const elements = document.querySelectorAll('.keno-num');
-    const row1 = document.createElement('div'); row1.className = 'result-row-grid'; 
-    const row2 = document.createElement('div'); row2.className = 'result-row-grid';
-    
-    const drawInterval = setInterval(() => {
-        if (count >= 20) {
-            clearInterval(drawInterval);
-            let totalSessionWin = 0;
-            
-            activeTickets.forEach(ticket => {
-                let pickedCount = ticket.numbers.length;
-                let preciseHits = ticket.numbers.filter(num => drawResults.includes(num));
-                ticket.hitNumbers = preciseHits; 
-                let hitCount = preciseHits.length;
-                ticket.winAmount = 0; 
-                
-                if (KENO_PAYOUT_ODDS[pickedCount] && KENO_PAYOUT_ODDS[pickedCount][hitCount]) {
-                    let odds = KENO_PAYOUT_ODDS[pickedCount][hitCount]; 
-                    let rawWin = ticket.bet * odds;
-                    ticket.winAmount = rawWin > 30000 ? 30000 : rawWin; 
-                    totalSessionWin += ticket.winAmount;
-                }
-            });
-            
-            if (totalSessionWin > 0) {
-                const userPhone = document.getElementById('user-phone-display').innerText.trim();
-                fetch(`${SERVER_URL}/api/claim-win`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ userPhone, winAmount: totalSessionWin })
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        updateLiveBalanceDisplays(data.newBalance); 
-                    }
-                })
-                .catch(err => console.log("የዕጣ ሂሳብ ማመሳሰል አልተቻለም፦", err));
-            }
-            
-            executePostDrawHistoryAndCleanup(drawResults);
-            return;
-        }
-        
-        let num = drawResults[count]; 
-        if (elements[num - 1]) elements[num - 1].classList.add('drawn');
-        
-        activeTickets.forEach(ticket => {
-            if (ticket.numbers.includes(num) && !ticket.hitNumbers.includes(num)) {
-                ticket.hitNumbers.push(num);
-            }
+function changeBet(v) {
+    let el = document.getElementById('bet-amount-input');
+    let val = (parseFloat(el.value) || 0) + v;
+    if(val < 1) val = 1; el.value = val.toFixed(2);
+}
+
+function loadMyAllTicketHistoryFromCloud() {
+    const userPhone = document.getElementById('user-phone-display').innerText.trim();
+    if(!userPhone) return;
+    fetch(`${SERVER_URL}/api/my-tickets/${userPhone}`).then(res => res.json()).then(tickets => {
+        const container = document.getElementById('my-tickets-list-container');
+        if (!container) return; container.innerHTML = '';
+        if(tickets.length === 0) { container.innerHTML = '<div style="color:#64748b; text-align:center; padding:10px;">የለም</div>'; return; }
+        tickets.forEach(t => {
+            const row = document.createElement('div'); row.className = 'ticket-item';
+            row.innerHTML = `<div style="display:flex; justify-content:space-between; font-size:12px;"><span style="color:#ffcc00; font-weight:bold;">🎫 ROUND #${t.roundNumber}</span><span>ID: ${t.ticketId}</span></div><div style="font-size:14px; font-weight:bold; color:#fff; margin:4px 0;">[ ${t.numbers.join(', ')} ]</div><div style="font-size:12px; color:#00ff00; text-align:right;">Bet: ${t.bet} ETB</div>`;
+            container.appendChild(row);
         });
-        
-        const ball = document.createElement('div'); ball.className = 'result-ball'; ball.innerText = num;
-        if (count < 10) { row1.appendChild(ball); } else { row2.appendChild(ball); }
-        renderTicketsToUI(); 
-        count++;
-    }, 1000);
+    });
 }
-function executePostDrawHistoryAndCleanup(drawResults) {
-    fetch(`${SERVER_URL}/api/save-draw`, { 
-        method: 'POST', 
-        headers: { 'Content-Type': 'application/json' }, 
-        body: JSON.stringify({ roundNumber: currentRoundNumber, results: drawResults }) 
-    }).then(() => loadDrawHistoryFromServer());
 
-    const historyContainer = document.getElementById('history-rounds-master-container');
-    if (historyContainer && activeTickets.length > 0) {
-        const roundCard = document.createElement('div'); roundCard.className = 'history-round-card';
-        roundCard.innerHTML = `<div class="history-round-header">📜 GAME ROUND #${currentRoundNumber} HISTORY</div>`;
-        
-        activeTickets.forEach(t => {
-            const item = document.createElement('div'); item.style.fontSize = '12px'; item.style.marginBottom = '6px'; item.style.borderBottom = '1px dashed #24344d'; item.style.paddingBottom = '4px';
-            let numbersHTML = t.numbers.map(num => t.hitNumbers.includes(num) ? '<span class="hit-num-text">' + num + '</span>' : num).join(',');
-            let winBadgeText = t.winAmount > 0 ? `<span style="color:#00ff00; font-weight:bold;">[🏆 ያሸነፈው፡ +${t.winAmount.toFixed(2)} ETB]</span>` : `<span style="color:#ef4444;">[❌ ያሸነፈው፡ 0.00 ETB]</span>`;
-            
-            item.innerHTML = `🎫 <b>ID: ${t.ticketId}</b> | Bet: ${t.bet} ETB | ${winBadgeText}<br>🔢 የመረጣቸው ቁጥሮች፦ [${numbersHTML}]`; 
-            roundCard.appendChild(item);
+function loadDrawHistoryFromServer() {
+    fetch(`${SERVER_URL}/api/draw-history`).then(res => res.json()).then(history => {
+        const container = document.getElementById('my-tickets-list-container');
+        if (!container) return; container.innerHTML = '';
+        if(history.length === 0) { container.innerHTML = '<div style="color:#64748b; text-align:center; padding:10px;">የለም</div>'; return; }
+        history.forEach(round => {
+            const row = document.createElement('div'); row.className = 'ticket-item';
+            let balls = round.results.map(n => `<span style="background:#ffcc00; color:#000; padding:2px 6px; border-radius:50%; margin:2px; font-weight:bold; display:inline-block; font-size:12px; width:18px; text-align:center;">${n}</span>`).join(' ');
+            row.innerHTML = `<div style="color:#ffcc00; font-weight:bold; margin-bottom:5px;">🎰 ROUND #${round.roundNumber}</div><div>${balls}</div>`;
+            container.appendChild(row);
         });
-        historyContainer.insertBefore(roundCard, historyContainer.firstChild);
-    }
-    
-    currentRoundNumber++;
-    setTimeout(() => {
-        activeTickets = []; totalActiveBetAmount = 0; renderTicketsToUI();
-        document.getElementById('ticket-count-label').innerText = "0"; 
-        document.getElementById('total-bet-label').innerText = "0";
-        document.getElementById('my-bets-status-text').innerText = "እስካሁን የተጫወቱት ታሪክ የለም።";
-        document.querySelectorAll('.keno-num').forEach(el => el.className = 'keno-num'); 
-        isDrawingActive = false; 
-        document.getElementById('bet-submit-btn').style.opacity = "1"; 
-        startKenoTimer();
-    }, 5000); 
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-    const board = document.getElementById('keno-board');
-    if(board) { 
-        board.innerHTML = '';
-        for (let i = 1; i <= 80; i++) { 
-            const numBtn = document.createElement('div'); numBtn.innerText = i; numBtn.className = 'keno-num';
-            numBtn.onclick = () => selectNumber(numBtn, i); board.appendChild(numBtn); 
-        } 
-    }
-    if (timerInterval) clearInterval(timerInterval);
-    startKenoTimer();
-});
-
-function selectNumber(element, num) {
-    if (isDrawingActive) return; const index = selectedNumbers.indexOf(num);
-    if (index > -1) { selectedNumbers.splice(index, 1); element.classList.remove('selected'); }
-    else { if (selectedNumbers.length >= 10) return; selectedNumbers.push(num); element.classList.add('selected'); }
+    });
 }
 
 function renderStatisticsToUI() {
-    const container = document.getElementById('stats-numbers-list-container'); 
+    const container = document.getElementById('my-tickets-list-container');
     if(!container) return;
-    container.innerHTML = '<div style="color:#94a3b8; font-size:12px;">📈 ባለፉት 24 ሰዓታት የቁጥሮች ታሪክ በመተንተን ላይ...</div>';
     fetch(`${SERVER_URL}/api/draw-history`).then(res => res.json()).then(history => {
-        container.innerHTML = ''; let freqData = {}; for(let i=1; i<=80; i++) freqData[i] = 0;
-        const now = new Date(); const oneDayAgo = new Date(now.getTime() - (24 * 60 * 60 * 1000));
-        let activeDraws = history.filter(round => round.timestamp && new Date(round.timestamp) >= oneDayAgo);
-        if(activeDraws.length === 0) { container.innerHTML = '<div style="color:#94a3b8; font-size:13px; padding:10px;">📊 ባለፉት 24 ሰዓታት የተመዘገበ የዕጣ ታሪክ የለም።</div>'; return; }
-        activeDraws.forEach(round => { round.results.forEach(num => { freqData[num] = (freqData[num] || 0) + 1; }); });
-        let sortedItems = Object.keys(freqData).map(key => { return { number: key, count: freqData[key] }; });
-        sortedItems.sort((a, b) => b.count - a.count);
-        sortedItems.slice(0, 15).forEach((item, index) => {
-            const row = document.createElement('div'); row.className = 'stat-list-item';
-            row.innerHTML = '<span>🔥 ደረጃ ' + (index + 1) + ' ፡ ቁጥር <b style="color:#ffcc00; font-size:15px;">' + item.number + '</b></span> <span>📈 ' + item.count + ' ጊዜ ወጥቷል</span>';
+        container.innerHTML = '';
+        let freq = {}; for(let i=1; i<=80; i++) freq[i] = 0;
+        history.forEach(r => { r.results.forEach(n => { if(freq[n]!==undefined) freq[n]++; }); });
+        let sorted = Object.keys(freq).map(k => { return { num: k, count: freq[k] }; }).sort((a,b) => b.count - a.count);
+        if(history.length === 0) { container.innerHTML = '<div style="color:#64748b; text-align:center; padding:10px;">የለም</div>'; return; }
+        sorted.slice(0, 15).forEach((item, index) => {
+            const row = document.createElement('div'); row.className = 'ticket-item'; row.style.display = 'flex'; row.style.justify = 'space-between';
+            row.innerHTML = `<span>🔥 ደረጃ ${index+1} ፡ ቁጥር <b style="color:#ffcc00;">${item.num}</b></span> <span style="color:#00ff00; font-weight:bold;">📈 ${item.count} ጊዜ</span>`;
             container.appendChild(row);
         });
-    }).catch(() => { container.innerHTML = '❌ ታሪክ መጫን አልተቻለም!'; });
+    });
+}
+
+function switchSubTab(tab) {
+    document.getElementById('my-tickets-list-container').innerHTML = '<div style="color:#64748b; text-align:center; padding:10px;">በመጫን ላይ...</div>';
+    if(tab === 'all') {
+        document.getElementById('my-tickets-list-container').innerHTML = activeTickets.map(t => `<div class="ticket-item">🎫 ${t.ticketId} | Bet: ${t.bet} ETB | [${t.numbers.join(',')}]</div>`).join('') || '<div style="color:#64748b; text-align:center; padding:10px;">የለም</div>';
+    }
+    else if(tab === 'history') { loadMyAllTicketHistoryFromCloud(); } // 🎯 የድሮ ቲኬቶችን ታሪክ በ "HISTORY" ታብ ስር ብቻ ይደረድራል
+    else if(tab === 'result') { loadDrawHistoryFromServer(); }
+    else if(tab === 'stats') { renderStatisticsToUI(); }
+}
+document.addEventListener("DOMContentLoaded", () => {
+    const board = document.getElementById('keno-board');
+    if(board) {
+        board.innerHTML = '';
+        for(let i=1; i<=80; i++) {
+            const d = document.createElement('div'); d.innerText = i; d.className = 'keno-num';
+            d.onclick = () => {
+                if(isDrawingActive) return;
+                let idx = selectedNumbers.indexOf(i);
+                if(idx > -1) { selectedNumbers.splice(idx,1); d.classList.remove('selected'); }
+                else { if(selectedNumbers.length >= 5) return; selectedNumbers.push(i); d.classList.add('selected'); }
+            };
+            board.appendChild(d);
+        }
+    }
+    startKenoTimer();
+});
+
+/* 🚀 AVIATOR SYSTEM LOOK AND FEEL MATCHED */
+let aviatorCurrentBet = 4.00; let aviatorMultiplier = 1.00; let aviatorState = "IDLE"; let aviatorLoopInterval = null; let hasUserPlacedAviatorBet = false; let hasUserCascadedOut = false; let aviatorCrashPoint = 1.00; let aviatorFlightTime = 0; let aviatorCountdownTime = 5.0;
+
+function resetAviatorArenaToIdle() {
+    stopAviatorEngineEngine(); aviatorState = "IDLE"; aviatorMultiplier = 1.00; hasUserCascadedOut = false;
+    let randomPlayers = Math.floor(90 + Math.random() * 80); document.getElementById('aviator-live-players-count').innerText = randomPlayers;
+    const actionBtn = document.getElementById('aviator-action-btn');
+    if (!hasUserPlacedAviatorBet) { actionBtn.className = "aviator-btn-main aviator-btn-bet"; actionBtn.innerHTML = `Bet`; actionBtn.disabled = false; } 
+    else { actionBtn.className = "aviator-btn-main aviator-btn-waiting"; actionBtn.innerHTML = `Waiting...`; actionBtn.disabled = true; }
+    document.getElementById('aviator-multiplier-display').classList.remove('crashed', 'countdown-mode');
+    const rocket = document.getElementById('aviator-rocket-node'); rocket.style.display = "none"; rocket.style.bottom = "20px"; rocket.style.left = "20px";
+    startAviatorNextRoundCountdown();
+}
+
+function startAviatorNextRoundCountdown() {
+    aviatorState = "WAITING"; aviatorCountdownTime = 5.0; document.getElementById('aviator-multiplier-display').classList.add('countdown-mode');
+    if (aviatorLoopInterval) clearInterval(aviatorLoopInterval);
+    aviatorLoopInterval = setInterval(() => { aviatorCountdownTime -= 0.1; if(aviatorCountdownTime <= 0) { clearInterval(aviatorLoopInterval); launchAviatorRocketFlight(); } else { document.getElementById('aviator-multiplier-display').innerText = `Starts in ${aviatorCountdownTime.toFixed(1)}s`; } }, 100);
+}
+
+function handleAviatorActionBtnClick() {
+    const typed = parseFloat(document.getElementById('aviator-bet-input').value) || 0;
+    if (aviatorState === "IDLE" || aviatorState === "WAITING") {
+        if (hasUserPlacedAviatorBet) return;
+        const bal = parseFloat(document.getElementById('user-balance-display').innerText) || 0;
+        if(bal < typed) return alert("❌ በቂ ቀሪ ሂሳብ የሎትም!");
+        const userPhone = document.getElementById('user-phone-display').innerText.trim();
+        fetch(`${SERVER_URL}/api/place-bet`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userPhone, betAmount: typed }) }).then(res => res.json()).then(data => {
+            if (data.success) { updateLiveBalanceDisplays(data.newBalance); aviatorCurrentBet = typed; hasUserPlacedAviatorBet = true; const actionBtn = document.getElementById('aviator-action-btn'); actionBtn.className = "aviator-btn-main aviator-btn-waiting"; actionBtn.innerHTML = `Waiting...`; actionBtn.disabled = true; }
+        });
+    } 
+    else if (aviatorState === "FLYING") {
+        if (!hasUserPlacedAviatorBet || hasUserCascadedOut) return; hasUserCascadedOut = true; let winAmount = aviatorCurrentBet * aviatorMultiplier;
+        const userPhone = document.getElementById('user-phone-display').innerText.trim();
+        fetch(`${SERVER_URL}/api/claim-win`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userPhone, winAmount: winAmount }) }).then(res => res.json()).then(data => {
+            if (data.success) { updateLiveBalanceDisplays(data.newBalance); const actionBtn = document.getElementById('aviator-action-btn'); actionBtn.className = "aviator-btn-main aviator-btn-waiting"; actionBtn.innerHTML = `CASHED OUT`; actionBtn.disabled = true; }
+        });
+    }
+}
+
+function launchAviatorRocketFlight() {
+    aviatorState = "FLYING"; aviatorMultiplier = 1.00; aviatorFlightTime = 0; document.getElementById('aviator-multiplier-display').classList.remove('countdown-mode');
+    let randChance = Math.random(); if (randChance < 0.12) { aviatorCrashPoint = 1.00; } else { aviatorCrashPoint = parseFloat((1.00 + Math.pow(Math.random(), 3.2) * 18).toFixed(2)); if(aviatorCrashPoint < 1.05) aviatorCrashPoint = 1.12; }
+    const rocket = document.getElementById('aviator-rocket-node'); rocket.style.display = "block";
+    if (hasUserPlacedAviatorBet && !hasUserCascadedOut) { const actionBtn = document.getElementById('aviator-action-btn'); actionBtn.className = "aviator-btn-main aviator-btn-cashout"; actionBtn.innerHTML = `Cash Out`; actionBtn.disabled = false; }
+    if (aviatorLoopInterval) clearInterval(aviatorLoopInterval);
+    aviatorLoopInterval = setInterval(() => {
+        aviatorFlightTime += 0.05; aviatorMultiplier = parseFloat((1.00 + Math.pow(aviatorFlightTime, 1.55) * 0.18).toFixed(2)); document.getElementById('aviator-multiplier-display').innerText = aviatorMultiplier.toFixed(2) + "x";
+        let currentX = Math.min(25 + aviatorFlightTime * 28, 390); let currentY = Math.min(25 + aviatorFlightTime * 19, 160); rocket.style.left = currentX + "px"; rocket.style.bottom = currentY + "px";
+        if (aviatorMultiplier >= aviatorCrashPoint) { executeAviatorRocketCrashSequence(); }
+    }, 100);
+}
+
+function executeAviatorRocketCrashSequence() {
+    stopAviatorEngineEngine(); aviatorState = "CRASHED"; document.getElementById('aviator-multiplier-display').innerText = "Flew Away"; document.getElementById('aviator-multiplier-display').classList.add('crashed');
+    const rocket = document.getElementById('aviator-rocket-node'); rocket.style.display = "none"; const actionBtn = document.getElementById('aviator-action-btn'); actionBtn.className = "aviator-btn-main aviator-btn-waiting"; actionBtn.innerHTML = "FLEW AWAY"; actionBtn.disabled = true;
+    pushFlightHistoryToStrip(aviatorCrashPoint); hasUserPlacedAviatorBet = false; setTimeout(() => { resetAviatorArenaToIdle(); }, 3500);
+}
+
+function pushFlightHistoryToStrip(val) { const container = document.getElementById('aviator-history-strip-container'); if (!container) return; const badge = document.createElement('div'); badge.className = "aviator-history-badge"; if(val >= 2.00) badge.className += " high"; badge.innerText = val.toFixed(2) + "x"; container.insertBefore(badge, container.firstChild); }
+function stopAviatorEngineEngine() { if (aviatorLoopInterval) clearInterval(aviatorLoopInterval); aviatorLoopInterval = null; }
+
+function switchActiveGame(gameName) {
+    document.getElementById('games-visual-list-menu-block').style.display = gameName === 'menu' ? 'block' : 'none';
+    document.getElementById('keno-game-main-block').style.display = gameName === 'keno' ? 'block' : 'none';
+    document.getElementById('aviator-game-main-block').style.display = gameName === 'aviator' ? 'block' : 'none';
+    if (gameName === 'aviator') { resetAviatorArenaToIdle(); } else { stopAviatorEngineEngine(); }
 }
 </script>
 </body>
