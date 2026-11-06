@@ -1,235 +1,209 @@
-<!DOCTYPE html>
-<html lang="am">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashbet - Supreme Executive Admin Panel</title>
-    <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #0b111e; color: #ffffff; margin: 0; padding: 20px; text-align: center; }
-        .admin-container { max-width: 1100px; margin: 0 auto; background: #0f172a; padding: 25px; border-radius: 12px; box-shadow: 0 4px 25px rgba(0,0,0,0.5); }
-        h2 { color: #ffcc00; margin-bottom: 20px; }
-        .tab-buttons-container { display: flex; justify-content: flex-start; gap: 10px; margin-bottom: 25px; background: #1e293b; padding: 8px; border-radius: 8px; }
-        .tab-btn { background: #151f32; color: #bbb; padding: 10px 20px; border-radius: 6px; border: 1px solid #334155; font-weight: bold; cursor: pointer; }
-        .tab-btn.active { background: #ffcc00; color: #000; }
-        .refresh-btn { background: #10b981; color: white; padding: 10px 20px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-left: auto; }
-        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px; }
-        .stat-card { background: #151f32; padding: 15px; border-radius: 8px; text-align: center; border: 1px solid #24344d; }
-        .stat-card h4 { margin: 0; color: #94a3b8; font-size: 13px; text-transform: uppercase; }
-        .stat-card p { margin: 8px 0 0 0; font-size: 20px; font-weight: bold; color: #00ff00; }
-        .panel-section { display: none; background: #151f32; padding: 20px; border-radius: 10px; border: 1px solid #24344d; margin-top: 15px; text-align: left; }
-        .panel-section.active { display: block; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; background: #0f172a; border-radius: 8px; overflow: hidden; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #24344d; font-size: 14px; }
-        th { background-color: #1e293b; color: #ffcc00; }
-        
-        /* 🎯 አዝራሮች */
-        .btn-action { padding: 6px 12px; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; margin-right: 5px; }
-        .btn-approve { background: #22c55e; color: #000; }
-        .btn-reject { background: #ef4444; color: #fff; } /* 🎯 የREJECT ቁልፍ ቀይ ቀለም ስታይል */
-        
-        .screenshot-img { width: 50px; height: 50px; object-fit: cover; border-radius: 4px; cursor: pointer; border: 1px solid #ffcc00; }
-        .rig-input { width: 100%; padding: 12px; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #fff; font-size: 15px; font-weight: bold; margin-top: 10px; box-sizing: border-box; }
-        .btn-rig { background: #ff3366; color: white; padding: 12px 24px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; margin-top: 15px; }
-        .image-modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 10000; justify-content: center; align-items: center; }
-        .image-modal-content { max-width: 90%; max-height: 85%; border: 3px solid #ffcc00; border-radius: 8px; box-shadow: 0 0 20px #ffcc00; }
-        .image-modal-close { position: absolute; top: 20px; right: 30px; color: #fff; font-size: 40px; font-weight: bold; cursor: pointer; }
-    </style>
-</head>
-<body>
-<div class="admin-container">
-    <h2>💼 DASHBET EXECUTIVE CONTROL PANEL</h2>
-    <div class="tab-buttons-container">
-        <button id="tab-deposits" class="tab-btn active" onclick="switchAdminTab('deposits')">📷 Deposits</button>
-        <button id="tab-withdraws" class="tab-btn" onclick="switchAdminTab('withdraws')">💸 Withdraws</button>
-        <button id="tab-users" class="tab-btn" onclick="switchAdminTab('users')">👥 Users</button>
-        <button id="tab-control" class="tab-btn" onclick="switchAdminTab('control')">🎯 Live Control</button>
-        <button class="refresh-btn" onclick="loadAdminDashboardData()">🔄 REFRESH DATA</button>
-    </div>
+const express = require('express');
+const path = require('path');
+const cors = require('cors');
+const mongoose = require('mongoose');
 
-    <div class="stats-grid">
-        <div class="stat-card"><h4>ጠቅላላ የተጠቃሚዎች ካፒታል</h4><p id="total-users-capital">0.00 ETB</p></div>
-        <div class="stat-card"><h4>ጠቅላላ ተጠቃሚዎች</h4><p id="total-users-count">0</p></div>
-        <div class="stat-card"><h4>የሚጠባበቁ ዲፖዚቶች</h4><p id="pending-deposits-count">0</p></div>
-        <div class="stat-card"><h4>የሚጠባበቁ ዊዝድሮዎች</h4><p id="pending-withdraws-count">0</p></div>
-    </div>
+const app = express();
+const PORT = process.env.PORT || 5000; 
 
-    <div id="section-deposits" class="panel-section active">
-        <h3>📷 የሚጠባበቁ ዲፖዚቶች (PENDING DEPOSITS)</h3>
-        <table>
-            <thead>
-                <tr><th>የጥያቄ ID</th><th>የተጫዋች ስልክ</th><th>ማረጋገጫ (Receipt)</th><th>የላከበት ስልክ</th><th>የክፍያ ዘዴ</th><th>የብር መጠን</th><th>ሁኔታ</th><th>እርምጃ</th></tr>
-            </thead>
-            <tbody id="deposits-table-body"></tbody>
-        </table>
-    </div>
+const MONGO_URI = "mongodb+srv://biniyammamo27_db_user:DxPcujpJIbfPJDLJ@cluster0.rnosp51.mongodb.net/dashbet?retryWrites=true&w=majority";
 
-    <div id="section-withdraws" class="panel-section">
-        <h3>💸 የሚጠባበቁ ዊዝድሮዎች (PENDING WITHDRAWALS)</h3>
-        <table>
-            <thead>
-                <tr><th>የጥያቄ ID</th><th>የተጫዋች ስልክ</th><th>የአካውንት ቁጥር</th><th>ሙሉ ስም</th><th>የክፍያ ዘዴ</th><th>የብር መጠን</th><th>ሁኔታ</th><th>እርምጃ</th></tr>
-            </thead>
-            <tbody id="withdraws-table-body"></tbody>
-        </table>
-    </div>
+app.use(express.json({ limit: '100mb' }));
+app.use(express.urlencoded({ limit: '100mb', extended: true }));
+app.use(cors());
 
-    <div id="section-users" class="panel-section">
-        <h3>👥 የተመዘገቡ ተጫዋቾች ዝርዝር</h3>
-        <table>
-            <thead>
-                <tr><th>#</th><th>የተጠቃሚ ስልክ ቁጥር</th><th>የይለፍ ቃል (Password)</th><th>ወቅታዊ ቀሪ ሂሳብ</th></tr>
-            </thead>
-            <tbody id="users-table-body"></tbody>
-        </table>
-    </div>
+mongoose.connect(MONGO_URI)
+.then(() => console.log("🟢 MongoDB Cloud Database Connected Successfully!"))
+.catch(err => console.log("❌ MongoDB Connection Error: ", err));
 
-    <div id="section-control" class="panel-section">
-        <h3>🎯 የዕጣ ቁጥሮች አስገዳጅ ሞተር (RIGGING CONTROLLER)</h3>
-        <label style="color: #00ffcc;">👉 በሚቀጥለው ዙር ጨዋታ ላይ እንዲወጡ የምትፈልጋቸውን 20 ቁጥሮች በኮማ (,) ለይተህ አስገባቸው።</label>
-        <input type="text" id="forced-numbers-input" class="rig-input" placeholder="📋 ምሳሌ፦ 5,12,18,22,25,30,34,39,41,45,48,52,55,60,63,67,70,72,77,80">
-        <button class="btn-rig" onclick="saveForcedKenoNumbers()">🎯 FORCE THESE 20 NUMBERS</button>
-        <button class="btn-rig" style="background:#3a506b; margin-left:10px;" onclick="resetKenoToRandom()">🔄 RESET TO RANDOM</button>
-    </div>
-</div>
+let forcedKenoNumbers = [];
 
-<div id="imageViewerModal" class="image-modal-overlay">
-    <span class="image-modal-close" onclick="closeLiveImageViewer()">&times;</span>
-    <img id="modalTargetImage" class="image-modal-content" src="">
-</div>
-<script>
-const SERVER_URL = "https://hulugamedash-bet.onrender.com";
-let autoRefreshInterval = null; 
-
-function switchAdminTab(tabName) {
-    document.querySelectorAll('.panel-section').forEach(sec => sec.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    document.getElementById('section-' + tabName).classList.add('active');
-    document.getElementById('tab-' + tabName).classList.add('active');
-}
-
-function openLiveImageViewer(base64Data) {
-    const modal = document.getElementById('imageViewerModal');
-    const modalImg = document.getElementById('modalTargetImage');
-    if(modal && modalImg) { modalImg.src = base64Data; modal.style.display = "flex"; }
-}
-
-function closeLiveImageViewer() {
-    const modal = document.getElementById('imageViewerModal');
-    if(modal) modal.style.display = "none";
-}
-
-function loadAdminDashboardData() {
-    fetch(`${SERVER_URL}/admin/users`).then(res => res.json()).then(users => {
-        document.getElementById('total-users-count').innerText = users.length;
-        let capital = users.reduce((sum, u) => sum + (u.balance || 0), 0);
-        document.getElementById('total-users-capital').innerText = capital.toFixed(2) + " ETB";
-        const tbody = document.getElementById('users-table-body');
-        if(tbody) {
-            tbody.innerHTML = users.map((u, i) => `<tr><td>${i + 1}</td><td style="color:#00ffcc; font-weight:bold;">${u.phone}</td><td>${u.password}</td><td style="color:#00ff00; font-weight:bold;">${parseFloat(u.balance).toFixed(2)} ETB</td></tr>`).join('');
-        }
-    });
-
-    fetch(`${SERVER_URL}/admin/deposits`).then(res => res.json()).then(deposits => {
-        let uniqueDeposits = []; let seenScreenshots = new Set();
-        deposits.forEach(d => {
-            if (!d.screenshot || d.screenshot === "") { uniqueDeposits.push(d); } 
-            else if (!seenScreenshots.has(d.screenshot)) { seenScreenshots.add(d.screenshot); uniqueDeposits.push(d); }
-        });
-        const pendings = uniqueDeposits.filter(d => d.status === 'PENDING');
-        document.getElementById('pending-deposits-count').innerText = pendings.length;
-        const tbody = document.getElementById('deposits-table-body');
-        if(tbody) {
-            // 🎯 ማሻሻያ፦ APPROVE እና REJECT ቁልፎች በንጽህና ተቀምጠዋል
-            tbody.innerHTML = uniqueDeposits.map(d => `
-                <tr>
-                    <td>${d.id}</td><td>${d.userPhone}</td>
-                    <td>${d.screenshot ? `<img src="${d.screenshot}" class="screenshot-img" onclick="openLiveImageViewer('${d.screenshot}')">` : 'No Image'}</td>
-                    <td>${d.senderPhone}</td><td><b style="color:#ffcc00;">${d.method}</b></td>
-                    <td style="color:#00ff00; font-weight:bold;">${d.amount} ETB</td>
-                    <td style="color:${d.status==='PENDING'?'#ff9900':d.status==='APPROVED'?'#22c55e':'#ef4444'}">${d.status}</td>
-                    <td>
-                        ${d.status === 'PENDING' ? `
-                            <button class="btn-action btn-approve" onclick="processDeposit('${d.id}', '${d.userPhone}', ${d.amount})">APPROVE</button>
-                            <button class="btn-action btn-reject" onclick="rejectDeposit('${d.id}')">REJECT</button>
-                        ` : `✅ ${d.status}`}
-                    </td>
-                </tr>
-            `).join('');
-        }
-    });
-
-    fetch(`${SERVER_URL}/admin/withdrawals`).then(res => res.json()).then(withdrawals => {
-        const pendings = withdrawals.filter(w => w.status === 'PENDING');
-        document.getElementById('pending-withdraws-count').innerText = pendings.length;
-        const tbody = document.getElementById('withdraws-table-body');
-        if(tbody) {
-            tbody.innerHTML = withdrawals.map(w => `
-                <tr>
-                    <td>${w.id}</td><td>${w.userPhone}</td><td><b style="color:#00ffcc;">${w.accountNumber}</b></td><td>${w.fullName}</td><td><b style="color:#ffcc00;">${w.method}</b></td>
-                    <td style="color:#ef4444; font-weight:bold;">${w.amount} ETB</td>
-                    <td style="color:${w.status==='PENDING'?'#ff9900':w.status==='APPROVED'?'#22c55e':'#ef4444'}">${w.status}</td>
-                    <td>
-                        ${w.status === 'PENDING' ? `
-                            <button class="btn-action btn-approve" onclick="processWithdraw('${w.id}', '${w.userPhone}', ${w.amount})">APPROVE</button>
-                            <button class="btn-action btn-reject" onclick="rejectWithdraw('${w.id}')">REJECT</button>
-                        ` : `✅ ${w.status}`}
-                    </td>
-                </tr>
-            `).join('');
-        }
-    });
-}
-
-function processDeposit(id, userPhone, amount) {
-    if(!confirm("ይህንን ዲፖዚት ማጽደቅ ይፈልጋሉ?")) return;
-    fetch(`${SERVER_URL}/admin/approve-deposit`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, userPhone, amount }) }).then(() => { loadAdminDashboardData(); });
-}
-
-// 🎯 አዲሱ የዲፖዚት REJECT ፈንክሽን
-function rejectDeposit(id) {
-    if(!confirm("⚠️ ይህንን ዲፖዚት ውድቅ (Reject) ማድረግ ይፈልጋሉ?")) return;
-    fetch(`${SERVER_URL}/admin/reject-deposit`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) }).then(() => { alert("❌ ዲፖዚቱ ውድቅ ተደርጓል!"); loadAdminDashboardData(); });
-}
-
-function processWithdraw(id, userPhone, amount) {
-    if(!confirm("ይህንን ዊዝድሮው ማጽደቅ ይፈልጋሉ?")) return;
-    fetch(`${SERVER_URL}/admin/approve-withdraw`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, userPhone, amount }) }).then(() => { loadAdminDashboardData(); });
-}
-
-// 🎯 አዲሱ የዊዝድሮው REJECT ፈንክሽን
-function rejectWithdraw(id) {
-    if(!confirm("⚠️ ይህንን ዊዝድሮው ውድቅ (Reject) ማድረግ ይፈልጋሉ?")) return;
-    fetch(`${SERVER_URL}/admin/reject-withdraw`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) }).then(() => { alert("❌ ዊዝድሮው ውድቅ ተደርጓል!"); loadAdminDashboardData(); });
-}
-
-// 🎯 እውነተኛው የቁጥሮች መቆጣጠሪያ (Rigging Core Engine)
-function saveForcedKenoNumbers() {
-    const inputVal = document.getElementById('forced-numbers-input').value.trim();
-    if(!inputVal) return alert("⚠️ እባክዎ መጀመሪያ 20 ቁጥሮችን ያስገቡ!");
-    
-    const arr = inputVal.split(',').map(n => parseInt(n.trim())).filter(n => !isNaN(n) && n >= 1 && n <= 80);
-    if(arr.length !== 20) return alert("❌ ስህተት፦ በትክክል 20 ቁጥሮች መሆን አለባቸው!");
-
-    fetch(`${SERVER_URL}/api/admin/force-keno`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ numbers: arr })
-    })
-    .then(res => res.json())
-    .then(data => { alert(data.message); });
-}
-
-function resetKenoToRandom() {
-    fetch(`${SERVER_URL}/api/admin/reset-keno`, { method: 'POST' })
-    .then(res => res.json())
-    .then(data => { alert(data.message); document.getElementById('forced-numbers-input').value = ""; });
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-    loadAdminDashboardData();
-    if(autoRefreshInterval) clearInterval(autoRefreshInterval);
-    autoRefreshInterval = setInterval(loadAdminDashboardData, 3000); 
+const UserSchema = new mongoose.Schema({
+    phone: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    balance: { type: Number, default: 0.00 }
 });
-</script>
-</body>
-</html>
+const User = mongoose.model('User', UserSchema);
+
+const DepositSchema = new mongoose.Schema({
+    id: String,
+    userPhone: String,
+    amount: Number,
+    senderPhone: String,
+    method: String,
+    screenshot: String,
+    status: { type: String, default: 'PENDING' },
+    date: { type: String, default: () => new Date().toLocaleString('am-ET') }
+});
+const Deposit = mongoose.model('Deposit', DepositSchema);
+
+const WithdrawalSchema = new mongoose.Schema({
+    id: String,
+    userPhone: String,
+    amount: Number,
+    accountNumber: String,
+    fullName: String,
+    method: String,
+    status: { type: String, default: 'PENDING' },
+    date: { type: String, default: () => new Date().toLocaleString('am-ET') }
+});
+const Withdrawal = mongoose.model('Withdrawal', WithdrawalSchema);
+
+const DrawSchema = new mongoose.Schema({ roundNumber: Number, results: [Number], date: { type: Date, default: Date.now } });
+const Draw = mongoose.model('Draw', DrawSchema);
+
+// 🎯 አዲስ የቲኬት ታሪክ ሰንጠረዥ (Ticket Schema)
+const TicketSchema = new mongoose.Schema({
+    ticketId: String,
+    userPhone: String,
+    roundNumber: Number,
+    numbers: [Number],
+    bet: Number,
+    date: { type: Date, default: Date.now }
+});
+const Ticket = mongoose.model('Ticket', TicketSchema);
+
+app.get('/', (req, res) => { res.sendFile(path.join(__dirname, 'Dashbet3.html')); });
+app.get('/admin-panel', (req, res) => { res.sendFile(path.join(__dirname, 'admin.html')); });
+
+app.post('/login', async (req, res) => {
+    let { phone, password } = req.body;
+    if (!phone || !password) return res.json({ success: false, message: "⚠️ እባክዎ ያስገቡ!" });
+    try {
+        const user = await User.findOne({ phone: phone.trim() });
+        if (user && user.password === password) return res.json({ success: true, user: { phone: user.phone, balance: user.balance } });
+        return res.json({ success: false, message: "⚠️ ስልክ ወይም የይለፍ ቃል ተሳስቷል!" });
+    } catch (e) { res.json({ success: false }); }
+});
+
+app.post('/register', async (req, res) => {
+    let { phone, password } = req.body;
+    try {
+        const existing = await User.findOne({ phone: phone.trim() });
+        if (existing) return res.json({ success: false, message: "❌ ይህ ስልክ ቀድሞ ተመዝግቧል!" });
+        const newUser = new User({ phone: phone.trim(), password, balance: 0.00 });
+        await newUser.save();
+        res.json({ success: true, message: "✅ ምዝገባዎ ተጠናቋል!" });
+    } catch (e) { res.json({ success: false }); }
+});
+
+app.post('/api/place-bet', async (req, res) => {
+    let { userPhone, betAmount } = req.body;
+    try {
+        const user = await User.findOne({ phone: userPhone.trim() });
+        if (!user || user.balance < parseFloat(betAmount)) return res.json({ success: false });
+        user.balance -= parseFloat(betAmount); await user.save();
+        res.json({ success: true, newBalance: user.balance });
+    } catch (e) { res.json({ success: false }); }
+});
+
+app.post('/api/claim-win', async (req, res) => {
+    let { userPhone, winAmount } = req.body;
+    try {
+        const user = await User.findOne({ phone: userPhone.trim() });
+        if (!user) return res.json({ success: false });
+        user.balance += parseFloat(winAmount); await user.save();
+        res.json({ success: true, newBalance: user.balance });
+    } catch (e) { res.json({ success: false }); }
+});
+
+app.post('/api/deposit', async (req, res) => {
+    let { userPhone, amount, senderPhone, method, screenshot } = req.body;
+    try {
+        if (!screenshot) return res.json({ success: false, message: "⚠️ ፎቶ ይጫኑ!" });
+        const duplicate = await Deposit.findOne({ screenshot });
+        if (duplicate) return res.json({ success: false, message: "❌ ይህ ማረጋገጫ ቀድሞ ጥቅም ላይ ውሏል!" });
+        const newDep = new Deposit({ id: 'DEP-' + Date.now(), userPhone: userPhone.trim(), amount: parseFloat(amount), senderPhone, method, screenshot });
+        await newDep.save(); res.json({ success: true, message: "✅ ጥያቄዎ ደርሷል!" });
+    } catch (e) { res.json({ success: false }); }
+});
+
+app.post('/api/withdraw', async (req, res) => {
+    let { userPhone, amount, accountNumber, fullName, method } = req.body;
+    try {
+        const user = await User.findOne({ phone: userPhone.trim() });
+        if (!user || user.balance < parseFloat(amount)) return res.json({ success: false, message: "❌ በቂ ቀሪ ሂሳብ የሎትም!" });
+        const newWith = new Withdrawal({ id: 'WITH-' + Date.now(), userPhone: userPhone.trim(), amount: parseFloat(amount), accountNumber, fullName, method });
+        await newWith.save(); res.json({ success: true, message: "✅ ጥያቄዎ ደርሷል!" });
+    } catch (e) { res.json({ success: false }); }
+});
+
+app.post('/api/admin/force-keno', (req, res) => {
+    const { numbers } = req.body;
+    if (Array.isArray(numbers) && numbers.length === 20) {
+        forcedKenoNumbers = numbers;
+        return res.json({ success: true, message: "🎯 20 ቁጥሮች በክላውድ ሞተር ላይ በተሳካ ሁኔታ ታግደዋል!" });
+    }
+    res.json({ success: false, message: "❌ ስህተት ተፈጥሯል!" });
+});
+
+app.post('/api/admin/reset-keno', (req, res) => {
+    forcedKenoNumbers = [];
+    res.json({ success: true, message: "🔄 የቁጥሮች መቆጣጠሪያው ጠፍቷል!" });
+});
+
+app.get('/api/get-draw-numbers', (req, res) => {
+    if (forcedKenoNumbers.length === 20) {
+        let temp = [...forcedKenoNumbers];
+        forcedKenoNumbers = [];
+        return res.json({ forced: true, numbers: temp });
+    }
+    let randomNums = [];
+    while(randomNums.length < 20) {
+        let r = Math.floor(Math.random() * 80) + 1;
+        if(!randomNums.includes(r)) randomNums.push(r);
+    }
+    res.json({ forced: false, numbers: randomNums });
+});
+
+app.post('/api/save-draw', async (req, res) => {
+    try { const newDraw = new Draw(req.body); await newDraw.save(); res.json({ success: true }); } catch (e) { res.json({ success: false }); }
+});
+
+app.get('/api/draw-history', async (req, res) => {
+    try { const history = await Draw.find({ date: { $gte: new Date(Date.now() - 24*60*60*1000) } }).sort({ _id: -1 }); res.json(history); } catch (e) { res.json([]); }
+});
+
+// 🎯 የቲኬት ታሪክ መስመሮች
+app.post('/api/save-ticket', async (req, res) => {
+    const { ticketId, userPhone, roundNumber, numbers, bet } = req.body;
+    try { const newTicket = new Ticket({ ticketId, userPhone, roundNumber, numbers, bet }); await newTicket.save(); res.json({ success: true }); } catch (e) { res.json({ success: false }); }
+});
+
+app.get('/api/my-tickets/:phone', async (req, res) => {
+    try { const tickets = await Ticket.find({ userPhone: req.params.phone }).sort({ _id: -1 }).limit(30); res.json(tickets); } catch (e) { res.json([]); }
+});
+
+app.get('/admin/users', async (req, res) => { try { res.json(await User.find()); } catch(e) { res.json([]); } });
+app.get('/admin/deposits', async (req, res) => { try { res.json(await Deposit.find().sort({ _id: -1 })); } catch(e) { res.json([]); } });
+app.get('/admin/withdrawals', async (req, res) => { try { res.json(await Withdrawal.find().sort({ _id: -1 })); } catch(e) { res.json([]); } });
+
+app.post('/admin/approve-deposit', async (req, res) => {
+    const { id, userPhone, amount } = req.body;
+    try {
+        await Deposit.findOneAndUpdate({ id }, { status: 'APPROVED' });
+        const user = await User.findOne({ phone: userPhone.trim() });
+        if(user) { user.balance += parseFloat(amount); await user.save(); }
+        res.json({ success: true });
+    } catch (e) { res.json({ success: false }); }
+});
+
+app.post('/admin/reject-deposit', async (req, res) => {
+    try { await Deposit.findOneAndUpdate({ id: req.body.id }, { status: 'REJECTED' }); res.json({ success: true }); } catch (e) { res.json({ success: false }); }
+});
+
+app.post('/admin/approve-withdraw', async (req, res) => {
+    const { id, userPhone, amount } = req.body;
+    try {
+        await Withdrawal.findOneAndUpdate({ id }, { status: 'APPROVED' });
+        const user = await User.findOne({ phone: userPhone.trim() });
+        if(user) { user.balance -= parseFloat(amount); await user.save(); }
+        res.json({ success: true });
+    } catch (e) { res.json({ success: false }); }
+});
+
+app.post('/admin/reject-withdraw', async (req, res) => {
+    try { await Withdrawal.findOneAndUpdate({ id: req.body.id }, { status: 'REJECTED' }); res.json({ success: true }); } catch (e) { res.json({ success: false }); }
+});
+
+app.listen(PORT, () => { console.log(`🚀 ሰርቨሩ በፖርት ${PORT} ላይ ተነስቷል!`); });
