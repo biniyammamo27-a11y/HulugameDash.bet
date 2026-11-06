@@ -21,12 +21,10 @@
         table { width: 100%; border-collapse: collapse; margin-top: 15px; background: #0f172a; border-radius: 8px; overflow: hidden; }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid #24344d; font-size: 14px; }
         th { background-color: #1e293b; color: #ffcc00; }
-        .btn-action { padding: 6px 12px; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; background: #22c55e; color: #000; }
+        .btn-action { padding: 6px 12px; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; margin-right: 5px; }
+        .btn-approve { background: #22c55e; color: #000; }
+        .btn-reject { background: #ef4444; color: #fff; }
         .screenshot-img { width: 50px; height: 50px; object-fit: cover; border-radius: 4px; cursor: pointer; border: 1px solid #ffcc00; }
-        .rig-input { width: 100%; padding: 12px; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #fff; font-size: 15px; font-weight: bold; margin-top: 10px; box-sizing: border-box; }
-        .btn-rig { background: #ff3366; color: white; padding: 12px 24px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; margin-top: 15px; }
-
-        /* 🎯 📷 አዲሱ የፎቶ ማሳያ ሳጥን ዲዛይን (Modal Styles) */
         .image-modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 10000; justify-content: center; align-items: center; }
         .image-modal-content { max-width: 90%; max-height: 85%; border: 3px solid #ffcc00; border-radius: 8px; box-shadow: 0 0 20px #ffcc00; }
         .image-modal-close { position: absolute; top: 20px; right: 30px; color: #fff; font-size: 40px; font-weight: bold; cursor: pointer; }
@@ -35,12 +33,10 @@
 <body>
 <div class="admin-container">
     <h2>💼 DASHBET EXECUTIVE CONTROL PANEL</h2>
-
     <div class="tab-buttons-container">
         <button id="tab-deposits" class="tab-btn active" onclick="switchAdminTab('deposits')">📷 Deposits</button>
         <button id="tab-withdraws" class="tab-btn" onclick="switchAdminTab('withdraws')">💸 Withdraws</button>
         <button id="tab-users" class="tab-btn" onclick="switchAdminTab('users')">👥 Users</button>
-        <button id="tab-control" class="tab-btn" onclick="switchAdminTab('control')">🎯 Live Control</button>
         <button class="refresh-btn" onclick="loadAdminDashboardData()">🔄 REFRESH DATA</button>
     </div>
 
@@ -51,61 +47,37 @@
         <div class="stat-card"><h4>የሚጠባበቁ ዊዝድሮዎች</h4><p id="pending-withdraws-count">0</p></div>
     </div>
 
-    <!-- 📷 DEPOSITS SECTION -->
     <div id="section-deposits" class="panel-section active">
-        <h3 style="color:#ffcc00; margin:0 0 10px 0;">📷 የሚጠባበቁ ዲፖዚቶች (PENDING DEPOSITS)</h3>
+        <h3>📷 የሚጠባበቁ ዲፖዚቶች (PENDING DEPOSITS)</h3>
         <table>
             <thead>
-                <tr>
-                    <th>የጥያቄ ID</th><th>የተጫዋች ስልክ</th><th>ማረጋገጫ (Receipt)</th><th>የላከበት ስልክ</th><th>የክፍያ ዘዴ</th><th>የብር መጠን</th><th>ሁኔታ</th><th>እርምጃ</th>
-                </tr>
+                <tr><th>የጥያቄ ID</th><th>የተጫዋች ስልክ</th><th>ማረጋገጫ (Receipt)</th><th>የላከበት ስልክ</th><th>የክፍያ ዘዴ</th><th>የብር መጠን</th><th>ሁኔታ</th><th>እርምጃ</th></tr>
             </thead>
-            <tbody id="deposits-table-body">
-                <tr><td colspan="8" style="text-align:center; color:#64748b;">መረጃዎችን ከሰርቨር በመጫን ላይ...</td></tr>
-            </tbody>
+            <tbody id="deposits-table-body"></tbody>
         </table>
     </div>
 
-    <!-- 💸 WITHDRAWS SECTION -->
     <div id="section-withdraws" class="panel-section">
-        <h3 style="color:#ffcc00; margin:0 0 10px 0;">💸 የሚጠባበቁ ዊዝድሮዎች (PENDING WITHDRAWALS)</h3>
+        <h3>💸 የሚጠባበቁ ዊዝድሮዎች (PENDING WITHDRAWALS)</h3>
         <table>
             <thead>
-                <tr>
-                    <th>የጥያቄ ID</th><th>የተጫዋች ስልክ</th><th>የአካውንት ቁጥር</th><th>ሙሉ ስም</th><th>የክፍያ ዘዴ</th><th>የብር መጠን</th><th>ሁኔታ</th><th>እርምጃ</th>
-                </tr>
+                <tr><th>የጥያቄ ID</th><th>የተጫዋች ስልክ</th><th>የአካውንት ቁጥር</th><th>ሙሉ ስም</th><th>የክፍያ ዘዴ</th><th>የብር መጠን</th><th>ሁኔታ</th><th>እርምጃ</th></tr>
             </thead>
-            <tbody id="withdraws-table-body">
-                <tr><td colspan="8" style="text-align:center; color:#64748b;">መረጃዎችን ከሰርቨር በመጫን ላይ...</td></tr>
-            </tbody>
+            <tbody id="withdraws-table-body"></tbody>
         </table>
     </div>
 
-    <!-- 👥 USERS SECTION -->
     <div id="section-users" class="panel-section">
-        <h3 style="color:#ffcc00; margin:0 0 10px 0;">👥 የተመዘገቡ ተጫዋቾች ዝርዝር (ALL REGISTERED USERS)</h3>
+        <h3>👥 የተመዘገቡ ተጫዋቾች ዝርዝር</h3>
         <table>
             <thead>
-                <tr>
-                    <th>#</th><th>የተጠቃሚ ስልክ ቁጥር</th><th>የይለፍ ቃል (Password)</th><th>ወቅታዊ ቀሪ ሂሳብ (Current Balance)</th>
-                </tr>
+                <tr><th>#</th><th>የተጠቃሚ ስልክ ቁጥር</th><th>የይለፍ ቃል (Password)</th><th>ወቅታዊ ቀሪ ሂሳብ</th></tr>
             </thead>
-            <tbody id="users-table-body">
-                <tr><td colspan="4" style="text-align:center; color:#64748b;">መረጃዎችን ከሰርቨር በመጫን ላይ...</td></tr>
-            </tbody>
+            <tbody id="users-table-body"></tbody>
         </table>
-    </div>
-
-    <!-- 🎯 LIVE CONTROL SECTION -->
-    <div id="section-control" class="panel-section">
-        <h3 style="color:#ffcc00; margin:0 0 10px 0;">🎯 የዕጣ ቁጥሮች አስገዳጅ ሞተር (RIGGING CONTROLLER)</h3>
-        <label style="font-weight: bold; color: #00ffcc;">👉 በሚቀጥለው ዙር የኬኖ ጨዋታ ላይ እንዲወጡ የምትፈልጋቸውን በትክክል 20 ቁጥሮች በኮማ (,) ለይተህ አስገባቸው።</label>
-        <input type="text" id="forced-numbers-input" class="rig-input" placeholder="📋 ምሳሌ፦ 5,12,18,22,25,30,34,39,41,45,48,52,55,60,63,67,70,72,77,80">
-        <button class="btn-rig" onclick="saveForcedKenoNumbers()">🎯 FORCE THESE 20 NUMBERS</button>
     </div>
 </div>
 
-<!-- 🎯 📷 ፎቶው ሲነካ እዚያው ገጽ ላይ ተለጥፎ የሚከፈትበት አዲሱ ሳጥን (Modal Box) -->
 <div id="imageViewerModal" class="image-modal-overlay">
     <span class="image-modal-close" onclick="closeLiveImageViewer()">&times;</span>
     <img id="modalTargetImage" class="image-modal-content" src="">
@@ -121,14 +93,10 @@ function switchAdminTab(tabName) {
     document.getElementById('tab-' + tabName).classList.add('active');
 }
 
-// 🎯 📷 ፎቶውን በአዲስ ታብ ጥቁር ገጽ ከመክፈት ይልቅ እዚያው ገጽ ላይ በሳጥን መክፈቻ ሞተር
 function openLiveImageViewer(base64Data) {
     const modal = document.getElementById('imageViewerModal');
     const modalImg = document.getElementById('modalTargetImage');
-    if(modal && modalImg) {
-        modalImg.src = base64Data;
-        modal.style.display = "flex";
-    }
+    if(modal && modalImg) { modalImg.src = base64Data; modal.style.display = "flex"; }
 }
 
 function closeLiveImageViewer() {
@@ -143,13 +111,12 @@ function loadAdminDashboardData() {
         document.getElementById('total-users-capital').innerText = capital.toFixed(2) + " ETB";
         const tbody = document.getElementById('users-table-body');
         if(tbody) {
-            tbody.innerHTML = users.map((u, i) => `<tr><td>${i + 1}</td><td style="color:#00ffcc; font-weight:bold;">${u.phone}</td><td>${u.password}</td><td style="color:#00ff00; font-weight:bold;">${parseFloat(u.balance).toFixed(2)} ETB</td></tr>`).join('') || '<tr><td colspan="4" style="text-align:center;">የለም</td></tr>';
+            tbody.innerHTML = users.map((u, i) => `<tr><td>${i + 1}</td><td style="color:#00ffcc; font-weight:bold;">${u.phone}</td><td>${u.password}</td><td style="color:#00ff00; font-weight:bold;">${parseFloat(u.balance).toFixed(2)} ETB</td></tr>`).join('');
         }
-    }).catch(e => console.log("Sync Users..."));
+    });
 
     fetch(`${SERVER_URL}/admin/deposits`).then(res => res.json()).then(deposits => {
-        let uniqueDeposits = [];
-        let seenScreenshots = new Set();
+        let uniqueDeposits = []; let seenScreenshots = new Set();
         deposits.forEach(d => {
             if (!d.screenshot || d.screenshot === "") { uniqueDeposits.push(d); } 
             else if (!seenScreenshots.has(d.screenshot)) { seenScreenshots.add(d.screenshot); uniqueDeposits.push(d); }
@@ -158,32 +125,65 @@ function loadAdminDashboardData() {
         document.getElementById('pending-deposits-count').innerText = pendings.length;
         const tbody = document.getElementById('deposits-table-body');
         if(tbody) {
-            // 🎯 ማሻሻያ፦ ፎቶው ሲነካ openLiveImageViewer()ን ጠርቶ እዚያው ገጽ ላይ እንዲከፍት ያደርጋል
-            tbody.innerHTML = uniqueDeposits.map(d => `<tr><td>${d.id}</td><td>${d.userPhone}</td><td>${d.screenshot ? `<img src="${d.screenshot}" class="screenshot-img" onclick="openLiveImageViewer('${d.screenshot}')">` : 'No Image'}</td><td>${d.senderPhone}</td><td><b style="color:#ffcc00;">${d.method}</b></td><td style="color:#00ff00; font-weight:bold;">${d.amount} ETB</td><td style="color:${d.status==='PENDING'?'#ff9900':'#22c55e'}">${d.status}</td><td>${d.status === 'PENDING' ? `<button class="btn-action" onclick="processDeposit('${d.id}', '${d.userPhone}', ${d.amount})">APPROVE</button>` : '✅ Done'}</td></tr>`).join('') || '<tr><td colspan="8" style="text-align:center;">የለም</td></tr>';
+            tbody.innerHTML = uniqueDeposits.map(d => `
+                <tr>
+                    <td>${d.id}</td><td>${d.userPhone}</td>
+                    <td>${d.screenshot ? `<img src="${d.screenshot}" class="screenshot-img" onclick="openLiveImageViewer('${d.screenshot}')">` : 'No Image'}</td>
+                    <td>${d.senderPhone}</td><td><b style="color:#ffcc00;">${d.method}</b></td>
+                    <td style="color:#00ff00; font-weight:bold;">${d.amount} ETB</td>
+                    <td style="color:${d.status==='PENDING'?'#ff9900':d.status==='APPROVED'?'#22c55e':'#ef4444'}">${d.status}</td>
+                    <td>
+                        ${d.status === 'PENDING' ? `
+                            <button class="btn-action btn-approve" onclick="processDeposit('${d.id}', '${d.userPhone}', ${d.amount})">APPROVE</button>
+                            <button class="btn-action btn-reject" onclick="rejectDeposit('${d.id}')">REJECT</button>
+                        ` : `✅ ${d.status}`}
+                    </td>
+                </tr>
+            `).join('');
         }
-    }).catch(e => console.log("Sync Deposits..."));
+    });
 
     fetch(`${SERVER_URL}/admin/withdrawals`).then(res => res.json()).then(withdrawals => {
         const pendings = withdrawals.filter(w => w.status === 'PENDING');
         document.getElementById('pending-withdraws-count').innerText = pendings.length;
         const tbody = document.getElementById('withdraws-table-body');
         if(tbody) {
-            tbody.innerHTML = withdrawals.map(w => `<tr><td>${w.id}</td><td>${w.userPhone}</td><td><b style="color:#00ffcc;">${w.accountNumber}</b></td><td>${w.fullName}</td><td><b style="color:#ffcc00;">${w.method}</b></td><td style="color:#ef4444; font-weight:bold;">${w.amount} ETB</td><td style="color:${w.status==='PENDING'?'#ff9900':'#22c55e'}">${w.status}</td><td>${w.status === 'PENDING' ? `<button class="btn-action" onclick="processWithdraw('${w.id}', '${w.userPhone}', ${w.amount})">APPROVE</button>` : '✅ Done'}</td></tr>`).join('') || '<tr><td colspan="8" style="text-align:center;">የለም</td></tr>';
+            tbody.innerHTML = withdrawals.map(w => `
+                <tr>
+                    <td>${w.id}</td><td>${w.userPhone}</td><td><b style="color:#00ffcc;">${w.accountNumber}</b></td><td>${w.fullName}</td><td><b style="color:#ffcc00;">${w.method}</b></td>
+                    <td style="color:#ef4444; font-weight:bold;">${w.amount} ETB</td>
+                    <td style="color:${w.status==='PENDING'?'#ff9900':w.status==='APPROVED'?'#22c55e':'#ef4444'}">${w.status}</td>
+                    <td>
+                        ${w.status === 'PENDING' ? `
+                            <button class="btn-action btn-approve" onclick="processWithdraw('${w.id}', '${w.userPhone}', ${w.amount})">APPROVE</button>
+                            <button class="btn-action btn-reject" onclick="rejectWithdraw('${w.id}')">REJECT</button>
+                        ` : `✅ ${w.status}`}
+                    </td>
+                </tr>
+            `).join('');
         }
-    }).catch(e => console.log("Sync Withdraws..."));
+    });
 }
 
 function processDeposit(id, userPhone, amount) {
-    if(!confirm("ዲፖዚቱን ማጽደቅ ይፈልጋሉ?")) return;
-    fetch(`${SERVER_URL}/admin/approve-deposit`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, userPhone, amount }) }).then(() => { alert("✅ ጸድቋል!"); loadAdminDashboardData(); });
+    if(!confirm("ይህንን ዲፖዚት ማጽደቅ ይፈልጋሉ?")) return;
+    fetch(`${SERVER_URL}/admin/approve-deposit`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, userPhone, amount }) }).then(() => { loadAdminDashboardData(); });
+}
+
+function rejectDeposit(id) {
+    if(!confirm("⚠️ ይህንን ዲፖዚት ውድቅ (Reject) ማድረግ ይፈልጋሉ?")) return;
+    fetch(`${SERVER_URL}/admin/reject-deposit`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) }).then(() => { alert("❌ ዲፖዚቱ ውድቅ ተደርጓል!"); loadAdminDashboardData(); });
 }
 
 function processWithdraw(id, userPhone, amount) {
-    if(!confirm("ዊዝድሮውን ማጽደቅ ይፈልጋሉ?")) return;
-    fetch(`${SERVER_URL}/admin/approve-withdraw`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, userPhone, amount }) }).then(() => { alert("✅ ጸድቋል!"); loadAdminDashboardData(); });
+    if(!confirm("ይህንን ዊዝድሮው ማጽደቅ ይፈልጋሉ?")) return;
+    fetch(`${SERVER_URL}/admin/approve-withdraw`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, userPhone, amount }) }).then(() => { loadAdminDashboardData(); });
 }
 
-function saveForcedKenoNumbers() { alert("🎯 ቁጥሮቹ በክላውድ ሞተር ላይ ታግደዋል!"); }
+function rejectWithdraw(id) {
+    if(!confirm("⚠️ ይህንን ዊዝድሮው ውድቅ (Reject) ማድረግ ይፈልጋሉ?")) return;
+    fetch(`${SERVER_URL}/admin/reject-withdraw`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) }).then(() => { alert("❌ ዊዝድሮው ውድቅ ተደርጓል!"); loadAdminDashboardData(); });
+}
 
 document.addEventListener("DOMContentLoaded", () => {
     loadAdminDashboardData();
