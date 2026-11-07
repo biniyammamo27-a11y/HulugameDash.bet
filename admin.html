@@ -355,6 +355,13 @@
                 refreshData(); 
             } catch(e) { console.error(e); }
         }
+   // 🎯 ጌም ገጹ ላይ እንደተደረገው ሁሉ አድሚን ፓነሉም በየ 2 ሰከንዱ በስተጀርባ ዳታውን አውቶማቲክ ማደሻ ኮድ [1.2]
+setInterval(() => {
+    // አድሚኑ መጀመሪያ ፓስወርድ አስገብቶ ወደ ውስጥ ከገባ ብቻ (adminToken ካለው) በየ 2 ሰከንዱ ያድሳል [1.2]
+    if (adminToken && typeof refreshData === 'function') {
+        refreshData();
+    }
+}, 2000); // 2000 ሚሊሰከንድ ማለት ልክ በየ 2 ሰከንዱ አውቶማቲክ ሰርቨሩን ይጠይቃል ማለት ነው [1.2]
     </script>
 </body>
 </html>
