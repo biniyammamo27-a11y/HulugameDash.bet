@@ -724,41 +724,32 @@ function renderStatisticsToUI() {
         });
     }).catch(() => { container.innerHTML = '❌ ታሪክ መጫን አልተቻለም!'; });
 }
-// 🎯 በየ 1 ሰከንዱ የተጫዋቹን ወቅታዊ ባላንስ ከዳታቤዝ ላይ በራስ-ሰር መጫኛ (1 Second Auto-Refresh Balance)
+// 🎯 ምንም ኮድ ሳይበላሽ በየ 1 ሰከንዱ የዳታቤዝ ባላንስን እና የፊት ገጽ ፅሁፎችን ማመሳሰያ (1 Second Hard Sync)
 setInterval(async () => {
+    // በሎካል ስቶሬጅ ሴቭ የተደረገውን የተጠቃሚ መረጃ እናነባለን
     let loggedInUser = JSON.parse(localStorage.getItem('user')) || JSON.parse(localStorage.getItem('loggedInUser')); 
     
     if (loggedInUser && loggedInUser.phone) {
         try {
+            // ከሰርቨሩ ላይ የተጫዋቹን ትክክለኛ የዳታቤዝ ባላንስ በጥያቄ እንቀበላለን
             const response = await fetch(`/api/user-balance/${loggedInUser.phone}`);
             const data = await response.json();
             
             if (data.success) {
-                // 1. በገጽዎ ላይ ያለውን የባላንስ መፃፊያ ፅሁፍ በየ 1 ሰከንዱ ይቀይረዋል
-                const balanceElements = document.querySelectorAll('.user-balance, #user-balance, [id*="balance"]');
-                balanceElements.forEach(el => {
-                    if (el.tagName === 'SPAN' || el.tagName === 'DIV' || el.tagName === 'H3' || el.tagName === 'P') {
-                        el.innerText = `Balance: ${data.balance.toFixed(2)} ETB`;
-                    } else {
-                        el.innerText = `${data.balance.toFixed(2)} ETB`;
-                    }
-                });
-                
-                // የዊዝድሮው ገጽ ላይ የሚታየውን 'Withdraw Available Balance' ማደሻ
-                const withdrawAvail = document.querySelector('[id*="withdraw-avail"], .withdraw-balance');
-                if (withdrawAvail) {
-                    withdrawAvail.innerText = `Withdraw Available Balance: ${data.balance.toFixed(2)} ETB`;
-                }
-                
-                // 2. በሎካል ስቶሬጅ ላይም አዲሱን ባላንስ እናዘምነዋለን (ሎጋውት ማድረግ እንዳይጠይቅ)
+                // 1. በሎካል ስቶሬጅ ላይ ያለውን ባላንስ ወዲያውኑ እናዘምነዋለን (ሎጋውት ማድረግ እንዳይጠይቅ ዋናው ቁልፍ ይህ ነው)
                 loggedInUser.balance = data.balance;
                 localStorage.setItem('user', JSON.stringify(loggedInUser));
+                localStorage.setItem('loggedInUser', JSON.stringify(loggedInUser));
+                
+                // 2. በገጽዎ ላይ የ "Balance:" ፅሁፍ ያለባቸውን ቦታዎች በሙሉ ፈልጎ ወዲያውኑ ይቀይራል
+                document.body.innerHTML = document.body.innerHTML.replace(/Balance:\s*[0-9.]+\s*ETB/g, `Balance: ${data.balance.toFixed(2)} ETB`);
+                document.body.innerHTML = document.body.innerHTML.replace(/Withdraw Available Balance:\s*[0-9.]+\s*ETB/g, `Withdraw Available Balance: ${data.balance.toFixed(2)} ETB`);
             }
         } catch (e) { 
-            console.error("የባላንስ ለውጥ ማደስ አልተቻለም"); 
+            // ሰርቨሩ ስራ ላይ ካልሆነ ገጹ እንዳይበላሽ ዝም ይለዋል
         }
     }
-}, 1000); // 1000 ሚሊሰከንድ ማለት ፍጹም በሆነ ፍጥነት በየ 1 ሰከንዱ ባላንሱን ያድሳል ማለት ነው
+}, 1000); // በየ 1 ሰከንዱ ፍጹም በሆነ ፍጥነት አውቶማቲክ ያድሰዋል
 
 </script>
 </body>
