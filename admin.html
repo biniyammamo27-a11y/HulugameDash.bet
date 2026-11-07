@@ -106,7 +106,7 @@
         <!-- 💼 ዋናው ባነር ርዕስ -->
         <div class="admin-header">💼 DASHBET EXECUTIVE CONTROL PANEL</div>
 
-        <!-- 🔘 አዝራሮች -->
+        <!-- 🔘 አሰላለፋቸው የተስተካከለ አዝራሮች -->
         <div class="tabs-container">
             <button class="tab-btn" onclick="switchTab('deposits')">🟡 Deposits</button>
             <button class="tab-btn" onclick="switchTab('withdrawals')">💸 Withdraws</button>
@@ -205,6 +205,7 @@
                     document.getElementById("main-dashboard-content").style.display = "block";
                     errorLabel.style.display = "none";
                     
+                    // መጀመሪያ ሲገባ ዲፖዚት ታብ ብቻ እንዲከፈት ማድረግ
                     switchTab('deposits'); 
                     refreshData();
                 } else {
@@ -217,13 +218,18 @@
 
         // 🔄 ታቦችን በየተራ ማሳያ እና መደበቂያ (Tab Controller)
         function switchTab(tabName) {
+            // 1. ሁሉንም የክፍል ታቦች መደበቅ
             document.querySelectorAll('.tab-section').forEach(sec => sec.style.display = 'none');
+            
+            // 2. ሁሉንም አዝራሮች አክቲቭ ከለር ማጥፋት
             document.querySelectorAll('.tabs-container .tab-btn').forEach(btn => {
                 if(!btn.classList.contains('btn-refresh')) btn.classList.remove('active');
             });
 
+            // 3. የተመረጠውን ታብ እና አዝራር ብቻ ማሳየት
             document.getElementById(`section-${tabName}`).style.display = 'block';
             
+            // የተጫነውን አዝራር ከለር መቀየር
             const targetBtn = Array.from(document.querySelectorAll('.tabs-container .tab-btn'))
                 .find(btn => btn.innerText.toLowerCase().includes(tabName.substring(0, 4)));
             if(targetBtn) targetBtn.classList.add('active');
@@ -299,40 +305,24 @@
             }
         }
 
-        // 🔐 ማሻሻያ፦ ሰርቨሩ ጥያቄውን እንዲቀበለው የደህንነት ቶከኑ (Authorization) እዚህ ጋር ተጨምሯል [1.2]
         async function processDeposit(id, userPhone, amount, action) {
             const url = action === 'approve' ? `${BASE_URL}/admin/approve-deposit` : `${BASE_URL}/admin/reject-deposit`;
-            try {
-                await fetch(url, {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json', 
-                        'Authorization': `Bearer ${adminToken}` 
-                    },
-                    body: JSON.stringify({ id, userPhone, amount })
-                });
-                refreshData(); 
-            } catch(e) {
-                console.error("ዲፖዚት ማስተናገድ አልተቻለም", e);
-            }
+            await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
+                body: JSON.stringify({ id, userPhone, amount })
+            });
+            refreshData();
         }
 
-        // 🔐 ማሻሻያ፦ ሰርቨሩ ጥያቄውን እንዲቀበለው የደህንነት ቶከኑ (Authorization) እዚህ ጋር ተጨምሯል [1.2]
         async function processWithdraw(id, action) {
             const url = action === 'approve' ? `${BASE_URL}/admin/approve-withdraw` : `${BASE_URL}/admin/reject-withdraw`;
-            try {
-                await fetch(url, {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json', 
-                        'Authorization': `Bearer ${adminToken}` 
-                    },
-                    body: JSON.stringify({ id })
-                });
-                refreshData(); 
-            } catch(e) {
-                console.error("ዊዝድሮው ማስተናገድ አልተቻለም", e);
-            }
+            await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
+                body: JSON.stringify({ id })
+            });
+            refreshData();
         }
     </script>
 </body>
