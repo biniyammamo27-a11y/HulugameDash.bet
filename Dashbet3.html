@@ -724,31 +724,52 @@ function renderStatisticsToUI() {
         });
     }).catch(() => { container.innerHTML = '❌ ታሪክ መጫን አልተቻለም!'; });
 }
-// 🎯 1. በገጹ ላይ የሬፍሬሽ (🔄 REFRESH) አዝራር በራስ-ሰር መፍጠሪያ ኮድ
+// 🎯 1. በገጹ ላይ ካለው የባላንስ ፅሁፍ ጎን የሬፍሬሽ (🔄 REFRESH) አዝራር በራስ-ሰር መፍጠሪያ ኮድ
 window.addEventListener('DOMContentLoaded', () => {
-    // ባላንስ የሚጻፍበትን ሳጥን ወይም ከላይ ያለውን የባላንስ ክፍል እንፈልጋለን
-    const balanceBox = document.querySelector('.balance-box, #display-user-balance, [id*="balance"]');
-    if (balanceBox) {
-        // አዲስ የሪፍሬሽ አዝራር እንፈጥራለን
+    // በገጹ ላይ የ "Balance:" ፅሁፍ ያለበትን ማንኛውንም ሳጥን ወይም ዲቭ እንፈልጋለን
+    const textNodes = [];
+    const walk = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
+    while(walk.nextNode()) textNodes.push(walk.currentNode);
+    
+    let balanceParent = null;
+    for (let node of textNodes) {
+        if (node.nodeValue.includes('Balance:')) {
+            balanceParent = node.parentNode;
+            break;
+        }
+    }
+
+    // የባላንስ ክፍል ከተገኘ ጎኑ ላይ የሚያምር አረንጓዴ አዝራር እንቀጥላለን
+    if (balanceParent) {
+        // መጀመሪያ አዝራሩ ሁለቴ እንዳይፈጠር ቀድሞ የተፈጠረ ካለ እናጠፋዋለን
+        const oldBtn = document.getElementById('manual-refresh-btn');
+        if(oldBtn) oldBtn.remove();
+
         const refreshBtn = document.createElement('button');
+        refreshBtn.id = 'manual-refresh-btn';
         refreshBtn.innerHTML = '🔄 REFRESH';
-        refreshBtn.style.cssText = 'margin-left: 10px; padding: 4px 10px; background: #10b981; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 12px;';
+        // 🎨 የሚያምር አረንጓዴ እና ከባላንሱ ጎን የሚቀመጥ ስታይል
+        refreshBtn.style.cssText = 'margin-left: 12px; padding: 6px 14px; background-color: #10b981; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px; display: inline-block; vertical-align: middle; transition: background 0.2s;';
         
-        // አዝራሩ ሲነካ ባላንሱን ወዲያውኑ እንዲያድስ እናደርጋለን
+        refreshBtn.onmouseover = () => refreshBtn.style.backgroundColor = '#059669';
+        refreshBtn.onmouseout = () => refreshBtn.style.backgroundColor = '#10b981';
+
+        // 🔄 አዝራሩ ሲጫን የሚሰራው ቅጽበታዊ ማደሻ
         refreshBtn.onclick = (e) => {
             e.preventDefault();
             forceSyncBalance();
         };
-        balanceBox.appendChild(refreshBtn);
+        balanceParent.appendChild(refreshBtn);
     }
 });
 
-// 🎯 2. ባላንሱን ከሰርቨር ላይ አምጥቶ በሃይል የማመሳሰል ዋና ፈንክሽን
+// 🎯 2. ባላንሱን ከሰርቨር ላይ አምጥቶ በሃይል የማመሳሰል (የመቀየር) ዋና ፈንክሽን
 async function forceSyncBalance() {
     let userPhone = "";
     let loggedInUser = null;
     let userKey = "user";
 
+    // በLocalStorage ውስጥ የተቀመጠውን ስልክ ቁጥር እንፈልጋለን
     for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
         try {
@@ -759,21 +780,23 @@ async function forceSyncBalance() {
 
     if (userPhone) {
         try {
+            // ከሰርቨሩ ወቅታዊውን የዳታቤዝ ባላንስ እንጠይቃለን
             const response = await fetch(`/api/user-balance/${userPhone.trim()}`);
             const data = await response.json();
             
             if (data.success && loggedInUser) {
-                // በLocalStorage ላይ ማደሻ
+                // በLocalStorage ላይ እናዘምነዋለን (ሎጋውት እንዳይጠይቅ)
                 loggedInUser.balance = data.balance;
                 localStorage.setItem(userKey, JSON.stringify(loggedInUser));
                 
-                // በገጹ ላይ ያሉትን የባላንስ ፅሁፎች በሙሉ መፈለጊያ እና መቀየሪያ (TreeWalker)
+                // 🎯 በገጹ ላይ ያሉትን የባላንስ ፅሁፎች በሙሉ ፈልጎ ወዲያውኑ ይቀይራል
                 const textNodes = [];
                 const walk = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
                 while(walk.nextNode()) textNodes.push(walk.currentNode);
                 
                 textNodes.forEach(node => {
                     if (node.nodeValue.includes('Balance:')) {
+                        // አዝራሩ እንዳይጠፋ የ "Balance:" ፅሁፉን ብቻ ለይቶ ይቀይረዋል
                         node.nodeValue = `Balance: ${data.balance.toFixed(2)} ETB `;
                     }
                     if (node.nodeValue.includes('Withdraw Available Balance:')) {
@@ -781,6 +804,7 @@ async function forceSyncBalance() {
                     }
                 });
 
+                // የዊዝድሮው ፎርም ውስጥ ያለውን የተለየ ክፍል ማደሻ
                 const withdrawAvail = document.querySelector('[id*="withdraw-avail"], .withdraw-balance');
                 if (withdrawAvail) {
                     withdrawAvail.innerText = `Withdraw Available Balance: ${data.balance.toFixed(2)} ETB`;
@@ -790,8 +814,9 @@ async function forceSyncBalance() {
     }
 }
 
-// 🎯 3. በየ 1 ሰከንዱ በስተጀርባ አውቶማቲክ ማደሻውን ማስጀመር [1.2]
+// 🎯 3. በየ 1 ሰከንዱ በስተጀርባ አውቶማቲክ ማደሻውንም አብሮ ማስጀመር [1.2]
 setInterval(forceSyncBalance, 1000);
+
 
 </script>
 </body>
