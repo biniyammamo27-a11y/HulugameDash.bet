@@ -724,9 +724,27 @@ function renderStatisticsToUI() {
         });
     }).catch(() => { container.innerHTML = '❌ ታሪክ መጫን አልተቻለም!'; });
 }
-// 🎯 በየ 1 ሰከንዱ የዳታቤዝ ባላንስን እና የፊት ገጽ ፅሁፎችን ፍጹም በሆነ ፍጥነት ማመሳሰያ (Real-time Fast Sync)
-setInterval(async () => {
-    // በLocalStorage ውስጥ ያሉትን የዩዘር ቁልፎች በሙሉ ፈልጎ ስልክ ቁጥሩን ያወጣል
+// 🎯 1. በገጹ ላይ የሬፍሬሽ (🔄 REFRESH) አዝራር በራስ-ሰር መፍጠሪያ ኮድ
+window.addEventListener('DOMContentLoaded', () => {
+    // ባላንስ የሚጻፍበትን ሳጥን ወይም ከላይ ያለውን የባላንስ ክፍል እንፈልጋለን
+    const balanceBox = document.querySelector('.balance-box, #display-user-balance, [id*="balance"]');
+    if (balanceBox) {
+        // አዲስ የሪፍሬሽ አዝራር እንፈጥራለን
+        const refreshBtn = document.createElement('button');
+        refreshBtn.innerHTML = '🔄 REFRESH';
+        refreshBtn.style.cssText = 'margin-left: 10px; padding: 4px 10px; background: #10b981; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 12px;';
+        
+        // አዝራሩ ሲነካ ባላንሱን ወዲያውኑ እንዲያድስ እናደርጋለን
+        refreshBtn.onclick = (e) => {
+            e.preventDefault();
+            forceSyncBalance();
+        };
+        balanceBox.appendChild(refreshBtn);
+    }
+});
+
+// 🎯 2. ባላንሱን ከሰርቨር ላይ አምጥቶ በሃይል የማመሳሰል ዋና ፈንክሽን
+async function forceSyncBalance() {
     let userPhone = "";
     let loggedInUser = null;
     let userKey = "user";
@@ -739,45 +757,41 @@ setInterval(async () => {
         } catch(e) {}
     }
 
-    // ተጠቃሚው ከገባ ብቻ በየ 1 ሰከንዱ ሰርቨሩን ይጠይቃል
     if (userPhone) {
         try {
             const response = await fetch(`/api/user-balance/${userPhone.trim()}`);
             const data = await response.json();
             
             if (data.success && loggedInUser) {
-                // 1. በLocalStorage ላይ ያለውን ባላንስ ወዲያውኑ ያዘምናል (ሎጋውት እንዳይጠይቅ)
-                if (loggedInUser.balance !== data.balance) {
-                    loggedInUser.balance = data.balance;
-                    localStorage.setItem(userKey, JSON.stringify(loggedInUser));
-                }
+                // በLocalStorage ላይ ማደሻ
+                loggedInUser.balance = data.balance;
+                localStorage.setItem(userKey, JSON.stringify(loggedInUser));
                 
-                // 2. 🎯 በገጽዎ ላይ ያለውን የ "Balance: 954.00 ETB" ፅሁፍ በቀጥታ ፈልጎ ወዲያውኑ ይቀይራል
+                // በገጹ ላይ ያሉትን የባላንስ ፅሁፎች በሙሉ መፈለጊያ እና መቀየሪያ (TreeWalker)
                 const textNodes = [];
                 const walk = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
                 while(walk.nextNode()) textNodes.push(walk.currentNode);
                 
                 textNodes.forEach(node => {
                     if (node.nodeValue.includes('Balance:')) {
-                        node.nodeValue = `Balance: ${data.balance.toFixed(2)} ETB`;
+                        node.nodeValue = `Balance: ${data.balance.toFixed(2)} ETB `;
                     }
                     if (node.nodeValue.includes('Withdraw Available Balance:')) {
                         node.nodeValue = `Withdraw Available Balance: ${data.balance.toFixed(2)} ETB`;
                     }
                 });
 
-                // የዊዝድሮው ገጽ ውስጥ ያሉ የተለዩ የሳጥን ፅሁፎችንም ጭምር ያድሳል
                 const withdrawAvail = document.querySelector('[id*="withdraw-avail"], .withdraw-balance');
                 if (withdrawAvail) {
                     withdrawAvail.innerText = `Withdraw Available Balance: ${data.balance.toFixed(2)} ETB`;
                 }
             }
-        } catch (e) {
-            // ሰርቨሩ ስራ ቢበዛበት ጨዋታው እንዳይቆራረጥ ዝም ይለዋል
-        }
+        } catch (e) { console.error("ባላንስ ማደስ አልተቻለም"); }
     }
-}, 1000); // 1000 ሚሊሰከንድ ማለት ፍጹም በሆነ ፍጥነት በየ 1 ሰከንዱ ያድሳል ማለት ነው
+}
 
+// 🎯 3. በየ 1 ሰከንዱ በስተጀርባ አውቶማቲክ ማደሻውን ማስጀመር [1.2]
+setInterval(forceSyncBalance, 1000);
 
 </script>
 </body>
