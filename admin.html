@@ -5,103 +5,188 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashbet - Supreme Executive Admin Panel</title>
     <style>
-        /* 🔐 ለሎጊን መቆለፊያ የተጨመረ አዲስ ስታይል */
+        /* 🎨 በፎቶው መሰረት የዳሽቦርዱ ዋና የ Dark Theme ከለሮች */
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #0c1322; color: #f8fafc; margin: 0; padding: 15px; }
+        
+        /* 🔐 የመቆለፊያ ገጽ ዲዛይን */
         #admin-lock-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: #121212; display: flex; justify-content: center;
-            align-items: center; z-index: 99999; font-family: sans-serif;
+            background-color: #0c1322; display: flex; justify-content: center;
+            align-items: center; z-index: 99999;
         }
         .lock-box {
-            background: #1e1e1e; padding: 40px; border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5); text-align: center; color: white;
-            border: 2px solid #22c55e; width: 320px;
+            background: #151f32; padding: 40px; border-radius: 12px;
+            box-shadow: 0 4px 25px rgba(0,0,0,0.5); text-align: center; color: white;
+            border: 1px solid #1e293b; width: 320px;
         }
         .lock-box input {
             width: 90%; padding: 12px; margin: 15px 0; border-radius: 6px;
-            border: 1px solid #333; background: #2a2a2a; color: white; text-align: center; font-size: 16px;
+            border: 1px solid #334155; background: #0c1322; color: white; text-align: center; font-size: 16px;
         }
         .lock-box button {
-            background: #22c55e; color: black; border: none; padding: 12px;
+            background: #eab308; color: black; border: none; padding: 12px;
             width: 100%; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 16px;
         }
-        .lock-box button:hover { background: #16a34a; }
+
+        #main-dashboard-content { display: none; max-width: 1200px; margin: 0 auto; }
         
-        /* 📊 ዋናው ዳሽቦርድ */
-        #main-dashboard-content { display: none; }
-        body { font-family: sans-serif; padding: 20px; background-color: #f4f6f9; color: #333; }
-        .stats-container { display: flex; gap: 20px; margin-bottom: 20px; }
-        .stat-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex: 1; text-align: center; }
-        table { width: 100%; border-collapse: collapse; margin-bottom: 30px; background: white; }
-        th, td { padding: 12px; border: 1px solid #ddd; text-align: left; }
-        th { background-color: #f8f9fa; }
-        .btn { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-right: 5px; }
-        .btn-approve { background: #22c55e; color: white; }
-        .btn-reject { background: #ef4444; color: white; }
+        /* 💼 የላይኛው ዋናው ርዕስ ባነር */
+        .admin-header {
+            background-color: #151f32; padding: 15px; border-radius: 8px;
+            text-align: center; font-size: 18px; font-weight: bold;
+            color: #f8fafc; border: 1px solid #1e293b; margin-bottom: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        /* 🔘 የላይኛው ታቦች አሰላለፍ (Navigation Tabs) */
+        .tabs-container { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
+        .tab-btn {
+            background-color: #1e293b; color: #94a3b8; border: 1px solid #334155;
+            padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: 500;
+            display: flex; align-items: center; gap: 6px; font-size: 14px; transition: all 0.2s;
+        }
+        .tab-btn.active { background-color: #eab308; color: #000; font-weight: bold; border-color: #eab308; }
+        .btn-refresh { background-color: #10b981; color: white; border: none; margin-left: auto; }
+        .btn-refresh:hover { background-color: #059669; }
+
+        /* 📊 የአራቱ ካርዶች አቀማመጥ (Grid) */
+        .stats-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 25px; }
+        @media (max-width: 768px) { .stats-container { grid-template-columns: repeat(2, 1fr); } }
+        .stat-card {
+            background-color: #151f32; padding: 18px 10px; border-radius: 8px;
+            text-align: center; border: 1px solid #1e293b; box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+        .stat-card h4 { margin: 0 0 10px 0; font-size: 13px; color: #94a3b8; font-weight: 500; }
+        .stat-card h2 { margin: 0; font-size: 22px; font-weight: bold; }
+        
+        /* 🟢 ልዩ ከለር ለካርዶቹ ቁጥሮች */
+        .stat-card.capital h2 { color: #10b981; }
+        .stat-card.users h2 { color: #3b82f6; }
+        .stat-card.pending h2 { color: #f59e0b; }
+        .stat-card.withdraws h2 { color: #ef4444; }
+
+        /* 📋 የሰንጠረዦች ርዕስ እና ዲዛይን */
+        .section-title {
+            font-size: 15px; font-weight: bold; color: #f59e0b;
+            text-align: left; margin: 25px 0 12px 0; display: flex; align-items: center; gap: 8px;
+        }
+        .table-responsive { width: 100%; overflow-x: auto; background-color: #151f32; border-radius: 8px; border: 1px solid #1e293b; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; }
+        th, td { padding: 12px; border-bottom: 1px solid #1e293b; }
+        th { background-color: #1e293b; color: #94a3b8; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; }
+        td { color: #cbd5e1; }
+        tr:last-child td { border-bottom: none; }
+        
+        .loading-text { text-align: center; color: #64748b; padding: 20px; font-style: italic; }
+
+        /* 🔘 የተግባር ቁልፎች ዲዛይን */
+        .action-btn { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px; margin-right: 5px; }
+        .btn-approve { background-color: #10b981; color: white; }
+        .btn-reject { background-color: #ef4444; color: white; }
+        
+        /* 🔘 የታብ መያዣ ክፍሎች */
+        .tab-section { display: none; }
     </style>
 </head>
 <body>
-    <!-- 🔐 1ኛ፡ የአድሚን መግቢያ ፎርም (የይለፍ ቃል መጠየቂያ መቆለፊያ) -->
+    <!-- 🔐 1ኛ፡ የአድሚን መግቢያ ፎርም -->
     <div id="admin-lock-screen">
         <div class="lock-box">
-            <h2 style="color: #22c55e; margin-bottom: 5px;">Hulugame.bet</h2>
-            <p style="color: #aaa; font-size: 14px; margin-top: 0;">የአድሚን መቆጣጠሪያ ፓነል</p>
+            <h2 style="color: #eab308; margin-bottom: 5px;">Hulugame.bet</h2>
+            <p style="color: #94a3b8; font-size: 14px; margin-top: 0;">የአድሚን መቆጣጠሪያ ፓነል</p>
             <input type="password" id="admin-password-input" placeholder="ሚስጥራዊ የይለፍ ቃል ያስገቡ">
             <button onclick="unlockAdminPanel()">ግባ (LOGIN)</button>
             <p id="error-message" style="color: #ef4444; margin-top: 10px; font-size: 14px; display: none;">❌ የይለፍ ቃል ተሳስቷል!</p>
         </div>
     </div>
 
-    <!-- 📊 2ኛ፡ ዋናው የአድሚን መቆጣጠሪያ ፓነል መዋቅር -->
+    <!-- 📊 2ኛ፡ ዋናው አቀማመጡ የተስተካከለው ዳሽቦርድ -->
     <div id="main-dashboard-content">
-        <h2>💼 HULUGAME.BET EXECUTIVE CONTROL PANEL</h2>
+        
+        <!-- 💼 ዋናው ባነር ርዕስ -->
+        <div class="admin-header">💼 DASHBET EXECUTIVE CONTROL PANEL</div>
 
-        <div style="margin-bottom: 20px;">
-            <button style="padding: 10px; background: #22c55e; color: white; border: none; cursor: pointer; font-weight: bold; border-radius: 4px;" onclick="refreshData()">🔄 REFRESH DATA (እድስ)</button>
+        <!-- 🔘 አሰላለፋቸው የተስተካከለ አዝራሮች -->
+        <div class="tabs-container">
+            <button class="tab-btn" onclick="switchTab('deposits')">🟡 Deposits</button>
+            <button class="tab-btn" onclick="switchTab('withdrawals')">💸 Withdraws</button>
+            <button class="tab-btn" onclick="switchTab('users')">👥 Users</button>
+            <button class="tab-btn" onclick="switchTab('live')">🔴 Live Control</button>
+            <button class="tab-btn btn-refresh" onclick="refreshData()">🔄 REFRESH DATA</button>
         </div>
 
+        <!-- 📊 አራቱ ካርዶች አሰላለፍ -->
         <div class="stats-container">
-            <div class="stat-card"><h4>¼ቅላላ የተጠቃሚዎች ካፒታል</h4><h2 id="total-capital">0.00 ETB</h2></div>
-            <div class="stat-card"><h4>¼ቅላላ ተጠቃሚዎች</h4><h2 id="total-users">0</h2></div>
-            <div class="stat-card"><h4>የሚጠባበቁ ዲፖዚቶች</h4><h2 id="pending-deposits-count">0</h2></div>
-            <div class="stat-card"><h4>የሚጠባበቁ ዊዝድሮዎች</h4><h2 id="pending-withdrawals-count">0</h2></div>
+            <div class="stat-card capital"><h4>ጠቅላላ የተጠቃሚዎች ካፒታል</h4><h2 id="total-capital">0.00 ETB</h2></div>
+            <div class="stat-card users"><h4>ጠቅላላ ተጠቃሚዎች</h4><h2 id="total-users">0</h2></div>
+            <div class="stat-card pending"><h4>የሚጠባበቁ ዲፖዚቶች</h4><h2 id="pending-deposits-count">0</h2></div>
+            <div class="stat-card withdraws"><h4>የሚጠባበቁ ዊዝድሮዎች</h4><h2 id="pending-withdrawals-count">0</h2></div>
         </div>
 
-        <h3>📷 የሚጠባበቁ ዲፖዚቶች (PENDING DEPOSITS)</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>የጥያቄ ID</th><th>የተጫዋች ስልክ</th><th>ማረጋገጫ (Receipt)</th><th>የላከበት ስልክ</th><th>የክፍያ ዘዴ</th><th>የብር መጠን</th><th>ሁኔታ</th><th>እርምጃ</th>
-                </tr>
-            </thead>
-            <tbody id="deposits-table"></tbody>
-        </table>
+        <!-- 📷 ዲፖዚቶች ታብ ክፍል -->
+        <div id="section-deposits" class="tab-section">
+            <div class="section-title">📷 የሚጠባበቁ ዲፖዚቶች (PENDING DEPOSITS)</div>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>የጥያቄ ID</th><th>የተጫዋች ስልክ</th><th>ማረጋገጫ (Receipt)</th><th>የላከበት ስልክ</th><th>የክፍያ ዘዴ</th><th>የብር መጠን</th><th>ሁኔታ</th><th>እርምጃ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="deposits-table">
+                        <tr><td colspan="8" class="loading-text">መረጃዎችን ከሰርቨር በመጫን ላይ...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-        <h3>💸 የሚጠባበቁ ዊዝድሮዎች (PENDING WITHDRAWALS)</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>የጥያቄ ID</th><th>የተጫዋች ስልክ</th><th>የአካውንት ቁጥር</th><th>ሙሉ ስም</th><th>የክፍያ ዘዴ</th><th>የብር መጠን</th><th>ሁኔታ</th><th>እርምጃ</th>
-                </tr>
-            </thead>
-            <tbody id="withdrawals-table"></tbody>
-        </table>
+        <!-- 💸 ዊዝድሮዎች ታብ ክፍል -->
+        <div id="section-withdrawals" class="tab-section">
+            <div class="section-title">💸 የሚጠባበቁ ዊዝድሮዎች (PENDING WITHDRAWALS)</div>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>የጥያቄ ID</th><th>የተጫዋች ስልክ</th><th>የአካውንት ቁጥር</th><th>ሙሉ ስም</th><th>የክፍያ ዘዴ</th><th>የብር መጠን</th><th>ሁኔታ</th><th>እርምጃ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="withdrawals-table">
+                        <tr><td colspan="8" class="loading-text">መረጃዎችን ከሰርቨር በመጫን ላይ...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-        <h3>👥 የተመዘገቡ ተጫዋቾች ዝርዝር</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>#</th><th>የተጠቃሚ ስልክ ቁጥር</th><th>የይለፍ ቃል (Password)</th><th>ወቅታዊ ቀሪ ሂሳብ</th>
-                </tr>
-            </thead>
-            <tbody id="users-table"></tbody>
-        </table>
+        <!-- 👥 የተመዘገቡ ተጫዋቾች ታብ ክፍል -->
+        <div id="section-users" class="tab-section">
+            <div class="section-title">👥 የተመዘገቡ ተጫዋቾች ዝርዝር</div>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th><th>የተጠቃሚ ስልክ ቁጥር</th><th>የይለፍ ቃል (Password)</th><th>ወቅታዊ ቀሪ ሂሳብ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-table">
+                        <tr><td colspan="4" class="loading-text">መረጃዎችን ከሰርቨር በመጫን ላይ...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 🔴 ላይቭ ኮንትሮል ታብ ክፍል -->
+        <div id="section-live" class="tab-section">
+            <div class="table-responsive" style="padding: 40px; text-align: center; color: #94a3b8;">
+                <h3>🎡 LIVE KENO CONTROL PANEL 🚀</h3>
+                <p>የዕጣ ቁጥሮችን እዚህ ላይ ቀጥታ ማስተካከል። (ይህ ክፍል በቅርቡ ይከፈታል)።</p>
+            </div>
+        </div>
     </div>
-            <script>
+    <script>
         let adminToken = "";
-        // 🎯 የእርስዎ የቀጥታ የሬንደር ሰርቨር አድራሻ
-        const BASE_URL = "https://hulugamedash-bet.onrender.com"; 
+        const BASE_URL = window.location.origin; 
 
-        // 🔐 ሎጊን መፈተኛ እና የሴኪውሪቲ ቶከን መቀበያ ፈንክሽን
+        // 🔐 አድሚን ሎጊን መፈተኛ ኮድ
         async function unlockAdminPanel() {
             const password = document.getElementById("admin-password-input").value;
             const errorLabel = document.getElementById("error-message");
@@ -115,27 +200,48 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    adminToken = data.token; // ሰርቨሩ የሰጠንን የደህንነት ቁልፍ (JWT) እንይዛለን
+                    adminToken = data.token;
                     document.getElementById("admin-lock-screen").style.display = "none";
                     document.getElementById("main-dashboard-content").style.display = "block";
                     errorLabel.style.display = "none";
-                    refreshData(); // ዳታውን መጫን ይጀምራል
+                    
+                    // መጀመሪያ ሲገባ ዲፖዚት ታብ ብቻ እንዲከፈት ማድረግ
+                    switchTab('deposits'); 
+                    refreshData();
                 } else {
                     errorLabel.style.display = "block";
-                    errorLabel.innerText = "❌ የይለፍ ቃል ተሳስቷል!";
                 }
             } catch (e) {
-                alert("❌ ከሰርቨር ጋር መገናኘት አልተቻለም! እባክዎ የሬንደር ሰርቨሩ መነሳቱን ያረጋግጡ።");
+                alert("❌ ከሰርቨር ጋር መገናኘት አልተቻለም!");
             }
         }
 
-        // 🔄 ሁሉንም መረጃዎች ከሰርቨር ላይ በሴኪውሪቲ ቁልፍ መጫኛ (Active ማድረጊያ)
+        // 🔄 ታቦችን በየተራ ማሳያ እና መደበቂያ (Tab Controller)
+        function switchTab(tabName) {
+            // 1. ሁሉንም የክፍል ታቦች መደበቅ
+            document.querySelectorAll('.tab-section').forEach(sec => sec.style.display = 'none');
+            
+            // 2. ሁሉንም አዝራሮች አክቲቭ ከለር ማጥፋት
+            document.querySelectorAll('.tabs-container .tab-btn').forEach(btn => {
+                if(!btn.classList.contains('btn-refresh')) btn.classList.remove('active');
+            });
+
+            // 3. የተመረጠውን ታብ እና አዝራር ብቻ ማሳየት
+            document.getElementById(`section-${tabName}`).style.display = 'block';
+            
+            // የተጫነውን አዝራር ከለር መቀየር
+            const targetBtn = Array.from(document.querySelectorAll('.tabs-container .tab-btn'))
+                .find(btn => btn.innerText.toLowerCase().includes(tabName.substring(0, 4)));
+            if(targetBtn) targetBtn.classList.add('active');
+        }
+
+        // 🔄 መረጃዎችን ከሰርቨር ላይ መጫኛ (Active ማድረጊያ)
         async function refreshData() {
             if (!adminToken) return;
             const headers = { 'Authorization': `Bearer ${adminToken}` };
 
             try {
-                // 1. የተጠቃሚዎች ዝርዝር መጫኛ
+                // 1. የተጠቃሚዎች ዝርዝር
                 const usersRes = await fetch(`${BASE_URL}/admin/users`, { headers });
                 const users = await usersRes.json();
                 let usersHTML = "";
@@ -145,11 +251,11 @@
                     totalCapital += user.balance;
                     usersHTML += `<tr><td>${idx+1}</td><td>${user.phone}</td><td>••••••</td><td>${user.balance.toFixed(2)} ETB</td></tr>`;
                 });
-                document.getElementById("users-table").innerHTML = usersHTML;
+                document.getElementById("users-table").innerHTML = usersHTML || "<tr><td colspan='4' class='loading-text'>ምንም የተመዘገበ ተጫዋች የለም።</td></tr>";
                 document.getElementById("total-users").innerText = users.length;
                 document.getElementById("total-capital").innerText = `${totalCapital.toFixed(2)} ETB`;
 
-                // 2. ዲፖዚቶች መጫኛ
+                // 2. ዲፖዚቶች
                 const depRes = await fetch(`${BASE_URL}/admin/deposits`, { headers });
                 const deposits = await depRes.json();
                 let depHTML = "";
@@ -159,20 +265,20 @@
                     if (dep.status === 'PENDING') pendingDepCount++;
                     depHTML += `<tr>
                         <td>${dep.id}</td><td>${dep.userPhone}</td>
-                        <td><a href="${dep.screenshot}" target="_blank" style="color:#22c55e;font-weight:bold;">🖼️ ፎቶ ይመልከቱ</a></td>
+                        <td><a href="${dep.screenshot}" target="_blank" style="color:#eab308;font-weight:bold;text-decoration:none;">🖼️ ፎቶ ይመልከቱ</a></td>
                         <td>${dep.senderPhone}</td><td>${dep.method}</td><td>${dep.amount} ETB</td><td>${dep.status}</td>
                         <td>
                             ${dep.status === 'PENDING' ? `
-                                <button class="btn btn-approve" onclick="processDeposit('${dep.id}', '${dep.userPhone}', ${dep.amount}, 'approve')">✔️ አጽድቅ</button>
-                                <button class="btn btn-reject" onclick="processDeposit('${dep.id}', '${dep.userPhone}', ${dep.amount}, 'reject')">❌ ሰርዝ</button>
-                            ` : 'የተጠናቀቀ'}
+                                <button class="action-btn btn-approve" onclick="processDeposit('${dep.id}', '${dep.userPhone}', ${dep.amount}, 'approve')">✔️ አጽድቅ</button>
+                                <button class="action-btn btn-reject" onclick="processDeposit('${dep.id}', '${dep.userPhone}', ${dep.amount}, 'reject')">❌ ሰርዝ</button>
+                            ` : '<span style="color:#64748b;">የተጠናቀቀ</span>'}
                         </td>
                     </tr>`;
                 });
-                document.getElementById("deposits-table").innerHTML = depHTML;
+                document.getElementById("deposits-table").innerHTML = depHTML || "<tr><td colspan='8' class='loading-text'>ምንም የሚጠባበቅ ዲፖዚት የለም።</td></tr>";
                 document.getElementById("pending-deposits-count").innerText = pendingDepCount;
 
-                // 3. ዊዝድሮዎች መጫኛ
+                // 3. ዊዝድሮዎች
                 const withRes = await fetch(`${BASE_URL}/admin/withdrawals`, { headers });
                 const withdrawals = await withRes.json();
                 let withHTML = "";
@@ -185,13 +291,13 @@
                         <td>${wit.method}</td><td>${wit.amount} ETB</td><td>${wit.status}</td>
                         <td>
                             ${wit.status === 'PENDING' ? `
-                                <button class="btn btn-approve" onclick="processWithdraw('${wit.id}', 'approve')">✔️ ላክ</button>
-                                <button class="btn btn-reject" onclick="processWithdraw('${wit.id}', 'reject')">❌ ውድቅ አድርግ</button>
-                            ` : 'የተጠናቀቀ'}
+                                <button class="action-btn btn-approve" onclick="processWithdraw('${wit.id}', 'approve')">✔️ ላክ</button>
+                                <button class="action-btn btn-reject" onclick="processWithdraw('${wit.id}', 'reject')">❌ ውድቅ አድርግ</button>
+                            ` : '<span style="color:#64748b;">የተጠናቀቀ</span>'}
                         </td>
                     </tr>`;
                 });
-                document.getElementById("withdrawals-table").innerHTML = withHTML;
+                document.getElementById("withdrawals-table").innerHTML = withHTML || "<tr><td colspan='8' class='loading-text'>ምንም የሚጠባበቅ ዊዝድሮው የለም።</td></tr>";
                 document.getElementById("pending-withdrawals-count").innerText = pendingWithCount;
 
             } catch (e) {
@@ -199,7 +305,6 @@
             }
         }
 
-        // 📷 ዲፖዚት ማጽደቂያ እና ማጥፊያ ስክሪፕት
         async function processDeposit(id, userPhone, amount, action) {
             const url = action === 'approve' ? `${BASE_URL}/admin/approve-deposit` : `${BASE_URL}/admin/reject-deposit`;
             await fetch(url, {
@@ -210,7 +315,6 @@
             refreshData();
         }
 
-        // 💸 ዊዝድሮው ማጽደቂያ እና ማጥፊያ ስክሪፕት
         async function processWithdraw(id, action) {
             const url = action === 'approve' ? `${BASE_URL}/admin/approve-withdraw` : `${BASE_URL}/admin/reject-withdraw`;
             await fetch(url, {
