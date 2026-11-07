@@ -60,7 +60,10 @@ const TicketSchema = new mongoose.Schema({
 });
 const Ticket = mongoose.model('Ticket', TicketSchema);
 
-app.get('/', (req, res) => { res.sendFile(path.join(__dirname, 'Dashbet3.html')); });
+// 💻 ዋናውን የጨዋታ HTML ገጽ በ ትክክለኛው ድርብ ስም መክፈቻ
+app.get('/', (req, res) => { 
+    res.sendFile(path.join(__dirname, 'Dashbet3.html.html')); 
+});
 app.get('/admin-panel', (req, res) => { res.sendFile(path.join(__dirname, 'admin.html')); });
 
 app.post('/login', async (req, res) => {
@@ -115,13 +118,35 @@ app.post('/api/deposit', async (req, res) => {
     } catch (e) { res.json({ success: false }); }
 });
 
+// 💸 WITHDRAW REQUEST - (🎯 ማሻሻያ፡ የሬስ-ኮንዲሽን ስርቆትን ለመከላከል ባላንሱ ወዲያውኑ HOLD ተደርጎ ይቀነሳል)
 app.post('/api/withdraw', async (req, res) => {
     let { userPhone, amount, accountNumber, fullName, method } = req.body;
     try {
-        const user = await User.findOne({ phone: userPhone.trim() });
-        if (!user || user.balance < parseFloat(amount)) return res.json({ success: false, message: "❌ በቂ ቀሪ ሂሳብ የሎትም!" });
-        const newWith = new Withdrawal({ id: 'WITH-' + Date.now(), userPhone: userPhone.trim(), amount: parseFloat(amount), accountNumber, fullName, method });
-        await newWith.save(); res.json({ success: true, message: "✅ ጥያቄዎ ደርሷል!" });
+        const cleanPhone = userPhone.trim();
+        const withdrawAmount = parseFloat(amount);
+        
+        // የተጫዋቹን መረጃ ከዳታቤዝ እንፈልጋለን
+        const user = await User.findOne({ phone: cleanPhone });
+        
+        // ፍተሻ፦ ተጫዋቹ ከሌለ ወይም ማውጣት የፈለገው መጠን ከቀሪ ሂሳቡ በላይ ከሆነ ጥያቄውን ውድቅ እናደርጋለን
+        if (!user || user.balance < withdrawAmount) {
+            return res.json({ success: false, message: "❌ ማውጣት የፈለጉት የብር መጠን ከቀሪ ሂሳብዎ በላይ ነው!" });
+        }
+
+        // 🛑 ወዲያውኑ ከተጫዋቹ አካውንት ላይ ብሩን እንቀንሳለን (ሁለቴ ደጋግሞ እንዳያወጣው ለመቆለፍ)
+        user.balance -= withdrawAmount;
+        await user.save(); // አዲሱን ባላንስ በዳታቤዝ ላይ እናስቀምጣለን
+
+        const newWith = new Withdrawal({ 
+            id: 'WITH-' + Date.now(), 
+            userPhone: cleanPhone, 
+            amount: withdrawAmount, 
+            accountNumber, 
+            fullName, 
+            method 
+        });
+        await newWith.save(); 
+        res.json({ success: true, message: "✅ የዊዝድሮው ጥያቄዎ ደርሷል!" });
     } catch (e) { res.json({ success: false }); }
 });
 
@@ -156,24 +181,37 @@ app.post('/admin/approve-deposit', async (req, res) => {
     } catch (e) { res.json({ success: false }); }
 });
 
-// 🎯 የዲፖዚት REJECT ማድረጊያ
 app.post('/admin/reject-deposit', async (req, res) => {
     try { await Deposit.findOneAndUpdate({ id: req.body.id }, { status: 'REJECTED' }); res.json({ success: true }); } catch (e) { res.json({ success: false }); }
 });
 
+// 🛠️ ADMIN APPROVE WITHDRAWAL - (🎯 ማሻሻያ፡ ብሩ ቀድሞ ስለተቀነሰ እዚህ ጋር ማጽደቅ ብቻ ነው)
 app.post('/admin/approve-withdraw', async (req, res) => {
-    const { id, userPhone, amount } = req.body;
+    const { id } = req.body;
     try {
         await Withdrawal.findOneAndUpdate({ id }, { status: 'APPROVED' });
-        const user = await User.findOne({ phone: userPhone.trim() });
-        if(user) { user.balance -= parseFloat(amount); await user.save(); }
         res.json({ success: true });
     } catch (e) { res.json({ success: false }); }
 });
 
-// 🎯 የዊዝድሮው REJECT ማድረጊያ
+// 🛠️ ADMIN REJECT WITHDRAWAL - (🎯 ማሻሻያ፡ ጥያቄው ውድቅ ከተደረገ ብቻ ብሩ ለተጫዋቹ ይመለሳል)
 app.post('/admin/reject-withdraw', async (req, res) => {
-    try { await Withdrawal.findOneAndUpdate({ id: req.body.id }, { status: 'REJECTED' }); res.json({ success: true }); } catch (e) { res.json({ success: false }); }
+    const { id } = req.body;
+    try {
+        const withdrawal = await Withdrawal.findOne({ id });
+        if (withdrawal && withdrawal.status === 'PENDING') {
+            withdrawal.status = 'REJECTED';
+            await withdrawal.save();
+            
+            // ጥያቄው ውድቅ ስለተደረገ፣ የቀነስነውን ብር ለተጫዋቹ አካውንት መልሰን እንጨምራለን
+            const user = await User.findOne({ phone: withdrawal.userPhone });
+            if (user) {
+                user.balance += withdrawal.amount;
+                await user.save();
+            }
+        }
+        res.json({ success: true });
+    } catch (e) { res.json({ success: false }); }
 });
 
 app.listen(PORT, () => { console.log(`🚀 ሰርቨሩ በፖርት ${PORT} ላይ ተነስቷል!`); });
