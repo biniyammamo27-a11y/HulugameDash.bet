@@ -739,7 +739,6 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // የባላንስ ክፍል ከተገኘ ጎኑ ላይ የሚያምር አረንጓዴ አዝራር እንቀጥላለን
     if (balanceParent) {
         // መጀመሪያ አዝራሩ ሁለቴ እንዳይፈጠር ቀድሞ የተፈጠረ ካለ እናጠፋዋለን
         const oldBtn = document.getElementById('manual-refresh-btn');
@@ -766,16 +765,45 @@ window.addEventListener('DOMContentLoaded', () => {
 // 🎯 2. ባላንሱን ከሰርቨር ላይ አምጥቶ በሃይል የማመሳሰል (የመቀየር) ዋና ፈንክሽን
 async function forceSyncBalance() {
     let userPhone = "";
-    let loggedInUser = null;
-    let userKey = "user";
+    let userKey = "";
+    let isObject = false;
+    let originalData = null;
 
-    // በLocalStorage ውስጥ የተቀመጠውን ስልክ ቁጥር እንፈልጋለን
+    // 🔍 ፈልግ፦ በስርዓቱ ውስጥ ያሉትን ሁሉንም የLocalStorage ቁልፎች በራስ-ሰር ይፈትሻል
     for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
+        if (key === "adminToken" || key === "token") continue; // የአድሚን ቶከን ከሆነ ይዘለዋል
+        
         try {
             const val = JSON.parse(localStorage.getItem(key));
-            if (val && val.phone) { userPhone = val.phone; loggedInUser = val; userKey = key; break; }
-        } catch(e) {}
+            if (val && val.phone) { 
+                userPhone = val.phone; 
+                userKey = key; 
+                loggedInUser = val;
+                isObject = true; 
+                break; 
+            }
+            if (typeof val === 'string' && (val.startsWith('09') || val.startsWith('07'))) { 
+                userPhone = val; 
+                userKey = key; 
+                isObject = false; 
+                break; 
+            }
+        } catch(e) {
+            const val = localStorage.getItem(key);
+            if (val && (val.startsWith('09') || val.startsWith('07') || val.startsWith('+251')) && val.length >= 9) { 
+                userPhone = val; 
+                userKey = key; 
+                isObject = false; 
+                break; 
+            }
+        }
+    }
+
+    // 💡 ስልክ ቁጥሩ በስቶሬጅ ውስጥ ካልተገኘ ከገጹ የላይኛው ፅሁፍ ላይ ራሱ ፈልጎ ያወጣል
+    if (!userPhone) {
+        const phoneMatch = document.body.innerText.match(/(09\d{8}|07\d{8}|\+251\d{9})/);
+        if (phoneMatch) userPhone = phoneMatch[0];
     }
 
     if (userPhone) {
@@ -784,19 +812,26 @@ async function forceSyncBalance() {
             const response = await fetch(`/api/user-balance/${userPhone.trim()}`);
             const data = await response.json();
             
-            if (data.success && loggedInUser) {
-                // በLocalStorage ላይ እናዘምነዋለን (ሎጋውት እንዳይጠይቅ)
-                loggedInUser.balance = data.balance;
-                localStorage.setItem(userKey, JSON.stringify(loggedInUser));
+            if (data.success) {
+                // 1. በLocalStorage ላይ ያለውን መረጃ ወዲያውኑ እናዘምነዋለን (ሎጋውት እንዳይጠይቅ)
+                if (userKey) {
+                    if (isObject && loggedInUser) {
+                        loggedInUser.balance = data.balance;
+                        localStorage.setItem(userKey, JSON.stringify(loggedInUser));
+                    } else {
+                        // ቁልፉ ተራ ፅሁፍ ከሆነ ባላንሱን በሌላ ቁልፍ ሴቭ ያደርገዋል
+                        localStorage.setItem('current_user_balance', data.balance);
+                    }
+                }
                 
-                // 🎯 በገጹ ላይ ያሉትን የባላንስ ፅሁፎች በሙሉ ፈልጎ ወዲያውኑ ይቀይራል
+                // 2. 🎯 በገጹ ላይ ያሉትን የባላንስ ፅሁፎች በሙሉ ፈልጎ ወዲያውኑ ይቀይራል
                 const textNodes = [];
                 const walk = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
                 while(walk.nextNode()) textNodes.push(walk.currentNode);
                 
                 textNodes.forEach(node => {
+                    // የቆየውን የባላንስ ቁጥር በአዲሱ የዳታቤዝ ባላንስ በትክክል ይተካዋል
                     if (node.nodeValue.includes('Balance:')) {
-                        // አዝራሩ እንዳይጠፋ የ "Balance:" ፅሁፉን ብቻ ለይቶ ይቀይረዋል
                         node.nodeValue = `Balance: ${data.balance.toFixed(2)} ETB `;
                     }
                     if (node.nodeValue.includes('Withdraw Available Balance:')) {
@@ -814,7 +849,7 @@ async function forceSyncBalance() {
     }
 }
 
-// 🎯 3. በየ 1 ሰከንዱ በስተጀርባ አውቶማቲክ ማደሻውንም አብሮ ማስጀመር [1.2]
+// 🎯 3. በየ 1 ሰከንዱ በስተጀርባ አውቶማቲክ ማደሻውንም አብሮ ማስጀመር
 setInterval(forceSyncBalance, 1000);
 
 
