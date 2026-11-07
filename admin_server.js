@@ -83,7 +83,7 @@ function requireAdmin(req, res, next) {
 }
 // 💻 ዋናውን የጨዋታ HTML ገጽ በ ትክክለኛው ድርብ ስም መክፈቻ
 app.get('/', (req, res) => { 
-    res.sendFile(path.join(__dirname, 'Dashbet3.html.html')); 
+    res.sendFile(path.join(__dirname, 'Dashbet3.html')); 
 });
 app.get('/admin-panel', (req, res) => { res.sendFile(path.join(__dirname, 'admin.html')); });
 
