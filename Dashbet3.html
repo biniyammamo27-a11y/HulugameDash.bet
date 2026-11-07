@@ -89,8 +89,29 @@
             <h3>👋 ወደ Dashbet እንኳን ደህና መጡ!</h3>
             <p style="color: #94a3b8; font-size: 14px;">ጨዋታዎችን ለመምረጥ ከታች ያለውን GAME ታብ ይጫኑ።</p>
             <div style="display: flex; gap: 10px; margin-top: 20px;">
-                <button onclick="switchTab('wallet'); showWalletForm('deposit');" style="background: #10b981; color:#fff;">DEPOSIT</button>
-                <button onclick="switchTab('wallet'); showWalletForm('withdraw');" style="background: #ef4444; color:white;">WITHDRAW</button>
+               <!-- 🏠 የሆም ፔጅ መግቢያ እና የተጫዋቾች ማሳሳቢያ ክፍል -->
+<h3>👋 ወደ Dashbet እንኳን ደህና መጡ!</h3>
+<p>ጨዋታዎችን ለመምረጥ ከታች ያለውን GAME ታብ ይጫኑ።</p>
+
+<div style="margin: 15px 0;">
+    <!-- የእርስዎ ኦሪጅናል የዲፖዚት እና ዊዝድሮው አዝራሮች እዚህ ይገኛሉ -->
+    <button class="tab-btn" onclick="switchPage('deposit')">📷 DEPOSIT</button>
+    <button class="tab-btn" onclick="switchPage('withdraw')">💸 WITHDRAW</button>
+</div>
+
+<!-- 🚨 አዲስ የተጨመረ በጣም ወሳኝ የተጫዋቾች ማሳሰቢያ ባነር -->
+<div style="background-color: rgba(234, 179, 8, 0.1); border: 1px solid #eab308; padding: 15px; border-radius: 8px; margin: 20px auto; max-width: 90%; text-align: left; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
+    <h4 style="color: #eab308; margin: 0 0 8px 0; font-size: 15px; display: flex; align-items: center; gap: 6px;">
+        ⚠️ በጣም ወሳኝ ማሳሰቢያ ለተጫዋቾች!
+    </h4>
+    <p style="color: #e2e8f0; margin: 0; font-size: 13px; line-height: 1.6; font-family: sans-serif;">
+        ውድ ተጫዋቾች፣ የ<b>ዲፖዚት (ብር ማስገባት)</b> ወይም የ<b>ዊዝድሮው (ብር ማውጫ)</b> ጥያቄ ካስገቡ በኋላ፣ ወቅታዊ ቀሪ ሂሳብዎ (Balance) ወዲያውኑ በገጹ ላይ ታድሶ እንዲታይዎት እባክዎ አንድ ጊዜ <b>LOGOUT</b> ብለው በድጋሚ <b>LOGIN</b> ያድርጉ (ይግቡ)። 
+    </p>
+    <p style="color: #22c55e; margin: 8px 0 0 0; font-size: 13px; font-weight: bold; line-height: 1.6;">
+        💡 ማሳሰቢያ፦ የኬኖ ጨዋታውን በቀጥታ መጫወት ሲጀምሩ ግን የእርስዎ ወቅታዊ ባላንስ ያለምንም መውጣትና መግባት በራሱ ጊዜ አውቶማቲክ ይሻሻላል!
+    </p>
+</div>
+
             </div>
         </div>
         <div id="wallet-tab" style="display: none;">
