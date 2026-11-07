@@ -741,50 +741,6 @@ function renderStatisticsToUI() {
         });
     }).catch(() => { container.innerHTML = '❌ ታሪክ መጫን አልተቻለም!'; });
 }
-// 🎯 በየ 1 ሰከንዱ የተጫዋቹን የሞንጎዲቢ ልዩ መለያ (User ID) በመከተል ባላንሱን ቅጽበታዊ ማደሻ ኮድ
-setInterval(async () => {
-    // በሎካል ስቶሬጅ ሴቭ የተደረገውን የተጠቃሚ መረጃ እናነባለን
-    let loggedInUser = JSON.parse(localStorage.getItem('user')) || JSON.parse(localStorage.getItem('loggedInUser')); 
-    
-    // 💡 ዋናው ሚስጥር፦ ተጫዋቹ ሲገባ ዳታቤዙ የሚሰጠውን ልዩ ID (_id) ካገኘን እሱን እንከተላለን
-    if (loggedInUser && (loggedInUser._id || loggedInUser.id)) {
-        const userId = loggedInUser._id || loggedInUser.id;
-        
-        try {
-            // በአዲሱ የ ID ኤፒአይ መነሻነት ከሬንደር ሰርቨር ላይ ወቅታዊውን ባላንስ በጥያቄ እንቀበላለን
-            const response = await fetch(`/api/user-balance-by-id/${userId}`);
-            const data = await response.json();
-            
-            if (data.success) {
-                // 1. በገጽዎ ላይ የ "Balance:" ፅሁፍ ያለባቸውን ቦታዎች በሙሉ ፈልጎ ወዲያውኑ ይቀይራል
-                const textNodes = [];
-                const walk = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
-                while(walk.nextNode()) textNodes.push(walk.currentNode);
-                
-                textNodes.forEach(node => {
-                    if (node.nodeValue.includes('Balance:')) {
-                        node.nodeValue = `Balance: ${data.balance.toFixed(2)} ETB`;
-                    }
-                    if (node.nodeValue.includes('Withdraw Available Balance:')) {
-                        node.nodeValue = `Withdraw Available Balance: ${data.balance.toFixed(2)} ETB`;
-                    }
-                });
-
-                // የዊዝድሮው ገጽ ውስጥ የሚገኘውን የተለየ ክፍል ማደሻ
-                const withdrawAvail = document.querySelector('[id*="withdraw-avail"], .withdraw-balance');
-                if (withdrawAvail) {
-                    withdrawAvail.innerText = `Withdraw Available Balance: ${data.balance.toFixed(2)} ETB`;
-                }
-
-                // 2. በLocalStorage ላይ ያለውን መረጃ ያዘምናል (ሎጋውት እንዳይጠይቅ)
-                loggedInUser.balance = data.balance;
-                localStorage.setItem('user', JSON.stringify(loggedInUser));
-            }
-        } catch (e) {
-            // ሰርቨሩ ስራ ቢበዛበት ጨዋታው እንዳይቆራረጥ ዝም ይለዋል
-        }
-    }
-}, 1000); // ፍጹም በሆነ ፍጥነት በየ 1 ሰከንዱ ይሰራል
 
 </script>
 </body>
