@@ -26,16 +26,17 @@
         }
         .lock-box button:hover { background: #16a34a; }
         
-        /* 📊 ዋናው ዳሽቦርድ መጀመሪያ እንዲደበቅ ይደረጋል */
+        /* 📊 ዋናው ዳሽቦርድ */
         #main-dashboard-content { display: none; }
-        
-        /* የእርስዎ ኦሪጅናል ስታይል ይቀጥላል... */
         body { font-family: sans-serif; padding: 20px; background-color: #f4f6f9; color: #333; }
         .stats-container { display: flex; gap: 20px; margin-bottom: 20px; }
         .stat-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex: 1; text-align: center; }
         table { width: 100%; border-collapse: collapse; margin-bottom: 30px; background: white; }
         th, td { padding: 12px; border: 1px solid #ddd; text-align: left; }
         th { background-color: #f8f9fa; }
+        .btn { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-right: 5px; }
+        .btn-approve { background: #22c55e; color: white; }
+        .btn-reject { background: #ef4444; color: white; }
     </style>
 </head>
 <body>
@@ -50,20 +51,17 @@
         </div>
     </div>
 
-    <!-- 📊 2ኛ፡ የእርስዎ ኦሪጅናል የአድሚን መቆጣጠሪያ ፓነል መዋቅር -->
+    <!-- 📊 2ኛ፡ ዋናው የአድሚን መቆጣጠሪያ ፓነል መዋቅር -->
     <div id="main-dashboard-content">
-        <h2>💼 DASHBET EXECUTIVE CONTROL PANEL</h2>
+        <h2>💼 HULUGAME.BET EXECUTIVE CONTROL PANEL</h2>
 
         <div style="margin-bottom: 20px;">
-            <span style="padding: 10px; background: #ddd; margin-right: 5px; cursor: pointer;">📷 Deposits</span>
-            <span style="padding: 10px; background: #ddd; margin-right: 5px; cursor: pointer;">💸 Withdraws</span>
-            <span style="padding: 10px; background: #ddd; margin-right: 5px; cursor: pointer;">👥 Users</span>
-            <button style="padding: 10px; background: #22c55e; color: white; border: none; cursor: pointer;" onclick="refreshData()">🔄 REFRESH DATA</button>
+            <button style="padding: 10px; background: #22c55e; color: white; border: none; cursor: pointer; font-weight: bold; border-radius: 4px;" onclick="refreshData()">🔄 REFRESH DATA (እድስ)</button>
         </div>
 
         <div class="stats-container">
-            <div class="stat-card"><h4>ጠቅላላ የተጠቃሚዎች ካፒታል</h4><h2 id="total-capital">0.00 ETB</h2></div>
-            <div class="stat-card"><h4>ጠቅላላ ተጠቃሚዎች</h4><h2 id="total-users">0</h2></div>
+            <div class="stat-card"><h4>¼ቅላላ የተጠቃሚዎች ካፒታል</h4><h2 id="total-capital">0.00 ETB</h2></div>
+            <div class="stat-card"><h4>¼ቅላላ ተጠቃሚዎች</h4><h2 id="total-users">0</h2></div>
             <div class="stat-card"><h4>የሚጠባበቁ ዲፖዚቶች</h4><h2 id="pending-deposits-count">0</h2></div>
             <div class="stat-card"><h4>የሚጠባበቁ ዊዝድሮዎች</h4><h2 id="pending-withdrawals-count">0</h2></div>
         </div>
@@ -92,39 +90,131 @@
         <table>
             <thead>
                 <tr>
-                    <th>#</th><th>የተጠቃሚ ስልክ ቁጥር</th><th>የይለፍ ቃል (Password)</th><th>ወቅታዊ ቀሪ ሂሳብ</th><th>እርምጃ</th>
+                    <th>#</th><th>የተጠቃሚ ስልክ ቁጥር</th><th>የይለፍ ቃል (Password)</th><th>ወቅታዊ ቀሪ ሂሳብ</th>
                 </tr>
             </thead>
             <tbody id="users-table"></tbody>
         </table>
     </div>
     <script>
-        // 🎯 የአድሚን መግቢያ ፓስወርድ (በሰርቨር ኮድ ላይ ካደረግነው ጋር አንድ አይነት መሆን አለበት)
-        const MASTER_ADMIN_PASSWORD = "HuluGameAdmin2026!!"; 
+        let adminToken = "";
 
-        function unlockAdminPanel() {
-            const enteredPass = document.getElementById("admin-password-input").value;
+        // 🔐 ሎጊን መፈተኛ እና ሰርቨር ቶከን መቀበያ ፈንክሽን
+        async function unlockAdminPanel() {
+            const password = document.getElementById("admin-password-input").value;
             const errorLabel = document.getElementById("error-message");
 
-            if (enteredPass === MASTER_ADMIN_PASSWORD) {
-                // ፓስወርዱ ልክ ከሆነ ጥቁሩን መቆለፊያ ደብቅ፣ ዋናውን ዳሽቦርድ አሳይ
-                document.getElementById("admin-lock-screen").style.display = "none";
-                document.getElementById("main-dashboard-content").style.display = "block";
-                errorLabel.style.display = "none";
-                
-                // በእርስዎ ኦሪጅናል ስክሪፕት መሰረት ከዳታቤዝ ላይ ዳታ መጫን ይጀምራል
-                if (typeof refreshData === "function") {
-                    refreshData();
+            try {
+                const response = await fetch('/admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password })
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    adminToken = data.token; // ሰርቨሩ የሰጠንን የደህንነት ቁልፍ እንይዛለን
+                    document.getElementById("admin-lock-screen").style.display = "none";
+                    document.getElementById("main-dashboard-content").style.display = "block";
+                    errorLabel.style.display = "none";
+                    refreshData(); // መረጃዎችን መጫን ይጀምራል
+                } else {
+                    errorLabel.style.display = "block";
                 }
-            } else {
-                errorLabel.style.display = "block";
-                document.getElementById("admin-password-input").value = "";
+            } catch (e) {
+                alert("❌ ከሰርቨር ጋር መገናኘት አልተቻለም!");
             }
         }
 
-        // 💡 በእርስዎ ፋይል ውስጥ ድሮ የነበሩ የጃቫስክሪፕት (fetch) ፈንክሽኖች እዚህ በታች ይቀጥላሉ...
-        function refreshData() {
-            console.log("ዳታ ከሰርቨር ላይ በመጫን ላይ...");
+        // 🔄 ሁሉንም መረጃዎች ከሰርቨር ላይ በሴኪውሪቲ ቁልፍ መጫኛ (Active ማድረጊያ)
+        async function refreshData() {
+            const headers = { 'Authorization': `Bearer ${adminToken}` };
+
+            try {
+                // 1. የተጠቃሚዎች ዝርዝር መጫኛ
+                const usersRes = await fetch('/admin/users', { headers });
+                const users = await usersRes.json();
+                let usersHTML = "";
+                let totalCapital = 0;
+                
+                users.forEach((user, idx) => {
+                    totalCapital += user.balance;
+                    usersHTML += `<tr><td>${idx+1}</td><td>${user.phone}</td><td>••••••</td><td>${user.balance.toFixed(2)} ETB</td></tr>`;
+                });
+                document.getElementById("users-table").innerHTML = usersHTML;
+                document.getElementById("total-users").innerText = users.length;
+                document.getElementById("total-capital").innerText = `${totalCapital.toFixed(2)} ETB`;
+
+                // 2. ዲፖዚቶች መጫኛ
+                const depRes = await fetch('/admin/deposits', { headers });
+                const deposits = await depRes.json();
+                let depHTML = "";
+                let pendingDepCount = 0;
+
+                deposits.forEach(dep => {
+                    if (dep.status === 'PENDING') pendingDepCount++;
+                    depHTML += `<tr>
+                        <td>${dep.id}</td><td>${dep.userPhone}</td>
+                        <td><a href="${dep.screenshot}" target="_blank" style="color:#22c55e;font-weight:bold;">🖼️ ፎቶ ይመልከቱ</a></td>
+                        <td>${dep.senderPhone}</td><td>${dep.method}</td><td>${dep.amount} ETB</td><td>${dep.status}</td>
+                        <td>
+                            ${dep.status === 'PENDING' ? `
+                                <button class="btn btn-approve" onclick="processDeposit('${dep.id}', '${dep.userPhone}', ${dep.amount}, 'approve')">✔️ አጽድቅ</button>
+                                <button class="btn btn-reject" onclick="processDeposit('${dep.id}', '${dep.userPhone}', ${dep.amount}, 'reject')">❌ ሰርዝ</button>
+                            ` : 'የተጠናቀቀ'}
+                        </td>
+                    </tr>`;
+                });
+                document.getElementById("deposits-table").innerHTML = depHTML;
+                document.getElementById("pending-deposits-count").innerText = pendingDepCount;
+
+                // 3. ዊዝድሮዎች መጫኛ
+                const withRes = await fetch('/admin/withdrawals', { headers });
+                const withdrawals = await withRes.json();
+                let withHTML = "";
+                let pendingWithCount = 0;
+
+                withdrawals.forEach(wit => {
+                    if (wit.status === 'PENDING') pendingWithCount++;
+                    withHTML += `<tr>
+                        <td>${wit.id}</td><td>${wit.userPhone}</td><td>${wit.accountNumber}</td><td>${wit.fullName}</td>
+                        <td>${wit.method}</td><td>${wit.amount} ETB</td><td>${wit.status}</td>
+                        <td>
+                            ${wit.status === 'PENDING' ? `
+                                <button class="btn btn-approve" onclick="processWithdraw('${wit.id}', 'approve')">✔️ ላክ</button>
+                                <button class="btn btn-reject" onclick="processWithdraw('${wit.id}', 'reject')">❌ ውድቅ አድርግ</button>
+                            ` : 'የተጠናቀቀ'}
+                        </td>
+                    </tr>`;
+                });
+                document.getElementById("withdrawals-table").innerHTML = withHTML;
+                document.getElementById("pending-withdrawals-count").innerText = pendingWithCount;
+
+            } catch (e) {
+                console.error("መረጃዎችን መጫን አልተቻለም", e);
+            }
+        }
+
+        // 📷 ዲፖዚት ማጽደቂያ እና ማጥፊያ ስክሪፕት
+        async function processDeposit(id, userPhone, amount, action) {
+            const url = action === 'approve' ? '/admin/approve-deposit' : '/admin/reject-deposit';
+            await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
+                body: JSON.stringify({ id, userPhone, amount })
+            });
+            refreshData();
+        }
+
+        // 💸 ዊዝድሮው ማጽደቂያ እና ማጥፊያ ስክሪፕት
+        async function processWithdraw(id, action) {
+            const url = action === 'approve' ? '/admin/approve-withdraw' : '/admin/reject-withdraw';
+            await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
+                body: JSON.stringify({ id })
+            });
+            refreshData();
         }
     </script>
 </body>
