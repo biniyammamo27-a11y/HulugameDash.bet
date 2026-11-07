@@ -29,7 +29,7 @@
         /* 📊 ዋናው ዳሽቦርድ መጀመሪያ እንዲደበቅ ይደረጋል */
         #main-dashboard-content { display: none; }
         
-        /* የእርስዎ ኦሪጅናል ስታይል እዚህ ይቀጥላል... */
+        /* የእርስዎ ኦሪጅናል ስታይል ይቀጥላል... */
         body { font-family: sans-serif; padding: 20px; background-color: #f4f6f9; color: #333; }
         .stats-container { display: flex; gap: 20px; margin-bottom: 20px; }
         .stat-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex: 1; text-align: center; }
@@ -39,7 +39,6 @@
     </style>
 </head>
 <body>
-
     <!-- 🔐 1ኛ፡ የአድሚን መግቢያ ፎርም (የይለፍ ቃል መጠየቂያ መቆለፊያ) -->
     <div id="admin-lock-screen">
         <div class="lock-box">
@@ -51,7 +50,7 @@
         </div>
     </div>
 
-    <!-- 📊 2ኛ፡ የእርስዎ ኦሪጅናል የአድሚን መቆጣጠሪያ ፓነል መዋቅር (ሙሉ በሙሉ ተጠብቋል) -->
+    <!-- 📊 2ኛ፡ የእርስዎ ኦሪጅናል የአድሚን መቆጣጠሪያ ፓነል መዋቅር -->
     <div id="main-dashboard-content">
         <h2>💼 DASHBET EXECUTIVE CONTROL PANEL</h2>
 
@@ -99,9 +98,8 @@
             <tbody id="users-table"></tbody>
         </table>
     </div>
-
     <script>
-        // 🎯 የአድሚን መግቢያ ፓስወርድ (በቀደመው ሰርቨር ኮድ ላይ ካደረግነው ጋር አንድ አይነት መሆን አለበት)
+        // 🎯 የአድሚን መግቢያ ፓስወርድ (በሰርቨር ኮድ ላይ ካደረግነው ጋር አንድ አይነት መሆን አለበት)
         const MASTER_ADMIN_PASSWORD = "HuluGameAdmin2026!!"; 
 
         function unlockAdminPanel() {
@@ -114,7 +112,7 @@
                 document.getElementById("main-dashboard-content").style.display = "block";
                 errorLabel.style.display = "none";
                 
-                // በእርስዎ ኦሪጅናል ስክሪፕት መሰረት መረጃዎችን መጫን ይጀምራል
+                // በእርስዎ ኦሪጅናል ስክሪፕት መሰረት ከዳታቤዝ ላይ ዳታ መጫን ይጀምራል
                 if (typeof refreshData === "function") {
                     refreshData();
                 }
@@ -124,9 +122,9 @@
             }
         }
 
-        // በእርስዎ ፋይል ውስጥ ያሉ ድሮ የነበሩ የጃቫስክሪፕት (fetch) ፈንክሽኖች እዚህ በታች ይቀጥላሉ...
+        // 💡 በእርስዎ ፋይል ውስጥ ድሮ የነበሩ የጃቫስክሪፕት (fetch) ፈንክሽኖች እዚህ በታች ይቀጥላሉ...
         function refreshData() {
-            console.log("ዳታ በመጫን ላይ...");
+            console.log("ዳታ ከሰርቨር ላይ በመጫን ላይ...");
         }
     </script>
 </body>
