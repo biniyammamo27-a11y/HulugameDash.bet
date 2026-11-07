@@ -2,19 +2,18 @@ const express = require('express');
 const path = require('path');
 const cors = require('cors');
 const mongoose = require('mongoose');
-const jwt = require('jsonwebtoken'); // 🔐 የአድሚን ፓነልን ለመቆለፍ የተጨመረ [1.2]
+const jwt = require('jsonwebtoken');
 
 const app = express();
 const PORT = process.env.PORT || 5000; 
 
 const MONGO_URI = "mongodb+srv://biniyammamo27_db_user:DxPcujpJIbfPJDLJ@cluster0.rnosp51.mongodb.net/dashbet?retryWrites=true&w=majority";
-const JWT_SECRET = "HuluGame_Super_Secure_Secret_Key_2026"; // 🔐 ለደህንነት ቶከን ማረጋገጫ [1.2]
-const ADMIN_PASSWORD = "HuluGameAdmin2026!!"; // 🎯 የእርስዎ የአድሚን መግቢያ ፓስወርድ [1.11]
+const JWT_SECRET = "HuluGame_Super_Secure_Secret_Key_2026";
+const ADMIN_PASSWORD = "HuluGameAdmin2026!!";
 
 app.use(express.json({ limit: '100mb' }));
 app.use(express.urlencoded({ limit: '100mb', extended: true }));
 
-// 🎯 ማሻሻያ፦ በRender ላይ የሚፈጠረውን የ CORS ስህተት ለመከላከል ሙሉ በሙሉ ክፍት ተደርጓል
 app.use(cors({
     origin: '*',
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
@@ -69,7 +68,7 @@ const TicketSchema = new mongoose.Schema({
 });
 const Ticket = mongoose.model('Ticket', TicketSchema);
 
-// 🔐 የአድሚን ኤፒአዮችን የሚጠብቅ የደህንነት Middleware [1.2]
+// 🔐 የአድሚን ኤፒአዮችን የሚጠብቅ የደህንነት Middleware
 function requireAdmin(req, res, next) {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ');
@@ -81,23 +80,23 @@ function requireAdmin(req, res, next) {
         next();
     });
 }
-// 💻 ዋናውን የጨዋታ HTML ገጽ በ ነጠላ ስም መክፈቻ [1.10]
+// 💻 ዋናውን የጨዋታ HTML ገጽ መክፈቻ
 app.get('/', (req, res) => { 
     res.sendFile(path.join(__dirname, 'Dashbet3.html')); 
 });
 app.get('/admin-panel', (req, res) => { res.sendFile(path.join(__dirname, 'admin.html')); });
 
-// 🔐 ለአድሚን መግቢያ አዲስ ኤፒአይ (Admin Login API) [1.11]
+// 🔐 ለአድሚን መግቢያ ኤፒአይ
 app.post('/admin/login', (req, res) => {
     const { password } = req.body;
     if (password === ADMIN_PASSWORD) {
-        const token = jwt.sign({ admin: true }, JWT_SECRET, { expiresIn: '24h' }); [1.2]
+        const token = jwt.sign({ admin: true }, JWT_SECRET, { expiresIn: '24h' });
         return res.json({ success: true, token: token });
     }
     return res.json({ success: false, message: "❌ የአድሚን ይለፍ ቃል የተሳሳተ ነው!" });
 });
 
-// 🎯 አዲስ ኤፒአይ፦ የተጫዋቹን ወቅታዊ ባላንስ ለፊት ገጽ በየ 1 ሰከንዱ በጥያቄ መላኪያ [1.2]
+// 🎯 የተጫዋቹን ወቅታዊ ባላንስ ለፊት ገጽ በጥያቄ መላኪያ
 app.get('/api/user-balance/:phone', async (req, res) => {
     try {
         const user = await User.findOne({ phone: req.params.phone.trim() });
@@ -108,22 +107,26 @@ app.get('/api/user-balance/:phone', async (req, res) => {
     } catch (e) { res.json({ success: false }); }
 });
 
+// 🔐 ሎጊን ማስተካከያ፦ ከተጫዋቹ የፊት ገጽ ጋር በቀጥታ በጥሬ ጽሑፍ እንዲያመሳክር ተደርጓል (100% ፈጣን መፍትሄ)
 app.post('/login', async (req, res) => {
     let { phone, password } = req.body;
     if (!phone || !password) return res.json({ success: false, message: "⚠️ እባክዎ ያስገቡ!" });
     try {
         const user = await User.findOne({ phone: phone.trim() });
-        if (user && user.password === password) return res.json({ success: true, user: { phone: user.phone, balance: user.balance } });
+        if (user && user.password === password.trim()) {
+            return res.json({ success: true, user: { phone: user.phone, balance: user.balance } });
+        }
         return res.json({ success: false, message: "⚠️ ስልክ ወይም የይለፍ ቃል ተሳስቷል!" });
     } catch (e) { res.json({ success: false }); }
 });
 
+// 🔐 የምዝገባ ማስተካከያ፦ ፓስወርዱን በጥሬ ጽሑፍ ያስቀምጣል
 app.post('/register', async (req, res) => {
     let { phone, password } = req.body;
     try {
         const existing = await User.findOne({ phone: phone.trim() });
         if (existing) return res.json({ success: false, message: "❌ ይህ ስልክ ቀድሞ ተመዝግቧል!" });
-        const newUser = new User({ phone: phone.trim(), password, balance: 0.00 });
+        const newUser = new User({ phone: phone.trim(), password: password.trim(), balance: 0.00 });
         await newUser.save();
         res.json({ success: true, message: "✅ ምዝገባዎ ተጠናቋል!" });
     } catch (e) { res.json({ success: false }); }
@@ -155,11 +158,11 @@ app.post('/api/deposit', async (req, res) => {
         const duplicate = await Deposit.findOne({ screenshot });
         if (duplicate) return res.json({ success: false, message: "❌ ይህ ማረጋገጫ ቀድሞ ጥቅም ላይ ውሏል!" });
         const newDep = new Deposit({ id: 'DEP-' + Date.now(), userPhone: userPhone.trim(), amount: parseFloat(amount), senderPhone, method, screenshot });
-        await newDep.save(); res.json({ success: true, message: "✅ ጥያቄዎ ደርሷል!" });
+        await newDep.save(); res.json({ success: true, message: "✅  ጥያቄዎ ደርሷል!" });
     } catch (e) { res.json({ success: false }); }
 });
 
-// 💸 WITHDRAW REQUEST - ባላንሱ ወዲያውኑ HOLD ተደርጎ ይቀነሳል [1.2]
+// 💸 WITHDRAW REQUEST - ባላንሱ ወዲያውኑ HOLD ተደርጎ ይቀነሳል
 app.post('/api/withdraw', async (req, res) => {
     let { userPhone, amount, accountNumber, fullName, method } = req.body;
     try {
@@ -171,7 +174,7 @@ app.post('/api/withdraw', async (req, res) => {
             return res.json({ success: false, message: "❌ ማውጣት የፈለጉት የብር መጠን ከቀሪ ሂሳብዎ በላይ ነው!" });
         }
 
-        user.balance -= withdrawAmount; [1.2]
+        user.balance -= withdrawAmount;
         await user.save();
 
         const newWith = new Withdrawal({ id: 'WITH-' + Date.now(), userPhone: cleanPhone, amount: withdrawAmount, accountNumber, fullName, method });
@@ -197,7 +200,6 @@ app.get('/api/my-tickets/:phone', async (req, res) => {
     try { const tickets = await Ticket.find({ userPhone: req.params.phone }).sort({ _id: -1 }).limit(30); res.json(tickets); } catch (e) { res.json([]); }
 });
 
-// 🎯 የተቆለፉ የአድሚን ተግባራት [1.2]
 app.get('/admin/users', requireAdmin, async (req, res) => { try { res.json(await User.find()); } catch(e) { res.json([]); } });
 app.get('/admin/deposits', requireAdmin, async (req, res) => { try { res.json(await Deposit.find().sort({ _id: -1 })); } catch(e) { res.json([]); } });
 app.get('/admin/withdrawals', requireAdmin, async (req, res) => { try { res.json(await Withdrawal.find().sort({ _id: -1 })); } catch(e) { res.json([]); } });
@@ -232,7 +234,7 @@ app.post('/admin/reject-withdraw', requireAdmin, async (req, res) => {
             withdrawal.status = 'REJECTED';
             await withdrawal.save();
             const user = await User.findOne({ phone: withdrawal.userPhone });
-            if (user) { user.balance += withdrawal.amount; await user.save(); } [1.2]
+            if (user) { user.balance += withdrawal.amount; await user.save(); }
         }
         res.json({ success: true });
     } catch (e) { res.json({ success: false }); }
