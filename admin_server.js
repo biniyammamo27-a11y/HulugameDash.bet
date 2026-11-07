@@ -2,14 +2,14 @@ const express = require('express');
 const path = require('path');
 const cors = require('cors');
 const mongoose = require('mongoose');
-const jwt = require('jsonwebtoken'); // 🔐 የአድሚን ፓነልን ለመቆለፍ የተጨመረ
+const jwt = require('jsonwebtoken'); // 🔐 የአድሚን ፓነልን ለመቆለፍ የተጨመረ [1.2]
 
 const app = express();
 const PORT = process.env.PORT || 5000; 
 
 const MONGO_URI = "mongodb+srv://biniyammamo27_db_user:DxPcujpJIbfPJDLJ@cluster0.rnosp51.mongodb.net/dashbet?retryWrites=true&w=majority";
-const JWT_SECRET = "HuluGame_Super_Secure_Secret_Key_2026"; // 🔐 ለደህንነት ቶከን ማረጋገጫ
-const ADMIN_PASSWORD = "HuluGameAdmin2026!!"; // 🎯 የእርስዎ የአድሚን መግቢያ ፓስወርድ ይህ ነው!
+const JWT_SECRET = "HuluGame_Super_Secure_Secret_Key_2026"; // 🔐 ለደህንነት ቶከን ማረጋገጫ [1.2]
+const ADMIN_PASSWORD = "HuluGameAdmin2026!!"; // 🎯 የእርስዎ የአድሚን መግቢያ ፓስወርድ [1.11]
 
 app.use(express.json({ limit: '100mb' }));
 app.use(express.urlencoded({ limit: '100mb', extended: true }));
@@ -25,7 +25,7 @@ mongoose.connect(MONGO_URI)
 .then(() => console.log("🟢 MongoDB Cloud Database Connected Successfully!"))
 .catch(err => console.log("❌ MongoDB Connection Error: ", err));
 
-// --- የዳታቤዝ ሞዴሎች (Schemas) ---
+// --- የተጠቃሚ ሞዴል ስኬማ ---
 const UserSchema = new mongoose.Schema({
     phone: { type: String, required: true, unique: true },
     password: { type: String, required: true },
@@ -69,7 +69,7 @@ const TicketSchema = new mongoose.Schema({
 });
 const Ticket = mongoose.model('Ticket', TicketSchema);
 
-// 🔐 የአድሚን ኤፒአዮችን የሚጠብቅ የደህንነት Middleware
+// 🔐 የአድሚን ኤፒአዮችን የሚጠብቅ የደህንነት Middleware [1.2]
 function requireAdmin(req, res, next) {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ');
@@ -81,20 +81,31 @@ function requireAdmin(req, res, next) {
         next();
     });
 }
-// 💻 ዋናውን የጨዋታ HTML ገጽ በ ትክክለኛው ድርብ ስም መክፈቻ
+// 💻 ዋናውን የጨዋታ HTML ገጽ በ ነጠላ ስም መክፈቻ [1.10]
 app.get('/', (req, res) => { 
     res.sendFile(path.join(__dirname, 'Dashbet3.html')); 
 });
 app.get('/admin-panel', (req, res) => { res.sendFile(path.join(__dirname, 'admin.html')); });
 
-// 🔐 ለአድሚን መግቢያ አዲስ ኤፒአይ (Admin Login API)
+// 🔐 ለአድሚን መግቢያ አዲስ ኤፒአይ (Admin Login API) [1.11]
 app.post('/admin/login', (req, res) => {
     const { password } = req.body;
     if (password === ADMIN_PASSWORD) {
-        const token = jwt.sign({ admin: true }, JWT_SECRET, { expiresIn: '24h' });
+        const token = jwt.sign({ admin: true }, JWT_SECRET, { expiresIn: '24h' }); [1.2]
         return res.json({ success: true, token: token });
     }
-    return res.json({ success: false, message: "❌  የአድሚን ይለፍ ቃል የተሳሳተ ነው!" });
+    return res.json({ success: false, message: "❌ የአድሚን ይለፍ ቃል የተሳሳተ ነው!" });
+});
+
+// 🎯 አዲስ ኤፒአይ፦ የተጫዋቹን ወቅታዊ ባላንስ ለፊት ገጽ በየ 1 ሰከንዱ በጥያቄ መላኪያ [1.2]
+app.get('/api/user-balance/:phone', async (req, res) => {
+    try {
+        const user = await User.findOne({ phone: req.params.phone.trim() });
+        if (user) {
+            return res.json({ success: true, balance: user.balance });
+        }
+        res.json({ success: false, message: "ተጠቃሚው አልተገኘም" });
+    } catch (e) { res.json({ success: false }); }
 });
 
 app.post('/login', async (req, res) => {
@@ -117,7 +128,6 @@ app.post('/register', async (req, res) => {
         res.json({ success: true, message: "✅ ምዝገባዎ ተጠናቋል!" });
     } catch (e) { res.json({ success: false }); }
 });
-
 app.post('/api/place-bet', async (req, res) => {
     let { userPhone, betAmount } = req.body;
     try {
@@ -149,7 +159,7 @@ app.post('/api/deposit', async (req, res) => {
     } catch (e) { res.json({ success: false }); }
 });
 
-// 💸 WITHDRAW REQUEST - ባላንሱ ወዲያውኑ HOLD ተደርጎ ይቀነሳል
+// 💸 WITHDRAW REQUEST - ባላንሱ ወዲያውኑ HOLD ተደርጎ ይቀነሳል [1.2]
 app.post('/api/withdraw', async (req, res) => {
     let { userPhone, amount, accountNumber, fullName, method } = req.body;
     try {
@@ -161,7 +171,7 @@ app.post('/api/withdraw', async (req, res) => {
             return res.json({ success: false, message: "❌ ማውጣት የፈለጉት የብር መጠን ከቀሪ ሂሳብዎ በላይ ነው!" });
         }
 
-        user.balance -= withdrawAmount;
+        user.balance -= withdrawAmount; [1.2]
         await user.save();
 
         const newWith = new Withdrawal({ id: 'WITH-' + Date.now(), userPhone: cleanPhone, amount: withdrawAmount, accountNumber, fullName, method });
@@ -169,6 +179,7 @@ app.post('/api/withdraw', async (req, res) => {
         res.json({ success: true, message: "✅ የዊዝድሮው ጥያቄዎ ደርሷል!" });
     } catch (e) { res.json({ success: false }); }
 });
+
 app.post('/api/save-draw', async (req, res) => {
     try { const newDraw = new Draw(req.body); await newDraw.save(); res.json({ success: true }); } catch (e) { res.json({ success: false }); }
 });
@@ -186,7 +197,7 @@ app.get('/api/my-tickets/:phone', async (req, res) => {
     try { const tickets = await Ticket.find({ userPhone: req.params.phone }).sort({ _id: -1 }).limit(30); res.json(tickets); } catch (e) { res.json([]); }
 });
 
-// 🎯 ማሻሻያ፦ ሁሉም የአድሚን ዳታዎች በ requireAdmin ተቆልፈዋል
+// 🎯 የተቆለፉ የአድሚን ተግባራት [1.2]
 app.get('/admin/users', requireAdmin, async (req, res) => { try { res.json(await User.find()); } catch(e) { res.json([]); } });
 app.get('/admin/deposits', requireAdmin, async (req, res) => { try { res.json(await Deposit.find().sort({ _id: -1 })); } catch(e) { res.json([]); } });
 app.get('/admin/withdrawals', requireAdmin, async (req, res) => { try { res.json(await Withdrawal.find().sort({ _id: -1 })); } catch(e) { res.json([]); } });
@@ -205,7 +216,6 @@ app.post('/admin/reject-deposit', requireAdmin, async (req, res) => {
     try { await Deposit.findOneAndUpdate({ id: req.body.id }, { status: 'REJECTED' }); res.json({ success: true }); } catch (e) { res.json({ success: false }); }
 });
 
-// 🛠️ ADMIN APPROVE WITHDRAWAL - (🎯 ብሩ ቀድሞ ስለተቀነሰ ማጽደቅ ብቻ ነው)
 app.post('/admin/approve-withdraw', requireAdmin, async (req, res) => {
     const { id } = req.body;
     try {
@@ -214,7 +224,6 @@ app.post('/admin/approve-withdraw', requireAdmin, async (req, res) => {
     } catch (e) { res.json({ success: false }); }
 });
 
-// 🛠️ ADMIN REJECT WITHDRAWAL - (🎯 ውድቅ ከተደረገ ብቻ ብሩ ይመለሳል)
 app.post('/admin/reject-withdraw', requireAdmin, async (req, res) => {
     const { id } = req.body;
     try {
@@ -223,7 +232,7 @@ app.post('/admin/reject-withdraw', requireAdmin, async (req, res) => {
             withdrawal.status = 'REJECTED';
             await withdrawal.save();
             const user = await User.findOne({ phone: withdrawal.userPhone });
-            if (user) { user.balance += withdrawal.amount; await user.save(); }
+            if (user) { user.balance += withdrawal.amount; await user.save(); } [1.2]
         }
         res.json({ success: true });
     } catch (e) { res.json({ success: false }); }
