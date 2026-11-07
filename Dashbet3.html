@@ -735,10 +735,18 @@ setInterval(async () => {
         try {
             const val = JSON.parse(localStorage.getItem(key));
             if (val && val.phone) { userPhone = val.phone; userKey = key; break; }
-            if (typeof val === 'string' && val.startsWith('09')) { userPhone = val; userKey = key; break; }
+            if (typeof val === 'string' && (val.startsWith('09') || val.startsWith('07'))) { userPhone = val; userKey = key; break; }
         } catch(e) {
             const val = localStorage.getItem(key);
-            if (val && (val.startsWith('09') || val.startsWith('+251')) && val.length >= 9) { userPhone = val; userKey = key; break; }
+            if (val && (val.startsWith('09') || val.startsWith('07') || val.startsWith('+251')) && val.length >= 9) { userPhone = val; userKey = key; break; }
+        }
+    }
+
+    // 💡 ማሻሻያ፦ በፎቶው ላይ እንዳየነው ተጫዋቹ ስልኩን በእጅ ካስገባ ቁጥሩን ከሳጥኑ ላይ በቀጥታ ይወስዳል
+    if (!userPhone) {
+        const phoneInput = document.querySelector('input[type="text"][placeholder*="ስልክ"], input[type="number"][placeholder*="ስልክ"], #login-phone, #reg-phone');
+        if (phoneInput && phoneInput.value && (phoneInput.value.startsWith('09') || phoneInput.value.startsWith('07'))) {
+            userPhone = phoneInput.value;
         }
     }
 
@@ -750,15 +758,17 @@ setInterval(async () => {
             
             if (data.success) {
                 // 1. በLocalStorage ውስጥ ያለውን መረጃ ወዲያውኑ ያዘምናል (ሎጋውት እንዳይጠይቅ)
-                let rawData = localStorage.getItem(userKey);
-                try {
-                    let parsed = JSON.parse(rawData);
-                    if(parsed && parsed.phone) {
-                        parsed.balance = data.balance;
-                        localStorage.setItem(userKey, JSON.stringify(parsed));
+                if (userKey) {
+                    let rawData = localStorage.getItem(userKey);
+                    try {
+                        let parsed = JSON.parse(rawData);
+                        if(parsed && parsed.phone) {
+                            parsed.balance = data.balance;
+                            localStorage.setItem(userKey, JSON.stringify(parsed));
+                        }
+                    } catch(e) {
+                        // ቁልፉ ተራ ጽሁፍ ከሆነ ዝም ይለዋል
                     }
-                } catch(e) {
-                    // ቁልፉ ተራ ጽሁፍ ከሆነ ዝም ይለዋል
                 }
 
                 // 2. 🎯 በገጹ ላይ ያሉትን ሁሉንም የባላንስ ጽሁፎች በሙሉ በጥሬው (Direct DOM Text) ይቀይራል
@@ -770,6 +780,10 @@ setInterval(async () => {
                             node.nodeValue = node.nodeValue.replace(/Withdraw Available Balance:\s*[0-9.]+\s*ETB/g, `Withdraw Available Balance: ${data.balance.toFixed(2)} ETB`);
                         }
                     } else {
+                        // ለ input ሳጥኖች (ለምሳሌ ለዊዝድሮው ፎርም ባላንስ ማሳያ)
+                        if (node.tagName === 'INPUT' && node.value && node.value.includes('Balance:')) {
+                            node.value = node.value.replace(/Balance:\s*[0-9.]+\s*ETB/g, `Balance: ${data.balance.toFixed(2)} ETB`);
+                        }
                         for (let child of node.childNodes) walkAndReplace(child);
                     }
                 };
@@ -780,7 +794,6 @@ setInterval(async () => {
         }
     }
 }, 1000); // ፍጹም በሆነ ፍጥነት በየ 1 ሰከንዱ ይሰራል
-ሆነ ፍጥነት አውቶማቲክ ያድሰዋል
 
 </script>
 </body>
