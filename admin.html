@@ -6,7 +6,7 @@
     <title>Dashbet - Supreme Executive Admin Panel</title>
     <style>
         /* 🎨 በፎቶው መሰረት የዳሽቦርዱ ዋና የ Dark Theme ከለሮች */
-        body { font-family: 'Segoe UI', sans-serif; background-color: #0c1322; color: #f8fafc; margin: 0; padding: 15px; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #0c1322; color: #f8fafc; margin: 0; padding: 15px; }
         
         /* 🔐 የመቆለፊያ ገጽ ዲዛይን */
         #admin-lock-screen {
@@ -70,7 +70,7 @@
             font-size: 15px; font-weight: bold; color: #f59e0b;
             text-align: left; margin: 25px 0 12px 0; display: flex; align-items: center; gap: 8px;
         }
-        .table-responsive { width: 100%; overflow-x: auto; background-color: #151f32; border-radius: 8px; border: 1px solid #1e293b; }
+        .table-responsive { width: 100%; overflow-x: auto; background-color: #151f32; border-radius: 8px; border: 1px solid #1e293b; margin-bottom: 20px; }
         table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; }
         th, td { padding: 12px; border-bottom: 1px solid #1e293b; }
         th { background-color: #1e293b; color: #94a3b8; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; }
@@ -83,6 +83,9 @@
         .action-btn { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px; margin-right: 5px; }
         .btn-approve { background-color: #10b981; color: white; }
         .btn-reject { background-color: #ef4444; color: white; }
+        
+        /* 🔘 የታብ መያዣ ክፍሎች */
+        .tab-section { display: none; }
     </style>
 </head>
 <body>
@@ -105,10 +108,10 @@
 
         <!-- 🔘 አሰላለፋቸው የተስተካከለ አዝራሮች -->
         <div class="tabs-container">
-            <button class="tab-btn active">🟡 Deposits</button>
-            <button class="tab-btn">💸 Withdraws</button>
-            <button class="tab-btn">👥 Users</button>
-            <button class="tab-btn">🔴 Live Control</button>
+            <button class="tab-btn" onclick="switchTab('deposits')">🟡 Deposits</button>
+            <button class="tab-btn" onclick="switchTab('withdrawals')">💸 Withdraws</button>
+            <button class="tab-btn" onclick="switchTab('users')">👥 Users</button>
+            <button class="tab-btn" onclick="switchTab('live')">🔴 Live Control</button>
             <button class="tab-btn btn-refresh" onclick="refreshData()">🔄 REFRESH DATA</button>
         </div>
 
@@ -120,49 +123,63 @@
             <div class="stat-card withdraws"><h4>የሚጠባበቁ ዊዝድሮዎች</h4><h2 id="pending-withdrawals-count">0</h2></div>
         </div>
 
-        <!-- 📷 ዲፖዚቶች ሰንጠረዥ -->
-        <div class="section-title">📷 የሚጠባበቁ ዲፖዚቶች (PENDING DEPOSITS)</div>
-        <div class="table-responsive">
-            <table>
-                <thead>
-                    <tr>
-                        <th>የጥያቄ ID</th><th>የተጫዋች ስልክ</th><th>ማረጋገጫ (Receipt)</th><th>የላከበት ስልክ</th><th>የክፍያ ዘዴ</th><th>የብር መጠን</th><th>ሁኔታ</th><th>እርምጃ</th>
-                    </tr>
-                </thead>
-                <tbody id="deposits-table">
-                    <tr><td colspan="8" class="loading-text">መረጃዎችን ከሰርቨር በመጫን ላይ...</td></tr>
-                </tbody>
-            </table>
+        <!-- 📷 ዲፖዚቶች ታብ ክፍል -->
+        <div id="section-deposits" class="tab-section">
+            <div class="section-title">📷 የሚጠባበቁ ዲፖዚቶች (PENDING DEPOSITS)</div>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>የጥያቄ ID</th><th>የተጫዋች ስልክ</th><th>ማረጋገጫ (Receipt)</th><th>የላከበት ስልክ</th><th>የክፍያ ዘዴ</th><th>የብር መጠን</th><th>ሁኔታ</th><th>እርምጃ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="deposits-table">
+                        <tr><td colspan="8" class="loading-text">መረጃዎችን ከሰርቨር በመጫን ላይ...</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
 
-        <!-- 💸 ዊዝድሮዎች ሰንጠረዥ -->
-        <div class="section-title">💸 የሚጠባበቁ ዊዝድሮዎች (PENDING WITHDRAWALS)</div>
-        <div class="table-responsive">
-            <table>
-                <thead>
-                    <tr>
-                        <th>የጥያቄ ID</th><th>የተጫዋች ስልክ</th><th>የአካውንት ቁጥር</th><th>ሙሉ ስም</th><th>የክፍያ ዘዴ</th><th>የብር መጠን</th><th>ሁኔታ</th><th>እርምጃ</th>
-                    </tr>
-                </thead>
-                <tbody id="withdrawals-table">
-                    <tr><td colspan="8" class="loading-text">መረጃዎችን ከሰርቨር በመጫን ላይ...</td></tr>
-                </tbody>
-            </table>
+        <!-- 💸 ዊዝድሮዎች ታብ ክፍል -->
+        <div id="section-withdrawals" class="tab-section">
+            <div class="section-title">💸 የሚጠባበቁ ዊዝድሮዎች (PENDING WITHDRAWALS)</div>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>የጥያቄ ID</th><th>የተጫዋች ስልክ</th><th>የአካውንት ቁጥር</th><th>ሙሉ ስም</th><th>የክፍያ ዘዴ</th><th>የብር መጠን</th><th>ሁኔታ</th><th>እርምጃ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="withdrawals-table">
+                        <tr><td colspan="8" class="loading-text">መረጃዎችን ከሰርቨር በመጫን ላይ...</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
 
-        <!-- 👥 የተመዘገቡ ተጫዋቾች ሰንጠረዥ -->
-        <div class="section-title">👥 የተመዘገቡ ተጫዋቾች ዝርዝር</div>
-        <div class="table-responsive">
-            <table>
-                <thead>
-                    <tr>
-                        <th>#</th><th>የተጠቃሚ ስልክ ቁጥር</th><th>የይለፍ ቃል (Password)</th><th>ወቅታዊ ቀሪ ሂሳብ</th>
-                    </tr>
-                </thead>
-                <tbody id="users-table">
-                    <tr><td colspan="4" class="loading-text">መረጃዎችን ከሰርቨር በመጫን ላይ...</td></tr>
-                </tbody>
-            </table>
+        <!-- 👥 የተመዘገቡ ተጫዋቾች ታብ ክፍል -->
+        <div id="section-users" class="tab-section">
+            <div class="section-title">👥 የተመዘገቡ ተጫዋቾች ዝርዝር</div>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th><th>የተጠቃሚ ስልክ ቁጥር</th><th>የይለፍ ቃል (Password)</th><th>ወቅታዊ ቀሪ ሂሳብ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-table">
+                        <tr><td colspan="4" class="loading-text">መረጃዎችን ከሰርቨር በመጫን ላይ...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 🔴 ላይቭ ኮንትሮል ታብ ክፍል -->
+        <div id="section-live" class="tab-section">
+            <div class="table-responsive" style="padding: 40px; text-align: center; color: #94a3b8;">
+                <h3>🎡 LIVE KENO CONTROL PANEL 🚀</h3>
+                <p>የዕጣ ቁጥሮችን እዚህ ላይ ቀጥታ ማስተካከል። (ይህ ክፍል በቅርቡ ይከፈታል)።</p>
+            </div>
         </div>
     </div>
     <script>
@@ -187,6 +204,9 @@
                     document.getElementById("admin-lock-screen").style.display = "none";
                     document.getElementById("main-dashboard-content").style.display = "block";
                     errorLabel.style.display = "none";
+                    
+                    // መጀመሪያ ሲገባ ዲፖዚት ታብ ብቻ እንዲከፈት ማድረግ
+                    switchTab('deposits'); 
                     refreshData();
                 } else {
                     errorLabel.style.display = "block";
@@ -196,7 +216,26 @@
             }
         }
 
-        // 🔄 መረጃዎችን ከሰርቨር ላይ በራስ-ሰር መጫኛ (Active ማድረጊያ)
+        // 🔄 ታቦችን በየተራ ማሳያ እና መደበቂያ (Tab Controller)
+        function switchTab(tabName) {
+            // 1. ሁሉንም የክፍል ታቦች መደበቅ
+            document.querySelectorAll('.tab-section').forEach(sec => sec.style.display = 'none');
+            
+            // 2. ሁሉንም አዝራሮች አክቲቭ ከለር ማጥፋት
+            document.querySelectorAll('.tabs-container .tab-btn').forEach(btn => {
+                if(!btn.classList.contains('btn-refresh')) btn.classList.remove('active');
+            });
+
+            // 3. የተመረጠውን ታብ እና አዝራር ብቻ ማሳየት
+            document.getElementById(`section-${tabName}`).style.display = 'block';
+            
+            // የተጫነውን አዝራር ከለር መቀየር
+            const targetBtn = Array.from(document.querySelectorAll('.tabs-container .tab-btn'))
+                .find(btn => btn.innerText.toLowerCase().includes(tabName.substring(0, 4)));
+            if(targetBtn) targetBtn.classList.add('active');
+        }
+
+        // 🔄 መረጃዎችን ከሰርቨር ላይ መጫኛ (Active ማድረጊያ)
         async function refreshData() {
             if (!adminToken) return;
             const headers = { 'Authorization': `Bearer ${adminToken}` };
