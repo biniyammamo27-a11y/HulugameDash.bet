@@ -96,12 +96,12 @@
             <tbody id="users-table"></tbody>
         </table>
     </div>
-    <script>
+            <script>
         let adminToken = "";
-        // 🎯 ወሳኝ ማሻሻያ፦ የሎካል አድራሻውን ወደ እርስዎ የRender የቀጥታ ሊንክ ቀይረነዋል [1.6]
+        // 🎯 የእርስዎ የቀጥታ የሬንደር ሰርቨር አድራሻ
         const BASE_URL = "https://hulugamedash-bet.onrender.com"; 
 
-        // 🔐 ሎጊን መፈተኛ እና ሰርቨር ቶከን መቀበያ ፈንክሽን
+        // 🔐 ሎጊን መፈተኛ እና የሴኪውሪቲ ቶከን መቀበያ ፈንክሽን
         async function unlockAdminPanel() {
             const password = document.getElementById("admin-password-input").value;
             const errorLabel = document.getElementById("error-message");
@@ -115,22 +115,24 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    adminToken = data.token; // ሰርቨሩ የሰጠንን የደህንነት ቁልፍ እንይዛለን [1.2]
+                    adminToken = data.token; // ሰርቨሩ የሰጠንን የደህንነት ቁልፍ (JWT) እንይዛለን
                     document.getElementById("admin-lock-screen").style.display = "none";
                     document.getElementById("main-dashboard-content").style.display = "block";
                     errorLabel.style.display = "none";
-                    refreshData(); // መረጃዎችን መጫን ይጀምራል
+                    refreshData(); // ዳታውን መጫን ይጀምራል
                 } else {
                     errorLabel.style.display = "block";
+                    errorLabel.innerText = "❌ የይለፍ ቃል ተሳስቷል!";
                 }
             } catch (e) {
-                alert("❌ ከሰርቨር ጋር መገናኘት አልተቻለም! እባክዎ ሰርቨሩ መነሳቱን ያረጋግጡ።");
+                alert("❌ ከሰርቨር ጋር መገናኘት አልተቻለም! እባክዎ የሬንደር ሰርቨሩ መነሳቱን ያረጋግጡ።");
             }
         }
 
         // 🔄 ሁሉንም መረጃዎች ከሰርቨር ላይ በሴኪውሪቲ ቁልፍ መጫኛ (Active ማድረጊያ)
         async function refreshData() {
-            const headers = { 'Authorization': `Bearer ${adminToken}` }; [1.2]
+            if (!adminToken) return;
+            const headers = { 'Authorization': `Bearer ${adminToken}` };
 
             try {
                 // 1. የተጠቃሚዎች ዝርዝር መጫኛ
@@ -202,7 +204,7 @@
             const url = action === 'approve' ? `${BASE_URL}/admin/approve-deposit` : `${BASE_URL}/admin/reject-deposit`;
             await fetch(url, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` }, [1.2]
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
                 body: JSON.stringify({ id, userPhone, amount })
             });
             refreshData();
@@ -213,7 +215,7 @@
             const url = action === 'approve' ? `${BASE_URL}/admin/approve-withdraw` : `${BASE_URL}/admin/reject-withdraw`;
             await fetch(url, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` }, [1.2]
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
                 body: JSON.stringify({ id })
             });
             refreshData();
