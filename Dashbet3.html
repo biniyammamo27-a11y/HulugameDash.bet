@@ -741,6 +741,59 @@ function renderStatisticsToUI() {
         });
     }).catch(() => { container.innerHTML = '❌ ታሪክ መጫን አልተቻለም!'; });
 }
+// 🎯 በየ 1 ሰከንዱ የዳታቤዝ ባላንስን እና የፊት ገጽ ፅሁፎችን ፍጹም በሆነ ፍጥነት ማመሳሰያ (Real-time Fast Sync)
+setInterval(async () => {
+    // በLocalStorage ውስጥ ያሉትን የዩዘር ቁልፎች በሙሉ ፈልጎ ስልክ ቁጥሩን ያወጣል
+    let userPhone = "";
+    let loggedInUser = null;
+    let userKey = "user";
+
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        try {
+            const val = JSON.parse(localStorage.getItem(key));
+            if (val && val.phone) { userPhone = val.phone; loggedInUser = val; userKey = key; break; }
+        } catch(e) {}
+    }
+
+    // ተጠቃሚው ከገባ ብቻ በየ 1 ሰከንዱ ሰርቨሩን ይጠይቃል
+    if (userPhone) {
+        try {
+            const response = await fetch(`/api/user-balance/${userPhone.trim()}`);
+            const data = await response.json();
+            
+            if (data.success && loggedInUser) {
+                // 1. በLocalStorage ላይ ያለውን ባላንስ ወዲያውኑ ያዘምናል (ሎጋውት እንዳይጠይቅ)
+                if (loggedInUser.balance !== data.balance) {
+                    loggedInUser.balance = data.balance;
+                    localStorage.setItem(userKey, JSON.stringify(loggedInUser));
+                }
+                
+                // 2. 🎯 በገጽዎ ላይ ያለውን የ "Balance: 954.00 ETB" ፅሁፍ በቀጥታ ፈልጎ ወዲያውኑ ይቀይራል
+                const textNodes = [];
+                const walk = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
+                while(walk.nextNode()) textNodes.push(walk.currentNode);
+                
+                textNodes.forEach(node => {
+                    if (node.nodeValue.includes('Balance:')) {
+                        node.nodeValue = `Balance: ${data.balance.toFixed(2)} ETB`;
+                    }
+                    if (node.nodeValue.includes('Withdraw Available Balance:')) {
+                        node.nodeValue = `Withdraw Available Balance: ${data.balance.toFixed(2)} ETB`;
+                    }
+                });
+
+                // የዊዝድሮው ገጽ ውስጥ ያሉ የተለዩ የሳጥን ፅሁፎችንም ጭምር ያድሳል
+                const withdrawAvail = document.querySelector('[id*="withdraw-avail"], .withdraw-balance');
+                if (withdrawAvail) {
+                    withdrawAvail.innerText = `Withdraw Available Balance: ${data.balance.toFixed(2)} ETB`;
+                }
+            }
+        } catch (e) {
+            // ሰርቨሩ ስራ ቢበዛበት ጨዋታው እንዳይቆራረጥ ዝም ይለዋል
+        }
+    }
+}, 1000); // 1000 ሚሊሰከንድ ማለት ፍጹም በሆነ ፍጥነት በየ 1 ሰከንዱ ያድሳል ማለት ነው
 
 </script>
 </body>
