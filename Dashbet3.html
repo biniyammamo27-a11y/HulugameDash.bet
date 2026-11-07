@@ -724,32 +724,63 @@ function renderStatisticsToUI() {
         });
     }).catch(() => { container.innerHTML = '❌ ታሪክ መጫን አልተቻለም!'; });
 }
-// 🎯 ምንም ኮድ ሳይበላሽ በየ 1 ሰከንዱ የዳታቤዝ ባላንስን እና የፊት ገጽ ፅሁፎችን ማመሳሰያ (1 Second Hard Sync)
+// 🎯 የትኛውንም የFront-end ኮድ ሳይነኩ ባላንሱን በየ 1 ሰከንዱ በሃይል የማመሳሰል (Hard Sync) የመጨረሻ መፍትሄ
 setInterval(async () => {
-    // በሎካል ስቶሬጅ ሴቭ የተደረገውን የተጠቃሚ መረጃ እናነባለን
-    let loggedInUser = JSON.parse(localStorage.getItem('user')) || JSON.parse(localStorage.getItem('loggedInUser')); 
+    // 🔍 ፈልግ፦ በስርዓቱ ውስጥ ያሉትን ሁሉንም ሊሆኑ የሚችሉ የLocalStorage ቁልፎችን አንድ በአንድ ይፈትሻል
+    let userPhone = "";
+    let userKey = "";
     
-    if (loggedInUser && loggedInUser.phone) {
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
         try {
-            // ከሰርቨሩ ላይ የተጫዋቹን ትክክለኛ የዳታቤዝ ባላንስ በጥያቄ እንቀበላለን
-            const response = await fetch(`/api/user-balance/${loggedInUser.phone}`);
+            const val = JSON.parse(localStorage.getItem(key));
+            if (val && val.phone) { userPhone = val.phone; userKey = key; break; }
+            if (typeof val === 'string' && val.startsWith('09')) { userPhone = val; userKey = key; break; }
+        } catch(e) {
+            const val = localStorage.getItem(key);
+            if (val && (val.startsWith('09') || val.startsWith('+251')) && val.length >= 9) { userPhone = val; userKey = key; break; }
+        }
+    }
+
+    // ስልክ ቁጥሩ ከተገኘ ብቻ ወደ ሰርቨር ጥያቄ ይልካል
+    if (userPhone) {
+        try {
+            const response = await fetch(`/api/user-balance/${userPhone.trim()}`);
             const data = await response.json();
             
             if (data.success) {
-                // 1. በሎካል ስቶሬጅ ላይ ያለውን ባላንስ ወዲያውኑ እናዘምነዋለን (ሎጋውት ማድረግ እንዳይጠይቅ ዋናው ቁልፍ ይህ ነው)
-                loggedInUser.balance = data.balance;
-                localStorage.setItem('user', JSON.stringify(loggedInUser));
-                localStorage.setItem('loggedInUser', JSON.stringify(loggedInUser));
-                
-                // 2. በገጽዎ ላይ የ "Balance:" ፅሁፍ ያለባቸውን ቦታዎች በሙሉ ፈልጎ ወዲያውኑ ይቀይራል
-                document.body.innerHTML = document.body.innerHTML.replace(/Balance:\s*[0-9.]+\s*ETB/g, `Balance: ${data.balance.toFixed(2)} ETB`);
-                document.body.innerHTML = document.body.innerHTML.replace(/Withdraw Available Balance:\s*[0-9.]+\s*ETB/g, `Withdraw Available Balance: ${data.balance.toFixed(2)} ETB`);
+                // 1. በLocalStorage ውስጥ ያለውን መረጃ ወዲያውኑ ያዘምናል (ሎጋውት እንዳይጠይቅ)
+                let rawData = localStorage.getItem(userKey);
+                try {
+                    let parsed = JSON.parse(rawData);
+                    if(parsed && parsed.phone) {
+                        parsed.balance = data.balance;
+                        localStorage.setItem(userKey, JSON.stringify(parsed));
+                    }
+                } catch(e) {
+                    // ቁልፉ ተራ ጽሁፍ ከሆነ ዝም ይለዋል
+                }
+
+                // 2. 🎯 በገጹ ላይ ያሉትን ሁሉንም የባላንስ ጽሁፎች በሙሉ በጥሬው (Direct DOM Text) ይቀይራል
+                const walkAndReplace = (node) => {
+                    if (node.nodeType === Node.TEXT_NODE) {
+                        // የ "Balance: 0.00 ETB" ጽሁፎችን ፈልጎ አዲሱን ባላንስ ይተካል
+                        if (node.nodeValue.includes('Balance:')) {
+                            node.nodeValue = node.nodeValue.replace(/Balance:\s*[0-9.]+\s*ETB/g, `Balance: ${data.balance.toFixed(2)} ETB`);
+                            node.nodeValue = node.nodeValue.replace(/Withdraw Available Balance:\s*[0-9.]+\s*ETB/g, `Withdraw Available Balance: ${data.balance.toFixed(2)} ETB`);
+                        }
+                    } else {
+                        for (let child of node.childNodes) walkAndReplace(child);
+                    }
+                };
+                walkAndReplace(document.body);
             }
-        } catch (e) { 
-            // ሰርቨሩ ስራ ላይ ካልሆነ ገጹ እንዳይበላሽ ዝም ይለዋል
+        } catch (e) {
+            // ሰርቨሩ ስራ ቢበዛበት ገጹ እንዳይበላሽ ዝም ይለዋል
         }
     }
-}, 1000); // በየ 1 ሰከንዱ ፍጹም በሆነ ፍጥነት አውቶማቲክ ያድሰዋል
+}, 1000); // ፍጹም በሆነ ፍጥነት በየ 1 ሰከንዱ ይሰራል
+ሆነ ፍጥነት አውቶማቲክ ያድሰዋል
 
 </script>
 </body>
