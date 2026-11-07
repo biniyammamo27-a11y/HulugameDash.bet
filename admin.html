@@ -98,6 +98,8 @@
     </div>
     <script>
         let adminToken = "";
+        // 🎯 ወሳኝ ማሻሻያ፦ የሎካል አድራሻውን ወደ እርስዎ የRender የቀጥታ ሊንክ ቀይረነዋል [1.6]
+        const BASE_URL = "https://hulugamedash-bet.onrender.com"; 
 
         // 🔐 ሎጊን መፈተኛ እና ሰርቨር ቶከን መቀበያ ፈንክሽን
         async function unlockAdminPanel() {
@@ -105,7 +107,7 @@
             const errorLabel = document.getElementById("error-message");
 
             try {
-                const response = await fetch('/admin/login', {
+                const response = await fetch(`${BASE_URL}/admin/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ password })
@@ -113,7 +115,7 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    adminToken = data.token; // ሰርቨሩ የሰጠንን የደህንነት ቁልፍ እንይዛለን
+                    adminToken = data.token; // ሰርቨሩ የሰጠንን የደህንነት ቁልፍ እንይዛለን [1.2]
                     document.getElementById("admin-lock-screen").style.display = "none";
                     document.getElementById("main-dashboard-content").style.display = "block";
                     errorLabel.style.display = "none";
@@ -122,17 +124,17 @@
                     errorLabel.style.display = "block";
                 }
             } catch (e) {
-                alert("❌ ከሰርቨር ጋር መገናኘት አልተቻለም!");
+                alert("❌ ከሰርቨር ጋር መገናኘት አልተቻለም! እባክዎ ሰርቨሩ መነሳቱን ያረጋግጡ።");
             }
         }
 
         // 🔄 ሁሉንም መረጃዎች ከሰርቨር ላይ በሴኪውሪቲ ቁልፍ መጫኛ (Active ማድረጊያ)
         async function refreshData() {
-            const headers = { 'Authorization': `Bearer ${adminToken}` };
+            const headers = { 'Authorization': `Bearer ${adminToken}` }; [1.2]
 
             try {
                 // 1. የተጠቃሚዎች ዝርዝር መጫኛ
-                const usersRes = await fetch('/admin/users', { headers });
+                const usersRes = await fetch(`${BASE_URL}/admin/users`, { headers });
                 const users = await usersRes.json();
                 let usersHTML = "";
                 let totalCapital = 0;
@@ -146,7 +148,7 @@
                 document.getElementById("total-capital").innerText = `${totalCapital.toFixed(2)} ETB`;
 
                 // 2. ዲፖዚቶች መጫኛ
-                const depRes = await fetch('/admin/deposits', { headers });
+                const depRes = await fetch(`${BASE_URL}/admin/deposits`, { headers });
                 const deposits = await depRes.json();
                 let depHTML = "";
                 let pendingDepCount = 0;
@@ -169,7 +171,7 @@
                 document.getElementById("pending-deposits-count").innerText = pendingDepCount;
 
                 // 3. ዊዝድሮዎች መጫኛ
-                const withRes = await fetch('/admin/withdrawals', { headers });
+                const withRes = await fetch(`${BASE_URL}/admin/withdrawals`, { headers });
                 const withdrawals = await withRes.json();
                 let withHTML = "";
                 let pendingWithCount = 0;
@@ -197,10 +199,10 @@
 
         // 📷 ዲፖዚት ማጽደቂያ እና ማጥፊያ ስክሪፕት
         async function processDeposit(id, userPhone, amount, action) {
-            const url = action === 'approve' ? '/admin/approve-deposit' : '/admin/reject-deposit';
+            const url = action === 'approve' ? `${BASE_URL}/admin/approve-deposit` : `${BASE_URL}/admin/reject-deposit`;
             await fetch(url, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` }, [1.2]
                 body: JSON.stringify({ id, userPhone, amount })
             });
             refreshData();
@@ -208,10 +210,10 @@
 
         // 💸 ዊዝድሮው ማጽደቂያ እና ማጥፊያ ስክሪፕት
         async function processWithdraw(id, action) {
-            const url = action === 'approve' ? '/admin/approve-withdraw' : '/admin/reject-withdraw';
+            const url = action === 'approve' ? `${BASE_URL}/admin/approve-withdraw` : `${BASE_URL}/admin/reject-withdraw`;
             await fetch(url, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` }, [1.2]
                 body: JSON.stringify({ id })
             });
             refreshData();
