@@ -724,6 +724,42 @@ function renderStatisticsToUI() {
         });
     }).catch(() => { container.innerHTML = '❌ ታሪክ መጫን አልተቻለም!'; });
 }
+// 🎯 በየ 1 ሰከንዱ የተጫዋቹን ወቅታዊ ባላንስ ከዳታቤዝ ላይ በራስ-ሰር መጫኛ (1 Second Auto-Refresh Balance)
+setInterval(async () => {
+    let loggedInUser = JSON.parse(localStorage.getItem('user')) || JSON.parse(localStorage.getItem('loggedInUser')); 
+    
+    if (loggedInUser && loggedInUser.phone) {
+        try {
+            const response = await fetch(`/api/user-balance/${loggedInUser.phone}`);
+            const data = await response.json();
+            
+            if (data.success) {
+                // 1. በገጽዎ ላይ ያለውን የባላንስ መፃፊያ ፅሁፍ በየ 1 ሰከንዱ ይቀይረዋል
+                const balanceElements = document.querySelectorAll('.user-balance, #user-balance, [id*="balance"]');
+                balanceElements.forEach(el => {
+                    if (el.tagName === 'SPAN' || el.tagName === 'DIV' || el.tagName === 'H3' || el.tagName === 'P') {
+                        el.innerText = `Balance: ${data.balance.toFixed(2)} ETB`;
+                    } else {
+                        el.innerText = `${data.balance.toFixed(2)} ETB`;
+                    }
+                });
+                
+                // የዊዝድሮው ገጽ ላይ የሚታየውን 'Withdraw Available Balance' ማደሻ
+                const withdrawAvail = document.querySelector('[id*="withdraw-avail"], .withdraw-balance');
+                if (withdrawAvail) {
+                    withdrawAvail.innerText = `Withdraw Available Balance: ${data.balance.toFixed(2)} ETB`;
+                }
+                
+                // 2. በሎካል ስቶሬጅ ላይም አዲሱን ባላንስ እናዘምነዋለን (ሎጋውት ማድረግ እንዳይጠይቅ)
+                loggedInUser.balance = data.balance;
+                localStorage.setItem('user', JSON.stringify(loggedInUser));
+            }
+        } catch (e) { 
+            console.error("የባላንስ ለውጥ ማደስ አልተቻለም"); 
+        }
+    }
+}, 1000); // 1000 ሚሊሰከንድ ማለት ፍጹም በሆነ ፍጥነት በየ 1 ሰከንዱ ባላንሱን ያድሳል ማለት ነው
+
 </script>
 </body>
 </html>
