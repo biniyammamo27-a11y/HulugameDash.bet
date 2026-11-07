@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashbet - Supreme Executive Admin Panel</title>
     <style>
-        /* 🎨 በፎቶው መሰረት የዳሽቦርዱ ዋና የ Dark Theme ከለሮች */
+        /* 🎨 የዳሽቦርዱ ዋና የ Dark Theme ከለሮች */
         body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #0c1322; color: #f8fafc; margin: 0; padding: 15px; }
         
         /* 🔐 የመቆለፊያ ገጽ ዲዛይን */
@@ -84,8 +84,26 @@
         .btn-approve { background-color: #10b981; color: white; }
         .btn-reject { background-color: #ef4444; color: white; }
         
-        /* 🔘 የታብ መያዣ ክፍሎች */
         .tab-section { display: none; }
+
+        /* 🖼️ 🎯 አዲስ፡ ለስክሪንሾት ፖፕ-አፕ (Pop-up Modal) የተጨመረ ስታይል */
+        .image-modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.85); justify-content: center; align-items: center;
+            z-index: 100000;
+        }
+        .modal-content {
+            background-color: #151f32; padding: 15px; border-radius: 12px;
+            max-width: 90%; max-height: 85%; text-align: center; border: 1px solid #334155;
+            position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .modal-content img { max-width: 100%; max-height: 70vh; border-radius: 6px; object-fit: contain; }
+        .close-modal-btn {
+            position: absolute; top: -15px; right: -15px; background: #ef4444; color: white;
+            border: none; width: 35px; height: 35px; border-radius: 50%; font-weight: bold;
+            font-size: 20px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+        .close-modal-btn:hover { background: #dc2626; }
     </style>
 </head>
 <body>
@@ -100,22 +118,28 @@
         </div>
     </div>
 
+    <!-- 🖼️ 🎯 አዲስ፡ የስክሪንሾት መመልከቻ ፖፕ-አፕ (Pop-up Container) -->
+    <div id="screenshotModal" class="image-modal" onclick="closeImagePopup()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <button class="close-modal-btn" onclick="closeImagePopup()">×</button>
+            <h4 style="margin: 0 0 10px 0; color: #eab308; font-family: sans-serif;">📷 የዲፖዚት ማረጋገጫ ፎቶ</h4>
+            <img id="modalTargetImage" src="" alt="Deposit Screenshot">
+        </div>
+    </div>
+
     <!-- 📊 2ኛ፡ ዋናው አቀማመጡ የተስተካከለው ዳሽቦርድ -->
     <div id="main-dashboard-content">
         
-        <!-- 💼 ዋናው ባነር ርዕስ -->
         <div class="admin-header">💼 DASHBET EXECUTIVE CONTROL PANEL</div>
 
-        <!-- 🔘 አሰላለፋቸው የተስተካከለ አዝራሮች -->
         <div class="tabs-container">
-            <button class="tab-btn" onclick="switchTab('deposits')">🟡 Deposits</button>
+            <button class="tab-btn" onclick="switchTab('deposits')">专 Deposits</button>
             <button class="tab-btn" onclick="switchTab('withdrawals')">💸 Withdraws</button>
             <button class="tab-btn" onclick="switchTab('users')">👥 Users</button>
             <button class="tab-btn" onclick="switchTab('live')">🔴 Live Control</button>
             <button class="tab-btn btn-refresh" onclick="refreshData()">🔄 REFRESH DATA</button>
         </div>
 
-        <!-- 📊 አራቱ ካርዶች አሰላለፍ -->
         <div class="stats-container">
             <div class="stat-card capital"><h4>ጠቅላላ የተጠቃሚዎች ካፒታል</h4><h2 id="total-capital">0.00 ETB</h2></div>
             <div class="stat-card users"><h4>ጠቅላላ ተጠቃሚዎች</h4><h2 id="total-users">0</h2></div>
@@ -174,7 +198,6 @@
             </div>
         </div>
 
-        <!-- 🔴 ላይቭ ኮንትሮል ታብ ክፍል -->
         <div id="section-live" class="tab-section">
             <div class="table-responsive" style="padding: 40px; text-align: center; color: #94a3b8;">
                 <h3>🎡 LIVE KENO CONTROL PANEL 🚀</h3>
@@ -186,7 +209,6 @@
         let adminToken = "";
         const BASE_URL = window.location.origin; 
 
-        // 🔐 አድሚን ሎጊን መፈተኛ ኮድ
         async function unlockAdminPanel() {
             const password = document.getElementById("admin-password-input").value;
             const errorLabel = document.getElementById("error-message");
@@ -205,7 +227,6 @@
                     document.getElementById("main-dashboard-content").style.display = "block";
                     errorLabel.style.display = "none";
                     
-                    // መጀመሪያ ሲገባ ዲፖዚት ታብ ብቻ እንዲከፈት ማድረግ
                     switchTab('deposits'); 
                     refreshData();
                 } else {
@@ -216,26 +237,32 @@
             }
         }
 
-        // 🔄 ታቦችን በየተራ ማሳያ እና መደበቂያ (Tab Controller)
+        // 🖼️ 🎯 አዲስ፡ ፎቶውን በፖፕ-አፕ ከፍቶ ማሳያ ፈንክሽን
+        function showImagePopup(imgUrl) {
+            const modal = document.getElementById('screenshotModal');
+            const modalImg = document.getElementById('modalTargetImage');
+            modalImg.src = imgUrl;
+            modal.style.display = "flex";
+        }
+
+        // 🖼️ 🎯 አዲስ፡ ፖፕ-አፑን መዝጊያ ፈንክሽን
+        function closeImagePopup() {
+            document.getElementById('screenshotModal').style.display = "none";
+        }
+
         function switchTab(tabName) {
-            // 1. ሁሉንም የክፍል ታቦች መደበቅ
             document.querySelectorAll('.tab-section').forEach(sec => sec.style.display = 'none');
-            
-            // 2. ሁሉንም አዝራሮች አክቲቭ ከለር ማጥፋት
             document.querySelectorAll('.tabs-container .tab-btn').forEach(btn => {
                 if(!btn.classList.contains('btn-refresh')) btn.classList.remove('active');
             });
 
-            // 3. የተመረጠውን ታብ እና አዝራር ብቻ ማሳየት
             document.getElementById(`section-${tabName}`).style.display = 'block';
             
-            // የተጫነውን አዝራር ከለር መቀየር
             const targetBtn = Array.from(document.querySelectorAll('.tabs-container .tab-btn'))
                 .find(btn => btn.innerText.toLowerCase().includes(tabName.substring(0, 4)));
             if(targetBtn) targetBtn.classList.add('active');
         }
 
-        // 🔄 መረጃዎችን ከሰርቨር ላይ መጫኛ (Active ማድረጊያ)
         async function refreshData() {
             if (!adminToken) return;
             const headers = { 'Authorization': `Bearer ${adminToken}` };
@@ -255,7 +282,7 @@
                 document.getElementById("total-users").innerText = users.length;
                 document.getElementById("total-capital").innerText = `${totalCapital.toFixed(2)} ETB`;
 
-                // 2. ዲፖዚቶች
+                // 2. ዲፖዚቶች (🎯 ማሻሻያ፡ '🖼️ ፎቶ ይመልከቱ' ሲነካ በፖፕ-አፕ እንዲከፈት ተደርጓል)
                 const depRes = await fetch(`${BASE_URL}/admin/deposits`, { headers });
                 const deposits = await depRes.json();
                 let depHTML = "";
@@ -265,7 +292,7 @@
                     if (dep.status === 'PENDING') pendingDepCount++;
                     depHTML += `<tr>
                         <td>${dep.id}</td><td>${dep.userPhone}</td>
-                        <td><a href="${dep.screenshot}" target="_blank" style="color:#eab308;font-weight:bold;text-decoration:none;">🖼️ ፎቶ ይመልከቱ</a></td>
+                        <td><button onclick="showImagePopup('${dep.screenshot}')" style="background:none;border:none;color:#eab308;font-weight:bold;cursor:pointer;text-decoration:underline;padding:0;font-size:13px;">🖼️ ፎቶ ይመልከቱ</button></td>
                         <td>${dep.senderPhone}</td><td>${dep.method}</td><td>${dep.amount} ETB</td><td>${dep.status}</td>
                         <td>
                             ${dep.status === 'PENDING' ? `
@@ -291,7 +318,7 @@
                         <td>${wit.method}</td><td>${wit.amount} ETB</td><td>${wit.status}</td>
                         <td>
                             ${wit.status === 'PENDING' ? `
-                                <button class="action-btn btn-approve" onclick="processWithdraw('${wit.id}', 'approve')">✔️ ላክ</button>
+                                <button class="action-btn btn-approve" onclick="processWithdraw('${wit.id}', 'approve')">✔️  ላክ</button>
                                 <button class="action-btn btn-reject" onclick="processWithdraw('${wit.id}', 'reject')">❌ ውድቅ አድርግ</button>
                             ` : '<span style="color:#64748b;">የተጠናቀቀ</span>'}
                         </td>
@@ -307,22 +334,26 @@
 
         async function processDeposit(id, userPhone, amount, action) {
             const url = action === 'approve' ? `${BASE_URL}/admin/approve-deposit` : `${BASE_URL}/admin/reject-deposit`;
-            await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
-                body: JSON.stringify({ id, userPhone, amount })
-            });
-            refreshData();
+            try {
+                await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
+                    body: JSON.stringify({ id, userPhone, amount })
+                });
+                refreshData(); 
+            } catch(e) { console.error(e); }
         }
 
         async function processWithdraw(id, action) {
             const url = action === 'approve' ? `${BASE_URL}/admin/approve-withdraw` : `${BASE_URL}/admin/reject-withdraw`;
-            await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
-                body: JSON.stringify({ id })
-            });
-            refreshData();
+            try {
+                await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
+                    body: JSON.stringify({ id })
+                });
+                refreshData(); 
+            } catch(e) { console.error(e); }
         }
     </script>
 </body>
