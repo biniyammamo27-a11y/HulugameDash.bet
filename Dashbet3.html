@@ -724,69 +724,27 @@ function renderStatisticsToUI() {
         });
     }).catch(() => { container.innerHTML = '❌ ታሪክ መጫን አልተቻለም!'; });
 }
-// 🎯 1. በገጹ ላይ ካለው የባላንስ ፅሁፍ ጎን የሬፍሬሽ (🔄 REFRESH) አዝራር በራስ-ሰር መፍጠሪያ ኮድ
-window.addEventListener('DOMContentLoaded', () => {
-    // በገጹ ላይ የ "Balance:" ፅሁፍ ያለበትን ማንኛውንም ሳጥን ወይም ዲቭ እንፈልጋለን
-    const textNodes = [];
-    const walk = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
-    while(walk.nextNode()) textNodes.push(walk.currentNode);
-    
-    let balanceParent = null;
-    for (let node of textNodes) {
-        if (node.nodeValue.includes('Balance:')) {
-            balanceParent = node.parentNode;
-            break;
-        }
-    }
-
-    if (balanceParent) {
-        // መጀመሪያ አዝራሩ ሁለቴ እንዳይፈጠር ቀድሞ የተፈጠረ ካለ እናጠፋዋለን
-        const oldBtn = document.getElementById('manual-refresh-btn');
-        if(oldBtn) oldBtn.remove();
-
-        const refreshBtn = document.createElement('button');
-        refreshBtn.id = 'manual-refresh-btn';
-        refreshBtn.innerHTML = '🔄 REFRESH';
-        // 🎨 የሚያምር አረንጓዴ እና ከባላንሱ ጎን የሚቀመጥ ስታይል
-        refreshBtn.style.cssText = 'margin-left: 12px; padding: 6px 14px; background-color: #10b981; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px; display: inline-block; vertical-align: middle; transition: background 0.2s;';
-        
-        refreshBtn.onmouseover = () => refreshBtn.style.backgroundColor = '#059669';
-        refreshBtn.onmouseout = () => refreshBtn.style.backgroundColor = '#10b981';
-
-        // 🔄 አዝራሩ ሲጫን የሚሰራው ቅጽበታዊ ማደሻ
-        refreshBtn.onclick = (e) => {
-            e.preventDefault();
-            forceSyncBalance();
-        };
-        balanceParent.appendChild(refreshBtn);
-    }
-});
-
-// 🎯 2. ባላንሱን ከሰርቨር ላይ አምጥቶ በሃይል የማመሳሰል (የመቀየር) ዋና ፈንክሽን
-async function forceSyncBalance() {
+// 🎯 የትኛውንም የFront-end ኮድ ሳይነኩ ባላንሱን እና ስልክ ቁጥሩን በየ 1 ሰከንዱ የማመሳሰል የመጨረሻ መፍትሄ
+setInterval(async () => {
     let userPhone = "";
-    let userKey = "";
-    let isObject = false;
-    let originalData = null;
+    let userKey = "user";
+    let loggedInUser = null;
 
-    // 🔍 ፈልግ፦ በስርዓቱ ውስጥ ያሉትን ሁሉንም የLocalStorage ቁልፎች በራስ-ሰር ይፈትሻል
+    // 🔍 1. መጀመሪያ በLocalStorage ውስጥ ያሉትን ሁሉንም ቁልፎች በጥንቃቄ ይፈትሻል
     for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
-        if (key === "adminToken" || key === "token") continue; // የአድሚን ቶከን ከሆነ ይዘለዋል
-        
+        if (key === "adminToken" || key === "token") continue;
         try {
             const val = JSON.parse(localStorage.getItem(key));
             if (val && val.phone) { 
                 userPhone = val.phone; 
+                loggedInUser = val; 
                 userKey = key; 
-                loggedInUser = val;
-                isObject = true; 
                 break; 
             }
             if (typeof val === 'string' && (val.startsWith('09') || val.startsWith('07'))) { 
                 userPhone = val; 
                 userKey = key; 
-                isObject = false; 
                 break; 
             }
         } catch(e) {
@@ -794,63 +752,75 @@ async function forceSyncBalance() {
             if (val && (val.startsWith('09') || val.startsWith('07') || val.startsWith('+251')) && val.length >= 9) { 
                 userPhone = val; 
                 userKey = key; 
-                isObject = false; 
                 break; 
             }
         }
     }
 
-    // 💡 ስልክ ቁጥሩ በስቶሬጅ ውስጥ ካልተገኘ ከገጹ የላይኛው ፅሁፍ ላይ ራሱ ፈልጎ ያወጣል
+    // 🔍 2. በLocalStorage ውስጥ ካልተገኘ፣ ተጫዋቹ ሎጊን ሳጥኑ ላይ የጻፈውን ስልክ ቁጥር በቀጥታ ይወስዳል
     if (!userPhone) {
-        const phoneMatch = document.body.innerText.match(/(09\d{8}|07\d{8}|\+251\d{9})/);
-        if (phoneMatch) userPhone = phoneMatch[0];
+        const phoneInput = document.querySelector('input[type="text"][placeholder*="ስልክ"], input[type="number"][placeholder*="ስልክ"], #login-phone, #reg-phone');
+        if (phoneInput && phoneInput.value && (phoneInput.value.startsWith('09') || phoneInput.value.startsWith('07'))) {
+            userPhone = phoneInput.value;
+            // ለወደፊቱ እንዲያስታውሰው ሴቭ እናደርገዋለን
+            localStorage.setItem('user_phone_backup', userPhone);
+        } else {
+            userPhone = localStorage.getItem('user_phone_backup') || "";
+        }
     }
 
+    // 🚀 ስልክ ቁጥሩ በትክክል ከተገኘ ብቻ ወደ Render ሰርቨር ጥያቄ ይልካል
     if (userPhone) {
         try {
-            // ከሰርቨሩ ወቅታዊውን የዳታቤዝ ባላንስ እንጠይቃለን
             const response = await fetch(`/api/user-balance/${userPhone.trim()}`);
             const data = await response.json();
             
             if (data.success) {
-                // 1. በLocalStorage ላይ ያለውን መረጃ ወዲያውኑ እናዘምነዋለን (ሎጋውት እንዳይጠይቅ)
-                if (userKey) {
-                    if (isObject && loggedInUser) {
-                        loggedInUser.balance = data.balance;
-                        localStorage.setItem(userKey, JSON.stringify(loggedInUser));
-                    } else {
-                        // ቁልፉ ተራ ፅሁፍ ከሆነ ባላንሱን በሌላ ቁልፍ ሴቭ ያደርገዋል
-                        localStorage.setItem('current_user_balance', data.balance);
-                    }
-                }
-                
-                // 2. 🎯 በገጹ ላይ ያሉትን የባላንስ ፅሁፎች በሙሉ ፈልጎ ወዲያውኑ ይቀይራል
+                // ሀ. በገጹ አናት ላይ የጠፋውን ስልክ ቁጥር (📞 - የነበረውን) በትክክለኛው ስልክ ይተካዋል
                 const textNodes = [];
                 const walk = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
                 while(walk.nextNode()) textNodes.push(walk.currentNode);
                 
                 textNodes.forEach(node => {
-                    // የቆየውን የባላንስ ቁጥር በአዲሱ የዳታቤዝ ባላንስ በትክክል ይተካዋል
+                    // የጠፋውን የስልክ ምልክት በትክክለኛው ስልክ ቁጥር መተኪያ
+                    if (node.nodeValue.trim() === '📞 -') {
+                        node.nodeValue = `📞 ${userPhone}`;
+                    }
+                    
+                    // ለባላንስ ማሳያ፡ "Balance: 0.00 ETB" የሚሉትን ፅሁፎች በሙሉ በየ 1 ሰከንዱ በአዲሱ የዳታቤዝ ሂሳብ ይቀይራል
                     if (node.nodeValue.includes('Balance:')) {
-                        node.nodeValue = `Balance: ${data.balance.toFixed(2)} ETB `;
+                        node.nodeValue = `Balance: ${data.balance.toFixed(2)} ETB`;
                     }
                     if (node.nodeValue.includes('Withdraw Available Balance:')) {
                         node.nodeValue = `Withdraw Available Balance: ${data.balance.toFixed(2)} ETB`;
                     }
                 });
 
-                // የዊዝድሮው ፎርም ውስጥ ያለውን የተለየ ክፍል ማደሻ
+                // ለዊዝድሮው ገጽ ውስጥ የሚገኘውን የተለየ ክፍል ማደሻ
                 const withdrawAvail = document.querySelector('[id*="withdraw-avail"], .withdraw-balance');
                 if (withdrawAvail) {
                     withdrawAvail.innerText = `Withdraw Available Balance: ${data.balance.toFixed(2)} ETB`;
                 }
-            }
-        } catch (e) { console.error("ባላንስ ማደስ አልተቻለም"); }
-    }
-}
 
-// 🎯 3. በየ 1 ሰከንዱ በስተጀርባ አውቶማቲክ ማደሻውንም አብሮ ማስጀመር
-setInterval(forceSyncBalance, 1000);
+                // ለዲፖዚት እና ዊዝድሮው ፎርም ሳጥኖች ውስጥ ባላንስ ካለ ማደሻ
+                document.querySelectorAll('input, span, div, p').forEach(el => {
+                    if (el.innerText && el.innerText.includes('Balance:')) {
+                        el.innerText = el.innerText.replace(/Balance:\s*[0-9.]+\s*ETB/g, `Balance: ${data.balance.toFixed(2)} ETB`);
+                    }
+                });
+
+                // ለ. በLocalStorage ላይ ያለውን መረጃ ያዘምናል (ሎጋውት እንዳይጠይቅ)
+                if (loggedInUser) {
+                    loggedInUser.balance = data.balance;
+                    localStorage.setItem(userKey, JSON.stringify(loggedInUser));
+                }
+            }
+        } catch (e) {
+            // ሰርቨሩ ስራ ቢበዛበት ጨዋታው እንዳይቆራረጥ ዝም ይለዋል
+        }
+    }
+}, 1000); // 1000 ሚሊሰከንድ ማለት ፍጹም በሆነ ፍጥነት በየ 1 ሰከንዱ ይሰራል ማለት ነው
+
 
 
 </script>
