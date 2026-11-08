@@ -741,50 +741,7 @@ function renderStatisticsToUI() {
         });
     }).catch(() => { container.innerHTML = '❌ ታሪክ መጫን አልተቻለም!'; });
 }
-// 🎯 በየ 2 ሰከንዱ የተጫዋቹን ወቅታዊ ባላንስ በ User ID በመከተል አውቶማቲክ ማደሻ (2 Seconds Auto-Refresh Balance)
-setInterval(async () => {
-    // በሎካል ስቶሬጅ ሴቭ የተደረገውን የተጠቃሚ መረጃ እናነባለን
-    let loggedInUser = JSON.parse(localStorage.getItem('user')) || JSON.parse(localStorage.getItem('loggedInUser')); 
-    
-    // የሞንጎዲቢ ልዩ መለያ ID ቁጥር መኖሩን እናረጋግጣለን
-    if (loggedInUser && (loggedInUser._id || loggedInUser.id)) {
-        const userId = loggedInUser._id || loggedInUser.id;
-        
-        try {
-            // በየ 2 ሰከንዱ የሬንደር ሰርቨሩን አዲሱን ባላንስ በጥያቄ እንጠይቃለን
-            const response = await fetch(`/api/user-balance-by-id/${userId}`);
-            const data = await response.json();
-            
-            if (data.success) {
-                // 1. በገጹ ላይ ያሉትን የባላንስ ፅሁፎች በሙሉ ፈልጎ ወዲያውኑ ይቀይራል (DOM Direct Text Update)
-                const textNodes = [];
-                const walk = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
-                while(walk.nextNode()) textNodes.push(walk.currentNode);
-                
-                textNodes.forEach(node => {
-                    if (node.nodeValue.includes('Balance:')) {
-                        node.nodeValue = `Balance: ${data.balance.toFixed(2)} ETB`;
-                    }
-                    if (node.nodeValue.includes('Withdraw Available Balance:')) {
-                        node.nodeValue = `Withdraw Available Balance: ${data.balance.toFixed(2)} ETB`;
-                    }
-                });
 
-                // የዊዝድሮው ገጽ ውስጥ የሚገኘውን የተለየ ክፍል ማደሻ
-                const withdrawAvail = document.querySelector('[id*="withdraw-avail"], .withdraw-balance');
-                if (withdrawAvail) {
-                    withdrawAvail.innerText = `Withdraw Available Balance: ${data.balance.toFixed(2)} ETB`;
-                }
-
-                // 2. በLocalStorage ላይ ያለውን መረጃ ያዘምናል (ሎጋውት እንዳይጠይቅ)
-                loggedInUser.balance = data.balance;
-                localStorage.setItem('user', JSON.stringify(loggedInUser));
-            }
-        } catch (e) {
-            // ሰርቨሩ ስራ ቢበዛበት ጨዋታው እንዳይቆራረጥ ዝም ይለዋል
-        }
-    }
-}, 2000); // 2000 ሚሊሰከንድ ማለት ልክ በየ 2 ሰከንዱ ሰርቨሩን ጠይቆ ባላንሱን ያድሳል ማለት ነው
 </script>
 </body>
 </html>
