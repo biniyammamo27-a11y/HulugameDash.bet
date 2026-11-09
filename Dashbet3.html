@@ -328,56 +328,55 @@ function registerUser() {
         if (data.success) { switchAuthTab('login'); }
     }).catch(err => alert("❌ በምዝገባ ወቅት ከሰርቨር ጋር መገናኘት አልተቻለም!"));
 }
-function submitDeposit() {
+ffunction submitDeposit() {
     const amount = document.getElementById('deposit-amount').value.trim(); 
     const senderPhone = document.getElementById('deposit-phone').value.trim(); 
     const method = document.getElementById('deposit-method').value; 
-    const userPhone = document.getElementById('user-phone-display').innerText.trim();
     
+    const userPhoneDisplay = document.getElementById('user-phone-display');
+    const userPhone = userPhoneDisplay ? userPhoneDisplay.innerText.trim() : (localStorage.getItem('userPhone') || "");
+    const token = localStorage.getItem('userToken'); 
+    
+    if(!token) { alert("⚠️ እባክዎ መጀመሪያ ይግቡ!"); return; }
     if(!amount || !senderPhone) { alert("⚠️ እባክዎ ሁሉንም ፎርሞች ይሙሉ!"); return; }
-    if(!globalScreenshotBase64 || globalScreenshotBase64 === "") { alert("⚠️ እባክዎ መጀመሪያ የክፍያውን ማረጋገጫ ፎቶ ይጫኑ!"); return; }
+    if(!globalScreenshotBase64 || globalScreenshotBase64 === "" || globalScreenshotBase64.trim() === "") { 
+        alert("⚠️ እባክዎ መጀመሪያ የክፍያውን ማረጋገጫ ፎቶ ይጫኑ!"); 
+        return; 
+    }
     
-    // 🎯 ፎቶውን ያለምንም የደህንነት መከልከል ወደ ሰርቨር በሰላም የሚልከው የተስተካከለው ፌች (Fetch)
+    const submitBtn = event ? event.target : null;
+    if(submitBtn && submitBtn.tagName === "BUTTON") submitBtn.disabled = true;
+
+    executeActualDepositSubmissionFetch(userPhone, amount, senderPhone, method, submitBtn);
+}
+
+function executeActualDepositSubmissionFetch(userPhone, amount, senderPhone, method, submitBtn) {
+    const token = localStorage.getItem('userToken');
+
+    // 🛡️ የደህንነት ማሻሻያ፦ የ SERVER_URL እና የኢንድፖይንት መዋቅር ፍጹም ተስተካክሏል
     fetch(`${SERVER_URL}/api/deposit`, { 
         method: 'POST', 
         headers: { 
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json' 
         }, 
         body: JSON.stringify({ userPhone, amount, senderPhone, method, screenshot: globalScreenshotBase64 }) 
     })
     .then(res => res.json())
     .then(data => {
-        alert(data.message); 
-        globalScreenshotBase64 = ""; 
-        document.getElementById('custom-upload-container-box').innerHTML = '<div style="font-size: 26px;">📷 / 📁</div><div style="font-size: 13px; color: #ffcc00; font-weight: bold; margin-top: 2px;">Upload Screenshot</div>'; 
-        document.getElementById('deposit-amount').value = ""; 
-        document.getElementById('deposit-phone').value = ""; 
-        backToWalletMenu(); 
-    })
-    .catch(err => {
-        console.error(err);
-        alert("❌ የዲፖዚት ጥያቄ መላክ አልተቻለም! እባክዎ የሰርቨር ግንኙነትዎን ያረጋግጡ።");
-    });
-}
-
-function executeActualDepositSubmissionFetch(userPhone, amount, senderPhone, method, submitBtn) {
-    fetch(`${SERVER_URL}/api/deposit`, { 
-        method: 'POST', 
-        headers: { 'Content-Type': 'application/json' }, 
-        body: JSON.stringify({ userPhone, amount, senderPhone, method, screenshot: globalScreenshotBase64 }) 
-    })
-    .then(res => res.json())
-    .then(data => {
         alert(data.message);
-        globalScreenshotBase64 = ""; 
-        document.getElementById('custom-upload-container-box').innerHTML = '<div style="font-size: 26px;">📷 / 📁</div><div style="font-size: 13px; color: #ffcc00; font-weight: bold; margin-top: 2px;">Upload Screenshot</div>'; 
-        document.getElementById('deposit-amount').value = "";
-        document.getElementById('deposit-phone').value = "";
+        if(data.success) {
+            globalScreenshotBase64 = ""; 
+            if(document.getElementById('custom-upload-container-box')) {
+                document.getElementById('custom-upload-container-box').innerHTML = '<div style="font-size: 26px;">📷 / 📁</div><div style="font-size: 13px; color: #ffcc00; font-weight: bold; margin-top: 2px;">Upload Screenshot</div>';
+            }
+            document.getElementById('deposit-amount').value = "";
+            document.getElementById('deposit-phone').value = "";
+            backToWalletMenu(); 
+        }
         if(submitBtn && submitBtn.tagName === "BUTTON") submitBtn.disabled = false;
-        backToWalletMenu(); 
     }).catch(err => {
-        alert("❌ ዲፖዚት ጥያቄ መላክ አልተቻለም!");
+        alert("❌ የዲፖዚት ጥያቄ መላክ አልተቻለም! እባክዎ የሰርቨር ግንኙነትዎን ያረጋግጡ።");
         if(submitBtn && submitBtn.tagName === "BUTTON") submitBtn.disabled = false;
     });
 }
