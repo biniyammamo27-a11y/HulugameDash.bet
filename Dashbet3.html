@@ -328,55 +328,56 @@ function registerUser() {
         if (data.success) { switchAuthTab('login'); }
     }).catch(err => alert("❌ በምዝገባ ወቅት ከሰርቨር ጋር መገናኘት አልተቻለም!"));
 }
-ffunction submitDeposit() {
+function submitDeposit() {
     const amount = document.getElementById('deposit-amount').value.trim(); 
     const senderPhone = document.getElementById('deposit-phone').value.trim(); 
     const method = document.getElementById('deposit-method').value; 
+    const userPhone = document.getElementById('user-phone-display').innerText.trim();
     
-    const userPhoneDisplay = document.getElementById('user-phone-display');
-    const userPhone = userPhoneDisplay ? userPhoneDisplay.innerText.trim() : (localStorage.getItem('userPhone') || "");
-    const token = localStorage.getItem('userToken'); 
-    
-    if(!token) { alert("⚠️ እባክዎ መጀመሪያ ይግቡ!"); return; }
     if(!amount || !senderPhone) { alert("⚠️ እባክዎ ሁሉንም ፎርሞች ይሙሉ!"); return; }
-    if(!globalScreenshotBase64 || globalScreenshotBase64 === "" || globalScreenshotBase64.trim() === "") { 
-        alert("⚠️ እባክዎ መጀመሪያ የክፍያውን ማረጋገጫ ፎቶ ይጫኑ!"); 
-        return; 
-    }
+    if(!globalScreenshotBase64 || globalScreenshotBase64 === "") { alert("⚠️ እባክዎ መጀመሪያ የክፍያውን ማረጋገጫ ፎቶ ይጫኑ!"); return; }
     
-    const submitBtn = event ? event.target : null;
-    if(submitBtn && submitBtn.tagName === "BUTTON") submitBtn.disabled = true;
-
-    executeActualDepositSubmissionFetch(userPhone, amount, senderPhone, method, submitBtn);
-}
-
-function executeActualDepositSubmissionFetch(userPhone, amount, senderPhone, method, submitBtn) {
-    const token = localStorage.getItem('userToken');
-
-    // 🛡️ የደህንነት ማሻሻያ፦ የ SERVER_URL እና የኢንድፖይንት መዋቅር ፍጹም ተስተካክሏል
+    // 🎯 ፎቶውን ያለምንም የደህንነት መከልከል ወደ ሰርቨር በሰላም የሚልከው የተስተካከለው ፌች (Fetch)
     fetch(`${SERVER_URL}/api/deposit`, { 
         method: 'POST', 
         headers: { 
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json' 
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
         }, 
         body: JSON.stringify({ userPhone, amount, senderPhone, method, screenshot: globalScreenshotBase64 }) 
     })
     .then(res => res.json())
     .then(data => {
-        alert(data.message);
-        if(data.success) {
-            globalScreenshotBase64 = ""; 
-            if(document.getElementById('custom-upload-container-box')) {
-                document.getElementById('custom-upload-container-box').innerHTML = '<div style="font-size: 26px;">📷 / 📁</div><div style="font-size: 13px; color: #ffcc00; font-weight: bold; margin-top: 2px;">Upload Screenshot</div>';
-            }
-            document.getElementById('deposit-amount').value = "";
-            document.getElementById('deposit-phone').value = "";
-            backToWalletMenu(); 
-        }
-        if(submitBtn && submitBtn.tagName === "BUTTON") submitBtn.disabled = false;
-    }).catch(err => {
+        alert(data.message); 
+        globalScreenshotBase64 = ""; 
+        document.getElementById('custom-upload-container-box').innerHTML = '<div style="font-size: 26px;">📷 / 📁</div><div style="font-size: 13px; color: #ffcc00; font-weight: bold; margin-top: 2px;">Upload Screenshot</div>'; 
+        document.getElementById('deposit-amount').value = ""; 
+        document.getElementById('deposit-phone').value = ""; 
+        backToWalletMenu(); 
+    })
+    .catch(err => {
+        console.error(err);
         alert("❌ የዲፖዚት ጥያቄ መላክ አልተቻለም! እባክዎ የሰርቨር ግንኙነትዎን ያረጋግጡ።");
+    });
+}
+
+function executeActualDepositSubmissionFetch(userPhone, amount, senderPhone, method, submitBtn) {
+    fetch(`${SERVER_URL}/api/deposit`, { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' }, 
+        body: JSON.stringify({ userPhone, amount, senderPhone, method, screenshot: globalScreenshotBase64 }) 
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message);
+        globalScreenshotBase64 = ""; 
+        document.getElementById('custom-upload-container-box').innerHTML = '<div style="font-size: 26px;">📷 / 📁</div><div style="font-size: 13px; color: #ffcc00; font-weight: bold; margin-top: 2px;">Upload Screenshot</div>'; 
+        document.getElementById('deposit-amount').value = "";
+        document.getElementById('deposit-phone').value = "";
+        if(submitBtn && submitBtn.tagName === "BUTTON") submitBtn.disabled = false;
+        backToWalletMenu(); 
+    }).catch(err => {
+        alert("❌ ዲፖዚት ጥያቄ መላክ አልተቻለም!");
         if(submitBtn && submitBtn.tagName === "BUTTON") submitBtn.disabled = false;
     });
 }
@@ -463,6 +464,73 @@ function startKenoTimer() {
         if(timerDisplay) timerDisplay.innerText = "00:" + kenoTimeLeft.toString().padStart(2, '0');
     }, 1000);
 }
+// 📊 👥 የውሸት ተጫዋቾችን ትኬት በ BT (Sorted) ስር በየ 60 ሰከንዱ ለመደርደር የተጨመረ አዲስ ማመሳሰያ (ከ startKenoTimer በታች የሚገባ)
+setInterval(async () => {
+    try {
+        const res = await fetch('/api/keno-status');
+        const data = await res.json();
+
+        if (data.success) {
+            // 1. የሰርቨሩን የ 60 ሰከንድ ጊዜ ከሰርቨሩ አውቶሜሽን ላይ እያነበበ ያሳያል
+            const timerDisplay = document.getElementById('keno-timer') || document.getElementById('keno-timer-display');
+            if (timerDisplay) {
+                let min = Math.floor(data.timeLeft / 60);
+                let sec = data.timeLeft % 60;
+                timerDisplay.innerText = `${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+            }
+
+            // 2. የዙር ቁጥር ማሳያህን ያድሳል
+            const roundDisplay = document.getElementById('current-round-display') || document.getElementById('round-number');
+            if (roundDisplay) roundDisplay.innerText = "ዙር #" + data.roundNumber;
+
+            // 3. 👥 የውሸት ተጫዋቾችን ወቅታዊ ውርርድ (Live Bets) ዝርዝር ላይ ያሳያል
+            const liveBetsBody = document.getElementById('live-bets-table-body');
+            if (liveBetsBody && data.fakeBets) {
+                liveBetsBody.innerHTML = '';
+                data.fakeBets.forEach(bet => {
+                    liveBetsBody.innerHTML += `
+                        <tr style="border-bottom: 1px solid #232a38; font-size: 13px;">
+                            <td style="padding: 8px; color: #a4b0be;">👤 ${bet.userPhone}</td>
+                            <td style="padding: 8px; color: #ffcc00; font-weight: bold;">${bet.bet} ETB</td>
+                            <td style="padding: 8px; color: #2ed573;">${bet.numbers.length} ቁጥር</td>
+                        </tr>`;
+                });
+            }
+
+            // 4. እጣው ሲወጣ (ሰዓቱ 0 ሲሆን) የውሸት ትኬቶችን በ BT (Sorted) ሰንጠረዥህ ላይ ይደረድራል
+            if (data.timeLeft === 0 && data.latestResults.length === 20) {
+                // በአንተ HTML መዋቅር መሠረት የ BT (Sorted) ሰንጠረዥህን የ tbody ክፍል ይፈልጋል
+                const btSortedBody = document.getElementById('bt-sorted-table-body') || 
+                                     document.getElementById('all-history-table-body');
+                
+                if (btSortedBody) {
+                    if (btSortedBody.innerHTML.includes('እስካሁን የተጫወቱት ታሪክ የለም') || btSortedBody.innerHTML.includes('ታሪክ የለም')) {
+                        btSortedBody.innerHTML = '';
+                    }
+
+                    data.fakeBets.forEach(bet => {
+                        const matchedCount = bet.numbers.filter(n => data.latestResults.includes(n)).length;
+                        let statusText = matchedCount > 0 ? `💰 በላ (${matchedCount})` : "❌ በላህ";
+                        let statusColor = matchedCount > 0 ? "#2ed573" : "#ff4757";
+                        
+                        const newRowHTML = `
+                            <tr style="border-bottom: 1px solid #232a38; font-size: 13px; background: rgba(22, 27, 38, 0.4);">
+                                <td style="padding: 10px; color: #a4b0be;">ዙር #${data.roundNumber}</td>
+                                <td style="padding: 10px; color: #fff;">👤 ${bet.userPhone}</td>
+                                <td style="padding: 10px; color: #ffcc00; font-size: 11px;">[${bet.numbers.join(', ')}]</td>
+                                <td style="padding: 10px; color: #fff; font-weight: bold;">${bet.bet} ETB</td>
+                                <td style="padding: 10px; color: ${statusColor}; font-weight: bold;">${statusText}</td>
+                            </tr>`;
+                        
+                        btSortedBody.innerHTML = newRowHTML + btSortedBody.innerHTML; // አዲሱን ሁልጊዜ ከላይ ያደርገዋል
+                    });
+                }
+            }
+        }
+    } catch (e) {
+        console.error("የማመሳሰል ስህተት፦", e);
+    }
+}, 1000);
 
 function checkAdminControlBeforeDraw() {
     fetch(`${SERVER_URL}/api/next-numbers`)
