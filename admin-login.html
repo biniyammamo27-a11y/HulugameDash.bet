@@ -3,333 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashbet - Supreme Executive Admin Panel</title>
+    <title>Hulugame.bet - Admin Login</title>
     <style>
-        :root {
-            --bg-color: #0b0f19;
-            --card-bg: #161b26;
-            --primary: #ff4757;
-            --secondary: #2ed573;
-            --text-main: #ffffff;
-            --text-muted: #a4b0be;
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-main); padding: 20px; }
-        .container { max-width: 1200px; margin: 0 auto; }
-        .header { display: flex; justify-content: space-between; align-items: center; padding: 20px; background: var(--card-bg); border-radius: 12px; border: 1px solid #232a38; margin-bottom: 20px; }
-        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px; }
-        .stat-card { background: var(--card-bg); padding: 20px; border-radius: 10px; border: 1px solid #232a38; text-align: center; }
-        .stat-card h3 { color: var(--text-muted); font-size: 14px; margin-bottom: 5px; }
-        .stat-card h2 { font-size: 24px; color: var(--secondary); }
-        .tab-menu-bar { display: flex; gap: 10px; margin-bottom: 20px; background: var(--card-bg); padding: 10px; border-radius: 12px; border: 1px solid #232a38; }
-        .menu-btn { flex: 1; padding: 15px; border: none; border-radius: 8px; font-size: 14px; font-weight: bold; color: var(--text-muted); background: #1f2635; cursor: pointer; transition: 0.2s; text-align: center; }
-        .menu-btn:hover { color: #fff; background: #283044; }
-        .menu-btn.active { color: #fff; background: var(--primary); box-shadow: 0 4px 10px rgba(255, 71, 87, 0.3); }
-        .table-section { background: var(--card-bg); padding: 20px; border-radius: 12px; border: 1px solid #232a38; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-        .table-section h3 { margin-bottom: 15px; font-size: 18px; color: #fff; border-bottom: 1px solid #232a38; padding-bottom: 10px; }
-        table { width: 100%; border-collapse: collapse; text-align: left; margin-top: 10px; }
-        th, td { padding: 12px; border-bottom: 1px solid #232a38; font-size: 14px; }
-        th { background: #1f2635; color: var(--text-muted); font-weight: 600; }
-        .btn-action { padding: 6px 12px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; font-size: 12px; margin-right: 5px; }
-        .btn-approve { background: var(--secondary); color: white; }
-        .btn-reject { background: var(--primary); color: white; }
-        .btn-view { background: #2f3542; color: #ffcc00; border: 1px solid #ffcc00; }
-        .btn-refresh { background: #2f3542; color: white; padding: 10px 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        .hidden { display: none !important; }
-        .keno-ctrl-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 8px; margin: 20px 0; }
-        .ctrl-ball { background: #1f2635; color: #fff; padding: 15px 0; text-align: center; border-radius: 8px; font-weight: bold; cursor: pointer; border: 1px solid #2d3748; font-size: 16px; }
-        .ctrl-ball.selected { background: var(--secondary); border-color: #2ed573; box-shadow: 0 0 10px rgba(46, 213, 115, 0.5); }
-        .bot-control-panel { display: flex; gap: 20px; align-items: center; background: #1f2635; padding: 25px; border-radius: 12px; border: 1px solid #2d3748; margin-top: 15px; }
-        .bot-status-indicator { font-size: 18px; font-weight: bold; color: #fff; padding: 10px 20px; border-radius: 8px; background: #2d3748; }
-        .bot-btn { padding: 15px 30px; font-size: 16px; font-weight: bold; border-radius: 8px; border: none; cursor: pointer; color: white; transition: 0.2s; }
-        .bot-btn-start { background: var(--secondary); box-shadow: 0 4px 12px rgba(46, 213, 115, 0.3); }
-        .bot-btn-stop { background: var(--primary); box-shadow: 0 4px 12px rgba(255, 71, 87, 0.3); }
-        .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); justify-content: center; align-items: center; }
-        .modal-content { max-width: 90%; max-height: 80vh; border-radius: 10px; }
-        .close-modal { position: absolute; top: 20px; right: 30px; color: #fff; font-size: 40px; font-weight: bold; cursor: pointer; }
+        body { background-color: #0b0f19; color: white; font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .login-card { background: #161b26; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); width: 100%; max-width: 360px; text-align: center; border: 1px solid #232a38; }
+        .title-main { font-size: 26px; font-weight: bold; color: #ff4757; margin-bottom: 5px; }
+        .title-sub { font-size: 18px; font-weight: 600; color: #ffffff; margin-bottom: 20px; }
+        input { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #232a38; background: #0f131c; color: white; box-sizing: border-box; font-size: 15px; text-align: center; }
+        button { width: 100%; padding: 12px; border-radius: 8px; border: none; background: #2ed573; color: white; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        button:hover { background: #26af66; }
     </style>
 </head>
 <body>
-    <div id="imageModal" class="modal">
-        <span class="close-modal" onclick="closeImageModal()">&times;</span>
-        <img class="modal-content" id="modalImg">
+
+    <div class="login-card">
+        <div class="title-main">Hulugame.bet</div>
+        <div class="title-sub">የአድሚን መቆጣጠሪያ ፓነል</div>
+        <input type="password" id="admin-pass" placeholder="ሚስጥራዊ የይለፍ ቃል ያስገቡ">
+        <button onclick="loginAdmin()">ግባ (LOGIN)</button>
     </div>
-    <div class="container">
-        <div class="header">
-            <div>
-                <h1 style="color: var(--primary); font-size: 24px;">💼 DASHBET EXECUTIVE CONTROL PANEL</h1>
-                <p style="color: var(--text-muted); font-size: 14px;">የዲፖዚት፣ ዊዝድሮው፣ የ3 ሰከንድ ቦት እና የቁጥር መቆለፊያ ማዕከል</p>
-            </div>
-            <button class="btn-refresh" onclick="loadAdminData()">🔄 REFRESH DATA</button>
-        </div>
-        <div class="stats-grid">
-            <div class="stat-card">
-                <h3>ጠቅላላ የተጫዋቾች ካፒታል</h3>
-                <h2 id="stat-total-capital">0.00 ETB</h2>
-            </div>
-            <div class="stat-card">
-                <h3>ጠቅላላ ተጠቃሚዎች</h3>
-                <h2 id="stat-total-users" style="color: #fff;">0</h2>
-            </div>
-            <div class="stat-card">
-                <h3>ሚጠባበቁ ዲፖዚቶች</h3>
-                <h2 id="stat-pending-deposits" style="color: #ffcc00;">0</h2>
-            </div>
-            <div class="stat-card">
-                <h3>ሚጠባበቁ ዊዝድሮዎች</h3>
-                <h2 id="stat-pending-withdrawals" style="color: #ff4757;">0</h2>
-            </div>
-        </div>
 
-        <div class="tab-menu-bar">
-            <button id="btn-tab-deposits" class="menu-btn active" onclick="switchAdminTab('deposits')">📷 Deposits (ዲፖዚቶች)</button>
-            <button id="btn-tab-withdrawals" class="menu-btn" onclick="switchAdminTab('withdrawals')">💸 Withdraws (ዊዝድሮዎች)</button>
-            <button id="btn-tab-users" class="menu-btn" onclick="switchAdminTab('users')">👥 የተመዘገቡ ተጫዋቾች</button>
-            <button id="btn-tab-control" class="menu-btn" onclick="switchAdminTab('control')">🎯 የቁጥር መቆለፊያ</button>
-            <button id="btn-tab-bot" class="menu-btn" style="color:#2ed573; border: 1px solid #2ed573;" onclick="switchAdminTab('bot')">🤖 BOT MANAGER (የ3 ሰከንድ ቦት)</button>
-        </div>
-
-        <div id="section-deposits" class="table-section">
-            <h3>📷 የሚጠባበቁ ዲፖዚቶች (PENDING DEPOSITS)</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>የሲስተም ID</th>
-                        <th>የግብይት መለያ (TxID)</th>
-                        <th>የተጫዋች ስልክ</th>
-                        <th>የላከበት ስልክ</th>
-                        <th>የክፍያ ዘዴ</th>
-                        <th>የብር መጠን</th>
-                        <th>ፎቶ</th>
-                        <th>እርምጃ</th>
-                    </tr>
-                </thead>
-                <tbody id="deposit-table-body">
-                    <tr><td colspan="8" style="text-align:center; color: var(--text-muted);">መረጃዎችን ከሰርቨር በመጫን ላይ...</td></tr>
-                </tbody>
-            </table>
-        </div>
-
-        <div id="section-withdrawals" class="table-section hidden">
-            <h3>💸 የሚጠባበቁ ዊዝድሮዎች (PENDING WITHDRAWALS)</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>የጥያቄ ID</th>
-                        <th>የተጫዋች ስልክ</th>
-                        <th>የአካውንት ቁጥር</th>
-                        <th>ሙሉ ስም</th>
-                        <th>የክፍያ ዘዴ</th>
-                        <th>የብር መጠን</th>
-                        <th>እርምጃ</th>
-                    </tr>
-                </thead>
-                <tbody id="withdraw-table-body">
-                    <tr><td colspan="7" style="text-align:center; color: var(--text-muted);">መረጃዎችን ከሰርቨር በመጫን ላይ...</td></tr>
-                </tbody>
-            </table>
-        </div>
-
-        <div id="section-users" class="table-section hidden">
-            <h3>👥 የተመዘገቡ ተጫዋቾች ዝርዝር</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>የተጠቃሚ ስልክ ቁጥር</th>
-                        <th>የይለፍ ቃል (Password)</th>
-                        <th>ወቅታዊ ቀሪ ሂሳብ</th>
-                    </tr>
-                </thead>
-                <tbody id="users-table-body">
-                    <tr><td colspan="3" style="text-align:center; color: var(--text-muted);">መረጃዎችን ከሰርቨር በመጫን ላይ...</td></tr>
-                </tbody>
-            </table>
-        </div>
-
-        <div id="section-control" class="table-section hidden">
-            <h3>🎯 የFast Keno ቀጣይ እጣ ቁጥሮችን እራስህ ወስን</h3>
-            <p style="color: var(--text-muted); margin-bottom: 10px; font-size: 14px;">እባክዎ ቀጣዩ እጣ ላይ እንዲወጡ የሚፈልጓቸውን <b>በትክክል 20 ቁጥሮች</b> ይጫኑ።</p>
-            <h4 style="color:#ffcc00; margin-bottom:10px;">የተመረጡ ቁጥሮች ብዛት፦ <span id="selected-ctrl-count">0</span> / 20</h4>
-            <div class="keno-ctrl-grid" id="ctrl-grid-box"></div>
-            <button class="btn-refresh" style="background:var(--secondary); width:100%; padding:15px; font-size:18px;" onclick="sendCustomNumbers()">🚀 ቁጥሮቹን ወደ ጨዋታው ላክ (LOCK NUMBERS)</button>
-        </div>
-
-        <div id="section-bot" class="table-section hidden">
-            <h3>🤖 አውቶማቲክ የ3 ሰከንድ ቦት ማዘዣ ማዕከል (Live Ticket Bot)</h3>
-            <p style="color: var(--text-muted); margin-bottom: 15px; font-size: 14px;">ይህንን ማሽን ሲያበሩት በየ3 ሰከንዱ በራስ-ሰር 3 ቁጥሮችን እየመረጠ በመቶዎች የሚቆጠሩ የውሸት ትኬቶችን ይቆርጣል፤ በወቅታዊ ውርርድ ዝርዝር ላይም ያሳያቸዋል።</p>
-            <div class="bot-control-panel">
-                <div class="bot-status-indicator" id="bot-status-label">የቦቱ ሁኔታ፦ ⏳ በማንበብ ላይ...</div>
-                <button class="bot-btn bot-btn-start" onclick="toggleBotMachine(true)">🟢 START BOT (ቦቱን አስጀምር)</button>
-                <button class="bot-btn bot-btn-stop" onclick="toggleBotMachine(false)">🔴 STOP BOT (ቦቱን አቁም)</button>
-            </div>
-        </div>
-    </div>
     <script>
-        const BASE_API_URL = window.location.origin;
-        let adminSelectedNumbers = new Array();
+        async function loginAdmin() {
+            const password = document.getElementById('admin-pass').value;
+            if(!password) return alert("⚠️ እባክዎ መጀመሪያ የይለፍ ቃል ያስገቡ!");
 
-        function generateAdminGrid() {
-            const gridBox = document.getElementById('ctrl-grid-box');
-            if (!gridBox) return;
-            gridBox.innerHTML = '';
-            for (let i = 1; i <= 80; i++) {
-                gridBox.innerHTML += `<div class="ctrl-ball" id="ctrl-ball-${i}" onclick="toggleAdminNumber(${i})">${i}</div>`;
-            }
-        }
-
-        function toggleAdminNumber(num) {
-            const idx = adminSelectedNumbers.indexOf(num);
-            const ball = document.getElementById(`ctrl-ball-${num}`);
-            if (idx === -1) {
-                if (adminSelectedNumbers.length >= 20) return alert("⚠️ ከ20 ቁጥር በላይ መምረጥ አይችሉም!");
-                adminSelectedNumbers.push(num);
-                if (ball) ball.classList.add('selected');
-            } else {
-                adminSelectedNumbers.splice(idx, 1);
-                if (ball) ball.classList.remove('selected');
-            }
-            const countLabel = document.getElementById('selected-ctrl-count');
-            if (countLabel) countLabel.innerText = adminSelectedNumbers.length;
-        }
-
-        async function sendCustomNumbers() {
-            if (adminSelectedNumbers.length !== 20) return alert("⚠️ እባክዎ በትክክል 20 ቁጥሮችን ይምረጡ!");
-            const token = localStorage.getItem('adminToken');
             try {
-                const res = await fetch(`${BASE_API_URL}/admin/set-keno-numbers`, {
+                const response = await fetch('/admin/login', {
                     method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ numbers: adminSelectedNumbers })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password })
                 });
-                const data = await res.json();
-                alert(data.message);
-                if (data.success) { 
-                    adminSelectedNumbers = new Array(); 
-                    generateAdminGrid(); 
-                    const countLabel = document.getElementById('selected-ctrl-count');
-                    if (countLabel) countLabel.innerText = "0"; 
-                }
-            } catch(e) { alert("❌ ቁጥሮቹን መቆለፍ አልተቻለም!"); }
-        }
+                const data = await response.json();
 
-        async function checkBotStatus() {
-            const token = localStorage.getItem('adminToken');
-            try {
-                const res = await fetch(`${BASE_API_URL}/admin/bot-status`, { headers: { 'Authorization': `Bearer ${token}` } });
-                const data = await res.json();
-                const label = document.getElementById('bot-status-label');
-                if (!label) return;
-                if(data.isBotActive) {
-                    label.innerText = "የቦቱ ሁኔታ፦ 🟢 LIVE RUNNING (በመስራት ላይ)";
-                    label.style.color = "#2ed573";
+                if(data.success) {
+                    // 🛡️ ለአስተማማኝነት ቶክኑን በ localStorage ላይም ጭምር ሴቭ እናደርገዋለን
+                    localStorage.setItem('adminToken', data.token);
+                    alert("🟢 በተሳካ ሁኔታ ገብተዋል!");
+                    window.location.href = '/admin-panel'; 
                 } else {
-                    label.innerText = "የቦቱ ሁኔታ፦ 🔴 STANDBY (ቆሟል)";
-                    label.style.color = "#ff4757";
+                    alert(data.message);
                 }
-            } catch(e) {}
-        }
-
-        async function toggleBotMachine(activate) {
-            const token = localStorage.getItem('adminToken');
-            try {
-                const res = await fetch(`${BASE_API_URL}/admin/toggle-bot`, {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ activate })
-                });
-                const data = await res.json();
-                alert(data.message);
-                checkBotStatus();
-            } catch(e) { alert("❌ ማከናወን አልተቻለም!"); }
-        }
-
-        function switchAdminTab(tabName) {
-            document.getElementById('section-deposits').classList.add('hidden');
-            document.getElementById('section-withdrawals').classList.add('hidden');
-            document.getElementById('section-users').classList.add('hidden');
-            document.getElementById('section-control').classList.add('hidden');
-            document.getElementById('section-bot').classList.add('hidden');
-
-            document.getElementById('btn-tab-deposits').classList.remove('active');
-            document.getElementById('btn-tab-withdrawals').classList.remove('active');
-            document.getElementById('btn-tab-users').classList.remove('active');
-            document.getElementById('btn-tab-control').classList.remove('active');
-            document.getElementById('btn-tab-bot').classList.remove('active');
-
-            document.getElementById('section-' + tabName).classList.remove('hidden');
-            document.getElementById('btn-tab-' + tabName).classList.add('active');
-
-            if(tabName === 'control') generateAdminGrid();
-            if(tabName === 'bot') checkBotStatus();
-        }
-
-        window.onload = function() { loadAdminData(); };
-
-        async function fetchAndOpenImage(id) {
-            const token = localStorage.getItem('adminToken');
-            const viewBtn = event ? event.target : null;
-            if (viewBtn) { viewBtn.innerText = "⏳ LOADING..."; viewBtn.disabled = true; }
-            try {
-                const res = await fetch(`${BASE_API_URL}/admin/deposit-image/${id}`, { headers: { 'Authorization': `Bearer ${token}` } });
-                const data = await res.json();
-                if(data.success && data.screenshot) {
-                    const modal = document.getElementById("imageModal"); 
-                    const modalImg = document.getElementById("modalImg");
-                    if (modal && modalImg) { modal.style.display = "flex"; modalImg.src = data.screenshot; }
-                } else { alert("⚠️ ፎቶው አልተገኘም!"); }
-            } catch(e) { alert("❌ ፎቶ መጫን አልተቻለም!"); }
-            finally { if(viewBtn) { viewBtn.innerText = "👁️ VIEW IMAGE"; viewBtn.disabled = false; } }
-        }
-
-        function closeImageModal() { document.getElementById("imageModal").style.display = "none"; }
-        async function loadAdminData() {
-            const token = localStorage.getItem('adminToken');
-            if (!token) { alert("⚠️ መጀመሪያ በአድሚን አካውንት ይግቡ!"); window.location.href = '/admin-login'; return; }
-            const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
-            try {
-                const resUsers = await fetch(`${BASE_API_URL}/admin/users`, { headers }); const users = await resUsers.json();
-                const resDeps = await fetch(`${BASE_API_URL}/admin/deposits`, { headers }); const deposits = await resDeps.json();
-                const resWiths = await fetch(`${BASE_API_URL}/admin/withdrawals`, { headers }); const withdrawals = await resWiths.json();
-                let totalCapital = 0; let pendingDeps = 0; let pendingWiths = 0;
-
-                const usersBody = document.getElementById('users-table-body'); usersBody.innerHTML = '';
-                users.forEach(u => { totalCapital += u.balance; usersBody.innerHTML += `<tr><td>${u.phone}</td><td style="color:#94a3b8;">🔒 Encrypted (የተጠበቀ)</td><td style="color:#2ed573; font-weight:bold;">${u.balance.toFixed(2)} ETB</td></tr>`; });
-                document.getElementById('stat-total-users').innerText = users.length; document.getElementById('stat-total-capital').innerText = totalCapital.toFixed(2) + " ETB";
-
-                const depBody = document.getElementById('deposit-table-body'); depBody.innerHTML = '';
-                deposits.forEach(d => {
-                    if (d.status === 'PENDING') {
-                        pendingDeps++;
-                        const imageBtnHTML = `<button class="btn-action btn-view" onclick="fetchAndOpenImage('${d.id}')">👁️ VIEW IMAGE</button>`;
-                        depBody.innerHTML += `<tr><td>${d._id ? 'DEP-' + d._id.toString().substring(18) : 'NEW'}</td><td style="color:#ffcc00; font-weight:bold;">${d.id || "ያልተገኘ"}</td><td>${d.userPhone}</td><td>${d.senderPhone}</td><td>${d.method}</td><td style="color:#2ed573; font-weight:bold;">${d.amount} ETB</td><td>${imageBtnHTML}</td><td><button class="btn-action btn-approve" onclick="approveDeposit('${d.id}', '${d.userPhone}', ${d.amount})">APPROVE</button><button class="btn-action btn-reject" onclick="rejectDeposit('${d.id}')">REJECT</button></td></tr>`;
-                    }
-                });
-                if(pendingDeps === 0) depBody.innerHTML = '<tr><td colspan="8" style="text-align:center; color: var(--text-muted);">የሚጠባበቅ የዲፖዚት ጥያቄ የለም።</td></tr>';
-                document.getElementById('stat-pending-deposits').innerText = pendingDeps;
-
-                const withBody = document.getElementById('withdraw-table-body'); withBody.innerHTML = '';
-                withdrawals.forEach(w => {
-                    if (w.status === 'PENDING') {
-                        pendingWiths++;
-                        withBody.innerHTML += `<tr><td>${w.id || 'WITH-NEW'}</td><td>${w.userPhone}</td><td>${w.accountNumber}</td><td>${w.fullName}</td><td>${w.method}</td><td style="color:#ff4757; font-weight:bold;">${w.amount} ETB</td><td><button class="btn-action btn-approve" onclick="approveWithdraw('${w.id}')">APPROVE</button><button class="btn-action btn-reject" onclick="rejectWithdraw('${w.id}')">REJECT</button></td></tr>`;
-                    }
-                });
-                if(pendingWiths === 0) withBody.innerHTML = '<tr><td colspan="7" style="text-align:center; color: var(--text-muted);">የሚጠባበቅ የዊዝድሮው ጥያቄ የለም።</td></tr>';
-                document.getElementById('stat-pending-withdrawals').innerText = pendingWiths;
-            } catch (e) { console.error("ዳታ መጫን አልተቻለም፦", e); }
-        }
-
-        async function approveDeposit(id, userPhone, amount) { await handleRequest('/admin/approve-deposit', { id, userPhone, amount }, "🟢 ዲፖዚት በተሳካ ሁኔታ ጸድቋል!"); }
-        async function rejectDeposit(id) { await handleRequest('/admin/reject-deposit', { id }, "🔴 ዲፖዚት ውድቅ ተደርጓል!"); }
-        async function approveWithdraw(id) { await handleRequest('/admin/approve-withdraw', { id }, "🟢 ዊዝድሮው በተሳካ ሁኔታ ጸድቋል!"); }
-        async function rejectWithdraw(id) { await handleRequest('/admin/reject-withdraw', { id }, "🔴 ዊዝድሮው ውድቅ ተደርጓል!"); }
-
-        async function handleRequest(url, body, msg) {
-            const token = localStorage.getItem('adminToken');
-            try {
-                const response = await fetch(BASE_API_URL + url, { method: 'POST', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-                const data = await response.json(); if (data.success) { alert(msg); loadAdminData(); }
-            } catch (e) { alert("❌ ማከናወን አልተቻለም!"); }
+            } catch (e) {
+                alert("❌ ከሰርቨር ጋር መገናኘት አልተቻለም!");
+            }
         }
     </script>
 </body>
