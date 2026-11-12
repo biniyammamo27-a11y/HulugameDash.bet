@@ -228,6 +228,7 @@
                 }
             } catch(e) {}
         }
+
         async function toggleBotMachine(activate) {
             const token = localStorage.getItem('adminToken');
             try {
@@ -292,7 +293,7 @@
                 let totalCapital = 0; let pendingDeps = 0; let pendingWiths = 0;
 
                 const usersBody = document.getElementById('users-table-body'); usersBody.innerHTML = '';
-                users.forEach(u => { totalCapital += u.balance; usersBody.innerHTML += `<tr><td>${u.phone}</td><td>${u.password}</td><td style="color:#2ed573; font-weight:bold;">${u.balance.toFixed(2)} ETB</td></tr>`; });
+                users.forEach(u => { totalCapital += u.balance; usersBody.innerHTML += `<tr><td>${u.phone}</td><td style="color:#94a3b8;">🔒 Encrypted (የተጠበቀ)</td><td style="color:#2ed573; font-weight:bold;">${u.balance.toFixed(2)} ETB</td></tr>`; });
                 document.getElementById('stat-total-users').innerText = users.length; document.getElementById('stat-total-capital').innerText = totalCapital.toFixed(2) + " ETB";
 
                 const depBody = document.getElementById('deposit-table-body'); depBody.innerHTML = '';
