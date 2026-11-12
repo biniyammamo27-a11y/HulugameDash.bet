@@ -211,6 +211,7 @@ let totalActiveBetAmount = 0;
 let isDrawingActive = false; 
 let serverRoundNumber = 1001;
 let lastProcessedRound = null;
+window.latestFakeBets = new Array();
 
 const KENO_PAYOUT_ODDS = {
     1: { 1: 3 }, 2: { 2: 5 }, 3: { 2: 2, 3: 50 }, 4: { 2: 1, 3: 5, 4: 80 }, 5: { 3: 3, 4: 15, 5: 200 },
@@ -299,7 +300,6 @@ function loadDrawHistoryFromServer() {
             });
         }).catch(() => {});
 }
-
 function loginUser() {
     const phone = document.getElementById('login-phone').value.trim();
     const password = document.getElementById('login-password').value;
@@ -393,6 +393,7 @@ function submitWithdraw() {
         }
     }).catch(() => alert("❌ የዊዝድሮው ጥያቄ መላክ አልተቻለም!"));
 }
+
 function updateLiveBalanceDisplays(newBalance) {
     const formattedBal = parseFloat(newBalance).toFixed(2);
     const balanceDisplay = document.getElementById('user-balance-display');
@@ -447,7 +448,6 @@ function backToWalletMenu() {
     document.getElementById('deposit-form-block').style.display = 'none'; 
     document.getElementById('withdraw-form-block').style.display = 'none'; 
 }
-
 // 🔄 ከሰርቨሩ ጋር የታሰረ ቀጥታ የ 60 ሰከንድ ሰዓት እና የዕጣ ማመሳሰያ
 setInterval(async () => {
     try {
@@ -463,16 +463,8 @@ setInterval(async () => {
             timerDisplay.innerText = `${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
         }
 
-        const sortedContainer = document.getElementById('bt-sorted-list-container');
-        if (sortedContainer && data.fakeBets && activeTickets.length === 0) {
-            sortedContainer.innerHTML = '';
-            data.fakeBets.slice(0, 10).forEach(b => {
-                const div = document.createElement('div');
-                div.className = 'bt-sorted-item';
-                div.innerHTML = `👤 ${b.userPhone} | ${b.bet} ETB - [${b.numbers.join(',')}]`;
-                sortedContainer.appendChild(div);
-            });
-        }
+        window.latestFakeBets = data.fakeBets || new Array();
+        renderSortedCombinedList();
 
         if (data.latestResults && data.latestResults.length === 20 && lastProcessedRound !== data.roundNumber && data.timeLeft >= 55) {
             lastProcessedRound = data.roundNumber;
@@ -481,12 +473,41 @@ setInterval(async () => {
     } catch (e) {}
 }, 1000);
 
+function renderSortedCombinedList() {
+    const sortedContainer = document.getElementById('bt-sorted-list-container');
+    if (!sortedContainer) return;
+    sortedContainer.innerHTML = '';
+
+    let combined = new Array();
+    activeTickets.forEach(t => {
+        let numbersHTML = t.numbers.map(num => t.hitNumbers.includes(num) ? '<span class="hit-num-text">' + num + '</span>' : num).join(',');
+        let winText = t.winAmount > 0 ? '<span style="color:#00ff00; font-weight:bold;">[🏆 +' + t.winAmount.toFixed(2) + ']</span> ' : '';
+        combined.push({
+            bet: t.bet,
+            html: `<span style="color:#00ffcc;">⭐ ${t.ticketId}</span> | ${winText}${t.bet} ETB - [${numbersHTML}]`
+        });
+    });
+
+    (window.latestFakeBets || new Array()).slice(0, 15).forEach(b => {
+        combined.push({
+            bet: b.bet,
+            html: `👤 ${b.userPhone} | ${b.bet} ETB - [${b.numbers.join(',')}]`
+        });
+    });
+
+    combined.sort((a, b) => b.bet - a.bet);
+    combined.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'bt-sorted-item';
+        div.innerHTML = item.html;
+        sortedContainer.appendChild(div);
+    });
+}
+
 function renderTicketsToUI() {
     const ticketsContainer = document.getElementById('my-tickets-list-container'); 
-    const sortedContainer = document.getElementById('bt-sorted-list-container');
-    if (!ticketsContainer || !sortedContainer) return;
+    if (!ticketsContainer) return;
     ticketsContainer.innerHTML = ''; 
-    if (activeTickets.length > 0) sortedContainer.innerHTML = '';
 
     activeTickets.forEach(ticket => {
         const ticketDiv = document.createElement('div'); ticketDiv.className = 'ticket-item';
@@ -494,11 +515,9 @@ function renderTicketsToUI() {
         let winText = ticket.winAmount > 0 ? '<span style="color:#00ff00; font-weight:bold;">[🏆 +' + ticket.winAmount.toFixed(2) + ']</span> ' : '';
         ticketDiv.innerHTML = `<span style="color:#94a3b8;">${ticket.ticketId}</span> | ` + winText + ticket.bet + ' ETB - [' + numbersHTML + ']'; 
         ticketsContainer.appendChild(ticketDiv);
-
-        const sortedDiv = document.createElement('div'); sortedDiv.className = 'bt-sorted-item';
-        sortedDiv.innerHTML = ticketDiv.innerHTML;
-        sortedContainer.appendChild(sortedDiv);
     });
+
+    renderSortedCombinedList();
 }
 
 function changeBet(val) {
@@ -661,4 +680,5 @@ function renderStatisticsToUI() {
 </script>
 </body>
 </html>
+
 
