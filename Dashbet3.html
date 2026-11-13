@@ -466,7 +466,7 @@ setInterval(async () => {
         window.latestFakeBets = data.fakeBets || new Array();
         renderSortedCombinedList();
 
-        if (data.latestResults && data.latestResults.length === 20 && lastProcessedRound !== data.roundNumber && data.timeLeft >= 55) {
+        if (data.latestResults && data.latestResults.length === 20 && lastProcessedRound !== data.roundNumber && data.timeLeft >= 70) {
             lastProcessedRound = data.roundNumber;
             startAnimatedKenoDraw(data.latestResults, data.roundNumber - 1);
         }
