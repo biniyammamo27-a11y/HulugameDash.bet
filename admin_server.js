@@ -35,12 +35,25 @@ let isBotMachineActive = false;
 let isRoundDrawingNow = false;
 let botIntervalTimer = null;
 
-function generateRandomTicketCode() {
-    const prefixes = ["TK", "GT", "HM", "JY", "UU", "FS", "AB", "MK", "ZR", "DN"];
-    const randomPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
-    const randomDigits = Math.floor(100000 + Math.random() * 900000);
-    return `${randomPrefix}-${randomDigits}`;
+function getPlayerPermanentId(phone) {
+    const prefixes = ["KT", "GT", "HM", "JY", "UU", "FS", "AB", "MK", "ZR", "DN"];
+    let hash = 0;
+    const str = String(phone || "0911000000");
+    for (let i = 0; i < str.length; i++) {
+        hash = ((hash << 5) - hash) + str.charCodeAt(i);
+        hash |= 0;
+    }
+    const absHash = Math.abs(hash);
+    const prefix = prefixes[absHash % prefixes.length];
+    const sixDigits = String(100000 + (absHash % 900000));
+    return `${prefix}-${sixDigits}`;
 }
+
+const PERMANENT_BOT_PLAYERS = [
+    "GT-194021", "HM-837210", "JY-502914", "UU-641209", "FS-391847",
+    "AB-720491", "MK-318502", "ZR-904128", "DN-459203", "KT-612849",
+    "GT-883104", "HM-247910", "JY-739102", "UU-510482", "FS-928371"
+];
 
 function generateFakePlayersForRound() {
     if (fakePlayersLiveBets.length === 0) {
@@ -48,7 +61,7 @@ function generateFakePlayersForRound() {
         const fakeAmounts = new Array(125, 150, 200, 300, 400, 500, 600, 1000, 2000, 3000);
         
         for(let i = 0; i < numberOfFakePlayers; i++) {
-            let fakeTicketId = generateRandomTicketCode();
+            let botId = PERMANENT_BOT_PLAYERS[Math.floor(Math.random() * PERMANENT_BOT_PLAYERS.length)];
             let randomBet = fakeAmounts[Math.floor(Math.random() * fakeAmounts.length)];
             let fakePickedNumbers = new Array();
             while(fakePickedNumbers.length < 3) {
@@ -56,7 +69,7 @@ function generateFakePlayersForRound() {
                 if(!fakePickedNumbers.includes(r)) fakePickedNumbers.push(r);
             }
             fakePlayersLiveBets.push({
-                userPhone: fakeTicketId,
+                userPhone: botId,
                 bet: randomBet,
                 numbers: fakePickedNumbers.sort((a, b) => a - b),
                 isFake: true
@@ -72,7 +85,7 @@ function runThreeSecondBotEngine() {
         if (!isBotMachineActive || isRoundDrawingNow) return;
 
         const fakeAmounts = new Array(125, 150, 200, 300, 400, 500, 600, 1000, 2000, 3000);
-        let fakeTicketId = generateRandomTicketCode();
+        let botId = PERMANENT_BOT_PLAYERS[Math.floor(Math.random() * PERMANENT_BOT_PLAYERS.length)];
         let randomBet = fakeAmounts[Math.floor(Math.random() * fakeAmounts.length)];
         let fakePickedNumbers = new Array();
         while(fakePickedNumbers.length < 3) {
@@ -80,7 +93,7 @@ function runThreeSecondBotEngine() {
             if(!fakePickedNumbers.includes(r)) fakePickedNumbers.push(r);
         }
         fakePlayersLiveBets.unshift({
-            userPhone: fakeTicketId,
+            userPhone: botId,
             bet: randomBet,
             numbers: fakePickedNumbers.sort((a, b) => a - b),
             isFake: true
@@ -230,6 +243,53 @@ app.get('/api/my-balance', requireUser, async (req, res) => {
         res.json({ success: true, balance: user ? user.balance : 0 });
     } catch (e) { res.json({ success: false }); }
 });
+
+app.get('/api/my-history', requireUser, async (req, res) => {
+    try {
+        const userTickets = await Ticket.find({ userPhone: req.userPhone }).sort({ _id: -1 }).limit(100);
+        if (!userTickets || userTickets.length === 0) return res.json({ success: true, history: [] });
+
+        const roundNumbers = [...new Set(userTickets.map(t => t.roundNumber))];
+        const draws = await Draw.find({ roundNumber: { $in: roundNumbers } });
+        const drawMap = {};
+        draws.forEach(d => { drawMap[d.roundNumber] = d.results; });
+
+        const groupedByRound = {};
+        userTickets.forEach(t => {
+            if (!groupedByRound[t.roundNumber]) {
+                groupedByRound[t.roundNumber] = {
+                    roundNumber: t.roundNumber,
+                    drawnResults: drawMap[t.roundNumber] || null,
+                    tickets: []
+                };
+            }
+            const drawn = drawMap[t.roundNumber] || [];
+            const hitNumbers = drawn.length > 0 ? t.numbers.filter(n => drawn.includes(n)) : [];
+            let winAmount = 0;
+            if (drawn.length > 0) {
+                const pickedCount = t.numbers.length;
+                const hitCount = hitNumbers.length;
+                if (KENO_PAYOUT_ODDS[pickedCount] && KENO_PAYOUT_ODDS[pickedCount][hitCount]) {
+                    const rawWin = t.bet * KENO_PAYOUT_ODDS[pickedCount][hitCount];
+                    winAmount = rawWin > 30000 ? 30000 : rawWin;
+                }
+            }
+            groupedByRound[t.roundNumber].tickets.push({
+                ticketId: t.ticketId,
+                bet: t.bet,
+                numbers: t.numbers,
+                hitNumbers: hitNumbers,
+                winAmount: winAmount,
+                isFinished: drawn.length > 0
+            });
+        });
+
+        const sortedRounds = Object.values(groupedByRound).sort((a, b) => b.roundNumber - a.roundNumber);
+        res.json({ success: true, history: sortedRounds });
+    } catch (e) {
+        res.json({ success: false, history: [] });
+    }
+});
 app.post('/api/place-bet', requireUser, async (req, res) => {
     const { betAmount, numbers } = req.body;
     const amount = parseFloat(betAmount);
@@ -253,7 +313,7 @@ app.post('/api/place-bet', requireUser, async (req, res) => {
         );
         if (!user) return res.json({ success: false, message: "❌ በቂ ቀሪ ሂሳብ የሎትም!" });
 
-        const ticketId = generateRandomTicketCode();
+        const ticketId = getPlayerPermanentId(req.userPhone);
         const newTicket = new Ticket({
             ticketId,
             userPhone: req.userPhone,
