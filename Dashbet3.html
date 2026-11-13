@@ -525,7 +525,7 @@ function renderSortedCombinedList() {
     if (!sortedContainer) return;
     sortedContainer.innerHTML = '';
 
-    // 1. የተጫዋቹ ትኬቶች (ሁልጊዜ መጀመሪያ ከላይ ይደረደራሉ)
+    // 1. የተጫዋቹ ትኬቶች (መጀመሪያ ይደረደራሉ)
     let userCards = new Array();
     activeTickets.forEach(t => {
         let numsBoxesHTML = t.numbers.map(num => {
@@ -540,9 +540,9 @@ function renderSortedCombinedList() {
         userCards.push({
             bet: t.bet,
             html: `
-                <div class="shamo-ticket-card" style="border-color:#22c55e; background:#152821;">
+                <div class="shamo-ticket-card">
                     <div class="shamo-card-header">
-                        <span style="color:#4ade80;">⭐ ${t.ticketId} (YOU)</span>
+                        <span>🎫 ${t.ticketId}</span>
                         <span style="font-size:11px; color:#849a91;">${t.numbers.length} Picks</span>
                     </div>
                     <div class="shamo-nums-row">${numsBoxesHTML}</div>
@@ -559,7 +559,7 @@ function renderSortedCombinedList() {
         sortedContainer.innerHTML += item.html;
     });
 
-    // 2. የቦቱ ትኬቶች (በፊት በነበረው ህግ ከትልቅ ወደ ትንሽ ተደርድረው ከታች ይቀጥላሉ)
+    // 2. የቦቱ ትኬቶች (ከታች ይቀጥላሉ)
     let botCards = new Array();
     (window.latestFakeBets || new Array()).slice(0, 15).forEach(b => {
         let hitCount = 0;
@@ -585,7 +585,7 @@ function renderSortedCombinedList() {
             html: `
                 <div class="shamo-ticket-card">
                     <div class="shamo-card-header">
-                        <span>👤 ${b.userPhone}</span>
+                        <span>🎫 ${b.userPhone}</span>
                         <span style="font-size:11px; color:#849a91;">${pickedCount} Picks</span>
                     </div>
                     <div class="shamo-nums-row">${numsBoxesHTML}</div>
@@ -622,9 +622,9 @@ function renderTicketsToUI() {
                 : `<span style="color:#facc15;">Waiting</span>`;
 
             ticketsContainer.innerHTML += `
-                <div class="shamo-ticket-card" style="border-color:#22c55e;">
+                <div class="shamo-ticket-card">
                     <div class="shamo-card-header">
-                        <span style="color:#4ade80;">🎫 ${ticket.ticketId}</span>
+                        <span>🎫 ${ticket.ticketId}</span>
                         <span style="font-size:11px; color:#849a91;">${ticket.numbers.length} Picks</span>
                     </div>
                     <div class="shamo-nums-row">${numsBoxesHTML}</div>
@@ -742,7 +742,7 @@ function startAnimatedKenoDraw(drawResults, drawnRoundNumber) {
         });
         renderTicketsToUI(); 
         count++;
-    }, 600);
+    }, 800);
 }
 
 function executePostDrawHistoryAndCleanup(drawnRoundNumber) {
