@@ -99,6 +99,7 @@
             <button onclick="quickSetAviatorCrash(25.00)" style="background:#21342d; color:#facc15; border:1px solid #2b443b; padding:6px 12px; border-radius:6px; font-size:12px; font-weight:bold; cursor:pointer;">🚀 25.00x</button>
         </div>
     </div>
+
     <!-- 📂 TABS FOR DEPOSITS, WITHDRAWALS & USERS -->
     <div class="tabs-row">
         <button id="tab-btn-deposits" class="tab-pill active" onclick="switchAdminTab('deposits')">📷 ዲፖዚቶች (Deposits)</button>
@@ -121,10 +122,13 @@
         </div>
     </div>
 </div>
-
 <script>
+const SERVER_URL = window.location.origin.includes('localhost') || window.location.origin.includes('onrender.com') 
+    ? window.location.origin 
+    : "https://onrender.com";
+
 const adminToken = localStorage.getItem('adminToken') || "";
-let adminPickedKeno = [];
+let adminPickedKeno = new Array();
 
 function adminHeaders() {
     return {
@@ -136,7 +140,7 @@ function adminHeaders() {
 function adminLogout() {
     localStorage.removeItem('adminToken');
     document.cookie = "adminToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    window.location.href = '/admin-login';
+    window.location.href = `${SERVER_URL}/admin-login`;
 }
 
 function switchAdminTab(tab) {
@@ -176,7 +180,7 @@ function buildAdminKenoGrid() {
 }
 
 function clearAdminKenoSelection() {
-    adminPickedKeno = [];
+    adminPickedKeno = new Array();
     document.getElementById('admin-picked-count').innerText = '0';
     document.querySelectorAll('.keno-admin-btn').forEach(el => el.classList.remove('picked'));
 }
@@ -186,7 +190,7 @@ function submitLockedKenoNumbers() {
         alert("⚠️ እባክዎ በትክክል 20 ቁጥሮችን ይምረጡ!");
         return;
     }
-    fetch('/admin/set-keno-numbers', {
+    fetch(`${SERVER_URL}/admin/set-keno-numbers`, {
         method: 'POST',
         headers: adminHeaders(),
         body: JSON.stringify({ numbers: adminPickedKeno })
@@ -200,7 +204,7 @@ function submitLockedKenoNumbers() {
 }
 
 function fetchBotStatus() {
-    fetch('/admin/bot-status', { headers: adminHeaders() })
+    fetch(`${SERVER_URL}/admin/bot-status`, { headers: adminHeaders() })
         .then(res => res.json())
         .then(data => {
             const lbl = document.getElementById('bot-status-label');
@@ -212,7 +216,7 @@ function fetchBotStatus() {
 }
 
 function toggleBotMachine(activate) {
-    fetch('/admin/toggle-bot', {
+    fetch(`${SERVER_URL}/admin/toggle-bot`, {
         method: 'POST',
         headers: adminHeaders(),
         body: JSON.stringify({ activate })
@@ -237,7 +241,7 @@ function lockNextAviatorCrash() {
         return;
     }
 
-    fetch('/admin/set-aviator-crash', {
+    fetch(`${SERVER_URL}/admin/set-aviator-crash`, {
         method: 'POST',
         headers: adminHeaders(),
         body: JSON.stringify({ crashPoint })
@@ -251,7 +255,7 @@ function lockNextAviatorCrash() {
 }
 
 function viewDepositReceipt(depId) {
-    fetch(`/admin/deposit-image/${depId}`, { headers: adminHeaders() })
+    fetch(`${SERVER_URL}/admin/deposit-image/${depId}`, { headers: adminHeaders() })
         .then(res => res.json())
         .then(data => {
             if (data.success && data.screenshot) {
@@ -269,7 +273,7 @@ function closeScreenshotModal() {
 }
 
 function processDeposit(id, userPhone, amount, approve) {
-    const url = approve ? '/admin/approve-deposit' : '/admin/reject-deposit';
+    const url = approve ? `${SERVER_URL}/admin/approve-deposit` : `${SERVER_URL}/admin/reject-deposit`;
     fetch(url, {
         method: 'POST',
         headers: adminHeaders(),
@@ -283,7 +287,7 @@ function processDeposit(id, userPhone, amount, approve) {
 }
 
 function processWithdraw(id, approve) {
-    const url = approve ? '/admin/approve-withdraw' : '/admin/reject-withdraw';
+    const url = approve ? `${SERVER_URL}/admin/approve-withdraw` : `${SERVER_URL}/admin/reject-withdraw`;
     fetch(url, {
         method: 'POST',
         headers: adminHeaders(),
@@ -297,7 +301,7 @@ function processWithdraw(id, approve) {
 }
 
 function loadAllAdminData() {
-    fetch('/admin/users', { headers: adminHeaders() })
+    fetch(`${SERVER_URL}/admin/users`, { headers: adminHeaders() })
         .then(res => res.json())
         .then(users => {
             if (!Array.isArray(users)) return;
@@ -316,7 +320,7 @@ function loadAllAdminData() {
             document.getElementById('stat-total-capital').innerText = totalCap.toFixed(2) + ' ETB';
         }).catch(() => {});
 
-    fetch('/admin/deposits', { headers: adminHeaders() })
+    fetch(`${SERVER_URL}/admin/deposits`, { headers: adminHeaders() })
         .then(res => res.json())
         .then(deps => {
             if (!Array.isArray(deps)) return;
@@ -345,7 +349,7 @@ function loadAllAdminData() {
             document.getElementById('stat-pending-deposits').innerText = pendingCount;
         }).catch(() => {});
 
-    fetch('/admin/withdrawals', { headers: adminHeaders() })
+    fetch(`${SERVER_URL}/admin/withdrawals`, { headers: adminHeaders() })
         .then(res => res.json())
         .then(withs => {
             if (!Array.isArray(withs)) return;
