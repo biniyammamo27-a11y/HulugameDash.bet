@@ -35,6 +35,7 @@
     </style>
 </head>
 <body>
+
 <div class="admin-container">
     <div class="top-bar">
         <h2>🛡️ DASHBET ADMIN CONTROL PANEL</h2>
@@ -60,6 +61,18 @@
         </div>
     </div>
 
+    <!-- 📂 TABS FOR DEPOSITS, WITHDRAWALS & USERS (ከላይ እንዲታይ) -->
+    <div class="control-box" style="border: 1.5px solid #22c55e;">
+        <div class="tabs-row">
+            <button id="tab-btn-deposits" class="tab-pill active" onclick="switchAdminTab('deposits')">📷 ዲፖዚቶች (Deposits)</button>
+            <button id="tab-btn-withdraws" class="tab-pill" onclick="switchAdminTab('withdraws')">💸 ዊዝድሮዎች (Withdrawals)</button>
+            <button id="tab-btn-users" class="tab-pill" onclick="switchAdminTab('users')">👥 ተጠቃሚዎች (Users)</button>
+        </div>
+
+        <div id="admin-panel-deposits" style="max-height: 360px; overflow-y: auto;"></div>
+        <div id="admin-panel-withdraws" style="display: none; max-height: 360px; overflow-y: auto;"></div>
+        <div id="admin-panel-users" style="display: none; max-height: 360px; overflow-y: auto;"></div>
+    </div>
     <!-- 🤖 KENO 3-SECOND BOT CONTROL -->
     <div class="control-box">
         <h3 style="color: #4ade80;">🤖 የ KENO 3 ሰከንድ ቦት ማሽን መቆጣጠሪያ</h3>
@@ -99,17 +112,6 @@
             <button onclick="quickSetAviatorCrash(25.00)" style="background:#21342d; color:#facc15; border:1px solid #2b443b; padding:6px 12px; border-radius:6px; font-size:12px; font-weight:bold; cursor:pointer;">🚀 25.00x</button>
         </div>
     </div>
-
-    <!-- 📂 TABS FOR DEPOSITS, WITHDRAWALS & USERS -->
-    <div class="tabs-row">
-        <button id="tab-btn-deposits" class="tab-pill active" onclick="switchAdminTab('deposits')">📷 ዲፖዚቶች (Deposits)</button>
-        <button id="tab-btn-withdraws" class="tab-pill" onclick="switchAdminTab('withdraws')">💸 ዊዝድሮዎች (Withdrawals)</button>
-        <button id="tab-btn-users" class="tab-pill" onclick="switchAdminTab('users')">👥 ተጠቃሚዎች (Users)</button>
-    </div>
-
-    <div id="admin-panel-deposits"></div>
-    <div id="admin-panel-withdraws" style="display: none;"></div>
-    <div id="admin-panel-users" style="display: none;"></div>
 </div>
 
 <!-- 🖼️ SCREENSHOT MODAL -->
@@ -122,15 +124,17 @@
         </div>
     </div>
 </div>
+
 <script>
 const SERVER_URL = window.location.origin.includes('localhost') || window.location.origin.includes('onrender.com') 
     ? window.location.origin 
     : "https://onrender.com";
 
 const adminToken = localStorage.getItem('adminToken') || "";
-    if (!adminToken) {
+if (!adminToken) {
     window.location.href = `${SERVER_URL}/admin-login`;
 }
+
 let adminPickedKeno = new Array();
 
 function adminHeaders() {
