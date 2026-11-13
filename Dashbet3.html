@@ -296,7 +296,7 @@ function displaySelectedScreenshot(input) {
             uploadBox.innerHTML = '<img src="' + e.target.result + '" style="width: 100%; height: 100%; object-fit: contain; border-radius: 8px;">'; 
             globalScreenshotBase64 = e.target.result;
         };
-        reader.readAsDataURL(input.files[0]); 
+        reader.readAsDataURL(input.files); 
     }
 }
 
@@ -331,6 +331,48 @@ function loadDrawHistoryFromServer() {
             });
         }).catch(() => {});
 }
+
+function loadUserHistoryFromServer() {
+    const historyContainer = document.getElementById('history-rounds-master-container');
+    if (!historyContainer || !userToken) return;
+    historyContainer.innerHTML = '<div style="color:#849a91; font-size:12px; padding:10px;">📜 የጨዋታ ታሪክዎ በመጫን ላይ...</div>';
+
+    fetch(`${SERVER_URL}/api/my-history`, { headers: authHeaders() })
+        .then(res => res.json())
+        .then(data => {
+            historyContainer.innerHTML = '';
+            if (!data.success || !data.history || data.history.length === 0) {
+                historyContainer.innerHTML = '<div style="color:#849a91; font-size:13px; padding:15px;">📜 እስካሁን የተመዘገበ የውርርድ ታሪክ የለም።</div>';
+                return;
+            }
+            data.history.forEach(round => {
+                const roundCard = document.createElement('div');
+                roundCard.className = 'history-round-card';
+                roundCard.innerHTML = `<div class="history-round-header">📜 GAME ROUND #${round.roundNumber} HISTORY</div>`;
+
+                round.tickets.forEach(t => {
+                    const item = document.createElement('div');
+                    item.style.fontSize = '12px';
+                    item.style.marginBottom = '6px';
+                    item.style.borderBottom = '1px dashed #2b443b';
+                    item.style.paddingBottom = '4px';
+
+                    let numbersHTML = t.numbers.map(num => t.hitNumbers.includes(num) ? '<span class="hit-num-text">' + num + '</span>' : num).join(',');
+                    let winBadgeText = !t.isFinished
+                        ? `<span style="color:#facc15; font-weight:bold;">[⏳ በመካሄድ ላይ...]</span>`
+                        : (t.winAmount > 0 
+                            ? `<span style="color:#4ade80; font-weight:bold;">[🏆 ያሸነፈው፡ +${t.winAmount.toFixed(2)} ETB]</span>` 
+                            : `<span style="color:#f87171;">[❌ ያሸነፈው፡ 0.00 ETB]</span>`);
+
+                    item.innerHTML = `🎫 <b style="color:#4ade80;">ID: ${t.ticketId}</b> | Bet: ${t.bet} ETB | ${winBadgeText}<br>🔢 የመረጣቸው ቁጥሮች፦ [${numbersHTML}]`;
+                    roundCard.appendChild(item);
+                });
+                historyContainer.appendChild(roundCard);
+            });
+        }).catch(() => {
+            historyContainer.innerHTML = '<div style="color:#f87171; font-size:12px;">❌ ታሪክ መጫን አልተቻለም!</div>';
+        });
+}
 function loginUser() {
     const phone = document.getElementById('login-phone').value.trim();
     const password = document.getElementById('login-password').value;
@@ -351,6 +393,7 @@ function loginUser() {
             updateLiveBalanceDisplays(data.user.balance);
             switchTab('game');
             loadDrawHistoryFromServer();
+            loadUserHistoryFromServer();
             renderStatisticsToUI();
 
             if(balanceInterval) clearInterval(balanceInterval);
@@ -464,6 +507,7 @@ function switchSubTab(subName) {
     document.getElementById('sub-history-btn').classList.toggle('active', subName === 'history'); 
     document.getElementById('sub-result-btn').classList.toggle('active', subName === 'result'); 
     document.getElementById('sub-stats-btn').classList.toggle('active', subName === 'stats');
+    if(subName === 'history') loadUserHistoryFromServer();
     if(subName === 'stats') renderStatisticsToUI();
     if(subName === 'result') loadDrawHistoryFromServer();
 }
@@ -525,7 +569,7 @@ function renderSortedCombinedList() {
     if (!sortedContainer) return;
     sortedContainer.innerHTML = '';
 
-    // 1. የተጫዋቹ ትኬቶች (መጀመሪያ ይደረደራሉ)
+    // 1. የተጫዋቹ ትኬቶች (መጀመሪያ ይደረደራሉ - በደማቅ አረንጓዴ መለያ)
     let userCards = new Array();
     activeTickets.forEach(t => {
         let numsBoxesHTML = t.numbers.map(num => {
@@ -540,10 +584,10 @@ function renderSortedCombinedList() {
         userCards.push({
             bet: t.bet,
             html: `
-                <div class="shamo-ticket-card">
+                <div class="shamo-ticket-card" style="background: #173026; border: 1.5px solid #22c55e;">
                     <div class="shamo-card-header">
-                        <span>🎫 ${t.ticketId}</span>
-                        <span style="font-size:11px; color:#849a91;">${t.numbers.length} Picks</span>
+                        <span style="color:#4ade80; font-weight:900;">🎫 ${t.ticketId}</span>
+                        <span style="font-size:11px; color:#86efac;">${t.numbers.length} Picks</span>
                     </div>
                     <div class="shamo-nums-row">${numsBoxesHTML}</div>
                     <div class="shamo-card-footer">
@@ -622,10 +666,10 @@ function renderTicketsToUI() {
                 : `<span style="color:#facc15;">Waiting</span>`;
 
             ticketsContainer.innerHTML += `
-                <div class="shamo-ticket-card">
+                <div class="shamo-ticket-card" style="background: #173026; border: 1.5px solid #22c55e;">
                     <div class="shamo-card-header">
-                        <span>🎫 ${ticket.ticketId}</span>
-                        <span style="font-size:11px; color:#849a91;">${ticket.numbers.length} Picks</span>
+                        <span style="color:#4ade80; font-weight:900;">🎫 ${ticket.ticketId}</span>
+                        <span style="font-size:11px; color:#86efac;">${ticket.numbers.length} Picks</span>
                     </div>
                     <div class="shamo-nums-row">${numsBoxesHTML}</div>
                     <div class="shamo-card-footer">
@@ -681,6 +725,7 @@ function placeKenoBet() {
             activeTickets.push(ticket); 
             totalActiveBetAmount += typedBetAmount; 
             renderTicketsToUI();
+            loadUserHistoryFromServer();
             document.getElementById('ticket-count-label').innerText = activeTickets.length; 
             document.getElementById('total-bet-label').innerText = totalActiveBetAmount.toFixed(2);
             document.getElementById('my-bets-status-text').innerText = `✅ ${activeTickets.length} ትኬት ተቆርጧል!`;
@@ -747,20 +792,7 @@ function startAnimatedKenoDraw(drawResults, drawnRoundNumber) {
 
 function executePostDrawHistoryAndCleanup(drawnRoundNumber) {
     loadDrawHistoryFromServer();
-    const historyContainer = document.getElementById('history-rounds-master-container');
-    if (historyContainer && activeTickets.length > 0) {
-        const roundCard = document.createElement('div'); roundCard.className = 'history-round-card';
-        roundCard.innerHTML = `<div class="history-round-header">📜 GAME ROUND #${drawnRoundNumber} HISTORY</div>`;
-        
-        activeTickets.forEach(t => {
-            const item = document.createElement('div'); item.style.fontSize = '12px'; item.style.marginBottom = '6px'; item.style.borderBottom = '1px dashed #2b443b'; item.style.paddingBottom = '4px';
-            let numbersHTML = t.numbers.map(num => t.hitNumbers.includes(num) ? '<span class="hit-num-text">' + num + '</span>' : num).join(',');
-            let winBadgeText = t.winAmount > 0 ? `<span style="color:#4ade80; font-weight:bold;">[🏆 ያሸነፈው፡ +${t.winAmount.toFixed(2)} ETB]</span>` : `<span style="color:#f87171;">[❌ ያሸነፈው፡ 0.00 ETB]</span>`;
-            item.innerHTML = `🎫 <b>ID: ${t.ticketId}</b> | Bet: ${t.bet} ETB | ${winBadgeText}<br>🔢 የመረጣቸው ቁጥሮች፦ [${numbersHTML}]`; 
-            roundCard.appendChild(item);
-        });
-        historyContainer.insertBefore(roundCard, historyContainer.firstChild);
-    }
+    loadUserHistoryFromServer();
     
     setTimeout(() => {
         activeTickets = new Array(); 
