@@ -5,60 +5,67 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashbet - Ultimate Live KENO</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0b111e; color: #ffffff; margin: 0; padding: 0; padding-bottom: 80px; text-align: center; }
-        .container { max-width: 500px; margin: 0 auto; background: #0f172a; padding: 20px; min-height: 100vh; box-sizing: border-box; position: relative; }
-        h2, h3 { color: #ffcc00; margin: 10px 0; }
-        input, select { width: 95%; padding: 12px; margin: 10px 0; border: 1px solid #1e293b; border-radius: 8px; background: #1e293b; color: #fff; font-size: 16px; box-sizing: border-box; }
-        button { width: 95%; padding: 12px; background: #ffcc00; color: #000; border: none; border-radius: 8px; font-weight: bold; font-size: 16px; cursor: pointer; margin-top: 10px; }
-        button:hover { background: #e6b800; }
-        .tab-buttons { display: flex; justify-content: space-around; margin-bottom: 20px; background: #1e293b; border-radius: 8px; padding: 5px; }
-        .tab-btn { background: none; color: #bbb; width: 48%; padding: 10px; margin: 0; border-radius: 6px; border: none; cursor: pointer; }
-        .tab-btn.active { background: #ffcc00; color: #000; font-weight: bold; }
-        .header-info { display: flex; justify-content: space-between; align-items: center; background: #1e293b; padding: 12px; border-radius: 12px; margin-bottom: 20px; font-weight: bold; font-size: 15px; border: 1px solid #334155; position: relative; }
-        .balance-badge { background: #1c2541; color: #00ff00; padding: 8px 16px; border-radius: 20px; border: 1px solid #00ff00; font-size: 16px; }
-        .profile-icon-btn { width: 36px; height: 32px; background: #1e293b; border: 1px solid #334155; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; transition: 0.2s; user-select: none; }
-        .profile-icon-btn:hover { background: #24344d; border-color: #ffcc00; }
-        .user-profile-menu-box { display: none; position: absolute; top: 52px; left: 12px; background: #151f32; border: 1px solid #ffcc00; border-radius: 8px; width: 170px; box-shadow: 0 4px 20px rgba(0,0,0,0.6); z-index: 10000; text-align: left; overflow: hidden; animation: slideDown 0.2s ease-out; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0c1411; color: #ffffff; margin: 0; padding: 0; padding-bottom: 80px; text-align: center; }
+        .container { max-width: 500px; margin: 0 auto; background: #121d19; padding: 16px; min-height: 100vh; box-sizing: border-box; position: relative; border-left: 1px solid #1e312a; border-right: 1px solid #1e312a; }
+        h2, h3 { color: #34d399; margin: 10px 0; }
+        input, select { width: 95%; padding: 12px; margin: 10px 0; border: 1px solid #263d35; border-radius: 8px; background: #192823; color: #fff; font-size: 16px; box-sizing: border-box; }
+        button { width: 95%; padding: 12px; background: #22c55e; color: #051b11; border: none; border-radius: 8px; font-weight: bold; font-size: 16px; cursor: pointer; margin-top: 10px; transition: 0.2s; }
+        button:hover { background: #16a34a; color: #fff; }
+        .tab-buttons { display: flex; justify-content: space-around; margin-bottom: 20px; background: #192823; border-radius: 8px; padding: 5px; border: 1px solid #263d35; }
+        .tab-btn { background: none; color: #94a3b8; width: 48%; padding: 10px; margin: 0; border-radius: 6px; border: none; cursor: pointer; }
+        .tab-btn.active { background: #22c55e; color: #051b11; font-weight: bold; }
+        .header-info { display: flex; justify-content: space-between; align-items: center; background: #192823; padding: 12px; border-radius: 12px; margin-bottom: 16px; font-weight: bold; font-size: 15px; border: 1px solid #263d35; position: relative; }
+        .balance-badge { background: #0f241c; color: #4ade80; padding: 8px 16px; border-radius: 20px; border: 1px solid #22c55e; font-size: 15px; }
+        .profile-icon-btn { width: 36px; height: 32px; background: #22362f; border: 1px solid #2e4a40; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; transition: 0.2s; user-select: none; }
+        .profile-icon-btn:hover { background: #2b443b; border-color: #4ade80; }
+        .user-profile-menu-box { display: none; position: absolute; top: 52px; left: 12px; background: #192823; border: 1px solid #22c55e; border-radius: 8px; width: 170px; box-shadow: 0 4px 20px rgba(0,0,0,0.7); z-index: 10000; text-align: left; overflow: hidden; animation: slideDown 0.2s ease-out; }
         .user-profile-menu-box.show { display: block; }
-        .menu-phone-header { padding: 10px 12px; font-size: 12px; color: #94a3b8; border-bottom: 1px solid #24344d; background: #0f172a; word-break: break-all; }
-        .menu-logout-trigger-btn { padding: 12px; font-size: 14px; color: #ef4444; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 6px; }
+        .menu-phone-header { padding: 10px 12px; font-size: 12px; color: #a7f3d0; border-bottom: 1px solid #263d35; background: #121d19; word-break: break-all; }
+        .menu-logout-trigger-btn { padding: 12px; font-size: 14px; color: #f87171; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 6px; }
         .menu-logout-trigger-btn:hover { background: #dc2626; color: #fff; }
-        .menu-title-text { color: #00ffcc; text-align: left; font-size: 16px; font-weight: bold; margin: 15px 5px; text-transform: uppercase; }
-        .keno-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 6px; background: #0f172a; padding: 12px; border-radius: 8px; margin: 15px 0; border: 1px solid #1e293b; }
-        .keno-num { padding: 10px 0; background: #1e293b; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; color: #fff; }
-        .keno-num.selected { background: #475569; color: #fff; border: 1px solid #ffcc00; }
-        .keno-num.drawn { background: #00ff00 !important; color: #000 !important; box-shadow: 0 0 10px #00ff00; font-weight: bold; }
-        .navigation-bar { display: flex; justify-content: space-around; background: #0f172a; position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 500px; padding: 12px 0; border-top: 1px solid #1e293b; z-index: 9999; }
+        .menu-title-text { color: #4ade80; text-align: left; font-size: 16px; font-weight: bold; margin: 15px 5px; text-transform: uppercase; }
+        .keno-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 6px; background: #15221d; padding: 10px; border-radius: 10px; margin: 12px 0; border: 1px solid #263d35; }
+        .keno-num { padding: 10px 0; background: #21342d; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; color: #e2e8f0; border: 1px solid #2b443b; transition: 0.15s; }
+        .keno-num.selected { background: #facc15; color: #051b11; border: 1px solid #fef08a; font-weight: bold; }
+        .keno-num.drawn { background: #22c55e !important; color: #051b11 !important; box-shadow: 0 0 10px rgba(34, 197, 94, 0.7); font-weight: bold; border-color: #4ade80 !important; }
+        .navigation-bar { display: flex; justify-content: space-around; background: #121d19; position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 500px; padding: 12px 0; border-top: 1px solid #263d35; z-index: 9999; }
         .nav-btn { background: none; color: #64748b; border: none; cursor: pointer; font-size: 13px; margin: 0; padding: 5px 10px; font-weight: bold; }
-        .nav-btn.active { color: #ffcc00; }
-        .wallet-card { background: #1e293b; padding: 15px; border-radius: 8px; margin-top: 15px; text-align: left; }
+        .nav-btn.active { color: #4ade80; }
+        .wallet-card { background: #192823; padding: 15px; border-radius: 10px; margin-top: 15px; text-align: left; border: 1px solid #263d35; }
         .wallet-menu-btn { display: inline-block; width: 45%; padding: 12px; margin: 10px 2%; font-weight: bold; border-radius: 8px; cursor: pointer; border: none; }
-        .sub-tab-buttons { display: flex; justify-content: space-around; border-bottom: 2px solid #1e293b; margin-top: 20px; padding-bottom: 5px; }
-        .sub-tab-btn { background: none; color: #64748b; border: none; font-weight: bold; font-size: 14px; cursor: pointer; padding: 5px 10px; }
-        .sub-tab-btn.active { color: #00ff00; border-bottom: 3px solid #00ff00; }
-        .all-grid-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 15px; }
-        .all-box-card { background: #1e293b; border: 1px solid #334155; border-radius: 6px; padding: 10px 5px; font-size: 13px; text-align: center; min-height: 120px; box-sizing: border-box; }
-        .ticket-item { background: #0f172a; border: 1px solid #334155; border-radius: 4px; padding: 5px; margin-top: 5px; font-size: 11px; color: #ffffff; text-align: left; word-break: break-all; }
-        .bt-sorted-item { background: #0f172a; border: 1px solid #334155; border-radius: 4px; padding: 5px; margin-top: 5px; font-size: 11px; color: #ffcc00; text-align: left; word-break: break-all; }
-        .hit-num-text { color: #00ff00 !important; font-weight: bold; background: #15803d; padding: 1px 3px; border-radius: 3px; }
+        .sub-tab-buttons { display: flex; justify-content: space-around; border-bottom: 2px solid #263d35; margin-top: 18px; padding-bottom: 6px; }
+        .sub-tab-btn { background: none; color: #849a91; border: none; font-weight: bold; font-size: 13px; cursor: pointer; padding: 6px 10px; }
+        .sub-tab-btn.active { color: #4ade80; border-bottom: 3px solid #22c55e; }
+        .my-bets-banner-box { background: #192823; border: 1px solid #2b443b; border-radius: 8px; padding: 10px 12px; margin-top: 12px; display: flex; justify-content: space-between; align-items: center; }
+        .inner-ticket-tabs { display: flex; gap: 8px; margin-top: 12px; background: #15221d; padding: 5px; border-radius: 8px; border: 1px solid #263d35; }
+        .inner-tab-btn { flex: 1; padding: 10px; margin: 0; border-radius: 6px; border: none; background: transparent; color: #849a91; font-weight: bold; font-size: 13px; cursor: pointer; }
+        .inner-tab-btn.active { background: #22362f; color: #4ade80; border: 1px solid #22c55e; }
+        .full-width-ticket-panel { margin-top: 10px; max-height: 360px; overflow-y: auto; }
+        .shamo-ticket-card { background: #192823; border: 1px solid #283f37; border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; text-align: left; }
+        .shamo-card-header { display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: bold; color: #e2e8f0; margin-bottom: 8px; }
+        .shamo-nums-row { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; }
+        .shamo-num-box { width: 26px; height: 26px; background: #253b33; border: 1px solid #324f45; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; color: #ffffff; }
+        .shamo-num-box.hit { background: #22c55e !important; color: #051b11 !important; border-color: #4ade80 !important; box-shadow: 0 0 6px rgba(34, 197, 94, 0.5); }
+        .shamo-card-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #243931; padding-top: 6px; font-size: 12px; font-weight: bold; }
+        .hit-num-text { color: #051b11 !important; font-weight: bold; background: #22c55e; padding: 1px 5px; border-radius: 3px; }
         .result-row-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 5px; margin-top: 8px; }
-        .result-ball { background: #ffcc00; color: #000; font-weight: bold; padding: 6px 0; border-radius: 5px; text-align: center; font-size: 13px; }
-        .stat-list-item { display: flex; justify-content: space-between; background: #1e293b; border: 1px solid #334155; padding: 8px 12px; margin-bottom: 5px; border-radius: 6px; font-size: 13px; font-weight: bold; }
-        .history-round-card { background: #1e293b; border: 1px solid #334155; border-radius: 6px; padding: 12px; margin-bottom: 12px; text-align: left; }
-        .history-round-header { color: #ffcc00; font-weight: bold; font-size: 14px; border-bottom: 1px solid #334155; padding-bottom: 5px; margin-bottom: 8px; }
-        .result-round-block { background: #1e293b; border: 1px solid #334155; border-radius: 6px; padding: 12px; margin-bottom: 12px; text-align: left; }
-        .games-premium-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; padding: 5px; margin-top: 10px; }
-        .game-premium-card { background: #151f32; border: 1px solid #24344d; border-radius: 16px; padding: 25px 10px; text-align: center; cursor: pointer; transition: 0.3s; position: relative; }
-        .game-premium-card:hover { transform: translateY(-3px); border-color: #38bdf8; }
-        .custom-file-upload-box { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 120px; background: #0f172a; border: 2px dashed #ffcc00; border-radius: 10px; cursor: pointer; margin: 12px 0; box-sizing: border-box; overflow: hidden; padding: 5px; }
-        .withdraw-available-badge { background: #111827; color: #00ff00; padding: 10px; border-radius: 6px; text-align: center; font-weight: bold; margin: 10px 0; border: 1px solid #059669; font-size: 15px; }
+        .result-ball { background: #22c55e; color: #051b11; font-weight: bold; padding: 6px 0; border-radius: 5px; text-align: center; font-size: 13px; }
+        .stat-list-item { display: flex; justify-content: space-between; background: #192823; border: 1px solid #263d35; padding: 8px 12px; margin-bottom: 5px; border-radius: 6px; font-size: 13px; font-weight: bold; }
+        .history-round-card { background: #192823; border: 1px solid #263d35; border-radius: 8px; padding: 12px; margin-bottom: 12px; text-align: left; }
+        .history-round-header { color: #4ade80; font-weight: bold; font-size: 14px; border-bottom: 1px solid #263d35; padding-bottom: 5px; margin-bottom: 8px; }
+        .result-round-block { background: #192823; border: 1px solid #263d35; border-radius: 8px; padding: 12px; margin-bottom: 12px; text-align: left; }
+        .games-premium-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; padding: 5px; margin-top: 10px; }
+        .game-premium-card { background: #192823; border: 1px solid #283f37; border-radius: 14px; padding: 24px 10px; text-align: center; cursor: pointer; transition: 0.3s; position: relative; }
+        .game-premium-card:hover { transform: translateY(-3px); border-color: #22c55e; }
+        .custom-file-upload-box { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 120px; background: #121d19; border: 2px dashed #22c55e; border-radius: 10px; cursor: pointer; margin: 12px 0; box-sizing: border-box; overflow: hidden; padding: 5px; }
+        .withdraw-available-badge { background: #0f241c; color: #4ade80; padding: 10px; border-radius: 6px; text-align: center; font-weight: bold; margin: 10px 0; border: 1px solid #22c55e; font-size: 15px; }
         @keyframes slideDown { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 <div class="container">
     <div id="auth-section">
-        <p style="color: #bbb;">እባክዎ መጀመሪያ ይግቡ ወይም ይመዝገቡ</p>
+        <p style="color: #a7f3d0;">እባክዎ መጀመሪያ ይግቡ ወይም ይመዝገቡ</p>
         <div class="tab-buttons">
             <button id="tab-login-btn" class="tab-btn active" onclick="switchAuthTab('login')">LOGIN</button>
             <button id="tab-register-btn" class="tab-btn" onclick="switchAuthTab('register')">REGISTER</button>
@@ -89,33 +96,34 @@
             <h3>👋 ወደ Dashbet እንኳን ደህና መጡ!</h3>
             <p style="color: #94a3b8; font-size: 14px;">ጨዋታዎችን ለመምረጥ ከታች ያለውን GAME ታብ ይጫኑ።</p>
             <div style="display: flex; gap: 10px; margin-top: 20px;">
-                <button onclick="switchTab('wallet'); showWalletForm('deposit');" style="background: #10b981; color:#fff;">DEPOSIT</button>
+                <button onclick="switchTab('wallet'); showWalletForm('deposit');" style="background: #22c55e; color:#051b11;">DEPOSIT</button>
                 <button onclick="switchTab('wallet'); showWalletForm('withdraw');" style="background: #ef4444; color:white;">WITHDRAW</button>
             </div>
         </div>
+
         <div id="wallet-tab" style="display: none;">
             <h3>💰 WALLET & PAYMENTS</h3>
             <div id="wallet-main-buttons">
-                <button class="wallet-menu-btn" style="background: #10b981; color: #fff;" onclick="showWalletForm('deposit')">📷 DEPOSIT</button>
+                <button class="wallet-menu-btn" style="background: #22c55e; color: #051b11;" onclick="showWalletForm('deposit')">📷 DEPOSIT</button>
                 <button class="wallet-menu-btn" style="background: #ef4444; color: #fff;" onclick="showWalletForm('withdraw')">💸 WITHDRAW</button>
             </div>
             
             <div id="deposit-form-block" class="wallet-card" style="display: none;">
                 <button onclick="backToWalletMenu()">⬅ ይመለሱ</button>
                 <h4>📷 DEPOSIT (ብር ማስገቢያ)</h4>
-                <p>📋 ኮፒ ያድርጉ ቁጥሩን፦ <b style="color: #ffcc00;">0954127641</b></p>
+                <p>📋 ኮፒ ያድርጉ ቁጥሩን፦ <b style="color: #4ade80;">0954127641</b></p>
                 <div class="custom-file-upload-box" id="custom-upload-container-box" onclick="triggerFileInputClick()">
                     <div style="font-size: 26px;">📷 / 📁</div>
-                    <div id="upload-status-text" style="font-size: 13px; color: #ffcc00; font-weight: bold; margin-top: 2px;">Upload Screenshot (ፎቶ ይጫኑ)</div>
+                    <div id="upload-status-text" style="font-size: 13px; color: #4ade80; font-weight: bold; margin-top: 2px;">Upload Screenshot (ፎቶ ይጫኑ)</div>
                 </div>
                 <input type="file" id="deposit-screenshot-file" accept="image/*" style="display: none;" onchange="displaySelectedScreenshot(this)">
-                <label style="font-size: 14px; color: #ccc; display: block; text-align: left; margin-left: 5px;">Payment Method:</label>
+                <label style="font-size: 14px; color: #cbd5e1; display: block; text-align: left; margin-left: 5px;">Payment Method:</label>
                 <select id="deposit-method"><option value="telebirr">telebirr</option><option value="cbebirr">CBE birr</option></select>
                 <input type="number" id="deposit-amount" placeholder="Deposit Amount">
                 <input type="text" id="deposit-phone" placeholder="Your Phone Number">
-                <button style="background: #10b981; color: #fff; margin-top: 15px;" onclick="submitDeposit()">REQUEST DEPOSIT</button>
+                <button style="background: #22c55e; color: #051b11; margin-top: 15px;" onclick="submitDeposit()">REQUEST DEPOSIT</button>
             </div>
-            
+
             <div id="withdraw-form-block" class="wallet-card" style="display: none;">
                 <button onclick="backToWalletMenu()">⬅ ይመለሱ</button>
                 <h4>💸 WITHDRAWAL (ብር ማውጫ)</h4>
@@ -129,34 +137,34 @@
                 <button style="background: #ef4444; color: #fff; margin-top: 10px;" onclick="submitWithdraw()">Request Withdrawal</button>
             </div>
         </div>
-
         <div id="game-tab" style="display: none;">
             <div id="games-visual-list-menu-block" style="display: block; text-align: left;">
                 <div class="menu-title-text">የጨዋታዎች ዝርዝር / GAMES MENU</div>
                 <div class="games-premium-grid">
-                    <div class="game-premium-card" onclick="switchActiveGame('keno')">🎰<br><div class="game-title-text">Fast Keno</div><div class="game-status-active">ACTIVE</div></div>
-                    <div class="game-premium-card" onclick="switchActiveGame('spin')">🎡<br><div class="game-title-text">Lucky Spin</div><div class="game-status-soon">SOON</div></div>
-                    <div class="game-premium-card" onclick="switchActiveGame('aviator')">🚀<br><div class="game-title-text">Aviator</div><div class="game-status-soon">SOON</div></div>
-                    <div class="game-premium-card" onclick="switchActiveGame('chicken')">🐔<br><div class="game-title-text">Chicken Road 2</div><div class="game-status-soon">SOON</div></div>
+                    <div class="game-premium-card" onclick="switchActiveGame('keno')">🎰<br><div class="game-title-text">Fast Keno</div><div class="game-status-active" style="color:#4ade80; font-size:12px; font-weight:bold;">ACTIVE</div></div>
+                    <div class="game-premium-card" onclick="switchActiveGame('spin')">🎡<br><div class="game-title-text">Lucky Spin</div><div class="game-status-soon" style="color:#94a3b8; font-size:12px;">SOON</div></div>
+                    <div class="game-premium-card" onclick="switchActiveGame('aviator')">🚀<br><div class="game-title-text">Aviator</div><div class="game-status-soon" style="color:#94a3b8; font-size:12px;">SOON</div></div>
+                    <div class="game-premium-card" onclick="switchActiveGame('chicken')">🐔<br><div class="game-title-text">Chicken Road 2</div><div class="game-status-soon" style="color:#94a3b8; font-size:12px;">SOON</div></div>
                 </div>
             </div>
-            <div id="keno-game-main-block" style="display: none; margin-top: 15px;">
-                <button onclick="switchActiveGame('menu')">⬅ ወደ ጌም ዝርዝር ይመለሱ</button>
-                <div style="background: #1e293b; padding: 10px; border-radius: 8px; font-weight: bold; margin-bottom: 15px; display: flex; justify-content: flex-end;">
-                    <span>🎯 NEXT DRAW IN: <span id="keno-timer" style="color: #ffcc00;">01:00</span></span>
+
+            <div id="keno-game-main-block" style="display: none; margin-top: 10px;">
+                <button onclick="switchActiveGame('menu')" style="background:#21342d; color:#a7f3d0; border:1px solid #2b443b; padding:8px; font-size:14px; margin-bottom:10px;">⬅ ወደ ጌም ዝርዝር ይመለሱ</button>
+                <div style="background: #192823; padding: 10px 14px; border-radius: 8px; font-weight: bold; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #263d35;">
+                    <span style="color:#4ade80; font-size:13px;">🎰 FAST KENO</span>
+                    <span>🎯 NEXT DRAW IN: <span id="keno-timer" style="color: #facc15; font-size:16px;">01:00</span></span>
                 </div>
                 <div id="keno-board" class="keno-grid"></div>
                 
-                <!-- 🎯 ማሻሻያ፦ ተጫዋቹ እራሱ የፈለገውን የብር መጠን እንዲጽፍ የተስተካከለ አዲስ መጻፊያ ሳጥን መስመር -->
-                <div style="display: flex; justify-content: center; align-items: center; gap: 10px; margin: 15px 0;">
-                    <button onclick="changeBet(-1)" style="width: 40px; margin: 0;">−</button>
-                    <input type="number" id="bet-amount-input" value="4.00" min="1" step="1" style="width: 100px; text-align: center; padding: 10px; margin: 0; font-weight: bold; font-size: 18px; color: #ffcc00; background: #1e293b; border: 1px solid #334155; border-radius: 8px;">
-                    <span style="font-weight: bold; font-size: 16px; color: #fff; margin-left: -5px; padding-right: 5px;">ETB</span>
-                    <button onclick="changeBet(1)" style="width: 40px; margin: 0;">+</button>
-                    <button onclick="multiplyBet(2)" style="width: 50px; margin: 0; background: #38bdf8; color: #000;">X2</button>
+                <div style="display: flex; justify-content: center; align-items: center; gap: 10px; margin: 12px 0;">
+                    <button onclick="changeBet(-1)" style="width: 42px; margin: 0; background:#21342d; color:#fff; border:1px solid #2b443b;">−</button>
+                    <input type="number" id="bet-amount-input" value="4.00" min="1" step="1" style="width: 110px; text-align: center; padding: 10px; margin: 0; font-weight: bold; font-size: 18px; color: #facc15; background: #192823; border: 1px solid #2b443b; border-radius: 8px;">
+                    <span style="font-weight: bold; font-size: 15px; color: #a7f3d0; margin-left: -4px;">ETB</span>
+                    <button onclick="changeBet(1)" style="width: 42px; margin: 0; background:#21342d; color:#fff; border:1px solid #2b443b;">+</button>
+                    <button onclick="multiplyBet(2)" style="width: 52px; margin: 0; background: #059669; color: #fff;">X2</button>
                 </div>
                 
-                <button id="bet-submit-btn" onclick="placeKenoBet()" style="background: #00ff00; color: #000; margin-top: 15px;">BET</button>
+                <button id="bet-submit-btn" onclick="placeKenoBet()" style="background: #22c55e; color: #051b11; margin-top: 8px; font-size:17px; letter-spacing:1px;">BET</button>
 
                 <div class="sub-tab-buttons">
                     <button id="sub-all-btn" class="sub-tab-btn active" onclick="switchSubTab('all')">ALL</button>
@@ -165,24 +173,31 @@
                     <button id="sub-stats-btn" class="sub-tab-btn" onclick="switchSubTab('stats')">STATISTICS</button>
                 </div>
 
-                <div id="content-all" style="display: block; margin-top: 10px;">
-                    <div class="all-grid-container">
-                        <div class="all-box-card" style="overflow-y: auto;">
-                            <div style="color: #ffcc00; font-weight: bold;">📊 BT (Sorted)</div>
-                            <div id="bt-sorted-list-container" style="margin-top: 10px;"></div>
+                <div id="content-all" style="display: block; margin-top: 8px;">
+                    <div class="my-bets-banner-box">
+                        <div style="text-align:left;">
+                            <div style="color: #4ade80; font-weight: bold; font-size: 13px;">✅ My Bets</div>
+                            <div id="my-bets-status-text" style="color: #849a91; font-size: 11px;">እስካሁን የተጫወቱት ታሪክ የለም።</div>
                         </div>
-                        <div class="all-box-card" style="overflow-y: auto;">
-                            <div style="color: #38bdf8; font-weight: bold;">🎫 My Tickets (<span id="ticket-count-label">0</span>)</div>
-                            <div id="my-tickets-list-container" style="margin-top: 10px;"></div>
-                        </div>
-                        <div class="all-box-card">
-                            <div style="color: #00ff00; font-weight: bold;">✅ My Bets</div>
-                            <div style="background: #00ff00; color:#000; padding: 2px; font-weight:bold; border-radius:4px; font-size:11px; margin: 5px 0;">💰 TOTAL <span id="total-bet-label">0</span> ETB</div>
-                            <div id="my-bets-status-text" style="color: #8492a6; font-size: 11px;">እስካሁን የተጫወቱት ታሪክ የለም።</div>
+                        <div style="background: #22c55e; color:#051b11; padding: 5px 10px; font-weight:bold; border-radius:6px; font-size:12px;">
+                            💰 TOTAL <span id="total-bet-label">0</span> ETB
                         </div>
                     </div>
+
+                    <div class="inner-ticket-tabs">
+                        <button id="btn-inner-bt" class="inner-tab-btn active" onclick="switchInnerTicketTab('bt')">📊 BT (Sorted)</button>
+                        <button id="btn-inner-tickets" class="inner-tab-btn" onclick="switchInnerTicketTab('tickets')">🎫 My Tickets (<span id="ticket-count-label">0</span>)</button>
+                    </div>
+
+                    <div id="panel-inner-bt" class="full-width-ticket-panel">
+                        <div id="bt-sorted-list-container"></div>
+                    </div>
+
+                    <div id="panel-inner-tickets" class="full-width-ticket-panel" style="display: none;">
+                        <div id="my-tickets-list-container"></div>
+                    </div>
                 </div>
-                
+
                 <div id="content-history" style="display: none; margin-top: 15px;"><div id="history-rounds-master-container"></div></div>
                 <div id="content-result" style="display: none; margin-top: 15px;"><div id="results-master-history-container"></div></div>
                 <div id="content-stats" style="display: none; margin-top: 15px;"><div id="stats-numbers-list-container"></div></div>
@@ -196,7 +211,6 @@
         </div>
     </div>
 </div>
-
 <script>
 const SERVER_URL = window.location.origin.includes('localhost') || window.location.origin.includes('onrender.com') 
     ? window.location.origin 
@@ -212,6 +226,7 @@ let isDrawingActive = false;
 let serverRoundNumber = 1001;
 let lastProcessedRound = null;
 window.latestFakeBets = new Array();
+let drawnNumbersSoFar = new Array();
 
 const KENO_PAYOUT_ODDS = {
     1: { 1: 3 }, 2: { 2: 5 }, 3: { 2: 2, 3: 50 }, 4: { 2: 1, 3: 5, 4: 80 }, 5: { 3: 3, 4: 15, 5: 200 },
@@ -288,7 +303,7 @@ function loadDrawHistoryFromServer() {
             history.slice().reverse().forEach(round => {
                 const resultBlock = document.createElement('div'); 
                 resultBlock.className = 'result-round-block';
-                resultBlock.innerHTML = `<div style="color:#ffcc00; font-weight:bold; margin-bottom:5px; font-size:13px;">🎰 ROUND #${round.roundNumber} RESULTS</div>`;
+                resultBlock.innerHTML = `<div style="color:#4ade80; font-weight:bold; margin-bottom:5px; font-size:13px;">🎰 ROUND #${round.roundNumber} RESULTS</div>`;
                 const row1 = document.createElement('div'); row1.className = 'result-row-grid';
                 const row2 = document.createElement('div'); row2.className = 'result-row-grid';
                 round.results.forEach((num, index) => {
@@ -364,7 +379,7 @@ function submitDeposit() {
         alert(data.message); 
         if(data.success) {
             globalScreenshotBase64 = ""; 
-            document.getElementById('custom-upload-container-box').innerHTML = '<div style="font-size: 26px;">📷 / 📁</div><div style="font-size: 13px; color: #ffcc00; font-weight: bold; margin-top: 2px;">Upload Screenshot</div>'; 
+            document.getElementById('custom-upload-container-box').innerHTML = '<div style="font-size: 26px;">📷 / 📁</div><div style="font-size: 13px; color: #4ade80; font-weight: bold; margin-top: 2px;">Upload Screenshot</div>'; 
             document.getElementById('deposit-amount').value = ""; 
             document.getElementById('deposit-phone').value = ""; 
             backToWalletMenu(); 
@@ -437,6 +452,13 @@ function switchSubTab(subName) {
     if(subName === 'result') loadDrawHistoryFromServer();
 }
 
+function switchInnerTicketTab(innerTab) {
+    document.getElementById('panel-inner-bt').style.display = innerTab === 'bt' ? 'block' : 'none';
+    document.getElementById('panel-inner-tickets').style.display = innerTab === 'tickets' ? 'block' : 'none';
+    document.getElementById('btn-inner-bt').classList.toggle('active', innerTab === 'bt');
+    document.getElementById('btn-inner-tickets').classList.toggle('active', innerTab === 'tickets');
+}
+
 function showWalletForm(type) {
     document.getElementById('wallet-main-buttons').style.display = 'none';
     document.getElementById('deposit-form-block').style.display = type === 'deposit' ? 'block' : 'none';
@@ -457,14 +479,20 @@ setInterval(async () => {
 
         serverRoundNumber = data.roundNumber;
         const timerDisplay = document.getElementById('keno-timer');
-        if (timerDisplay && !isDrawingActive) {
-            let min = Math.floor(data.timeLeft / 60);
-            let sec = data.timeLeft % 60;
-            timerDisplay.innerText = `${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+        if (timerDisplay) {
+            if (isDrawingActive) {
+                timerDisplay.innerText = "00:00";
+            } else {
+                let min = Math.floor(data.timeLeft / 60);
+                let sec = data.timeLeft % 60;
+                timerDisplay.innerText = `${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+            }
         }
 
-        window.latestFakeBets = data.fakeBets || new Array();
-        renderSortedCombinedList();
+        if (!isDrawingActive) {
+            window.latestFakeBets = data.fakeBets || new Array();
+            renderSortedCombinedList();
+        }
 
         if (data.latestResults && data.latestResults.length === 20 && lastProcessedRound !== data.roundNumber && data.timeLeft >= 70) {
             lastProcessedRound = data.roundNumber;
@@ -479,28 +507,75 @@ function renderSortedCombinedList() {
     sortedContainer.innerHTML = '';
 
     let combined = new Array();
+
+    // 1. የተጫዋቹ ትኬቶች (በ Shamo Fast Keno ካርድ ዲዛይን)
     activeTickets.forEach(t => {
-        let numbersHTML = t.numbers.map(num => t.hitNumbers.includes(num) ? '<span class="hit-num-text">' + num + '</span>' : num).join(',');
-        let winText = t.winAmount > 0 ? '<span style="color:#00ff00; font-weight:bold;">[🏆 +' + t.winAmount.toFixed(2) + ']</span> ' : '';
+        let numsBoxesHTML = t.numbers.map(num => {
+            let isHit = t.hitNumbers.includes(num);
+            return `<div class="shamo-num-box ${isHit ? 'hit' : ''}">${num}</div>`;
+        }).join('');
+
+        let statusHTML = t.winAmount > 0 
+            ? `<span style="color:#4ade80;">🏆 +${t.winAmount.toFixed(2)} ETB</span>` 
+            : `<span style="color:#facc15;">Waiting</span>`;
+
         combined.push({
             bet: t.bet,
-            html: `<span style="color:#00ffcc;">⭐ ${t.ticketId}</span> | ${winText}${t.bet} ETB - [${numbersHTML}]`
+            html: `
+                <div class="shamo-ticket-card" style="border-color:#22c55e;">
+                    <div class="shamo-card-header">
+                        <span style="color:#4ade80;">⭐ ${t.ticketId} (YOU)</span>
+                        <span style="font-size:11px; color:#849a91;">${t.numbers.length} Picks</span>
+                    </div>
+                    <div class="shamo-nums-row">${numsBoxesHTML}</div>
+                    <div class="shamo-card-footer">
+                        <span style="color:#cbd5e1;">Bet ${t.bet} ETB</span>
+                        ${statusHTML}
+                    </div>
+                </div>`
         });
     });
 
+    // 2. የቦቱ ትኬቶች (በ Shamo Fast Keno ካርድ ዲዛይን)
     (window.latestFakeBets || new Array()).slice(0, 15).forEach(b => {
+        let hitCount = 0;
+        let numsBoxesHTML = b.numbers.map(num => {
+            let isHit = drawnNumbersSoFar.includes(num);
+            if (isHit) hitCount++;
+            return `<div class="shamo-num-box ${isHit ? 'hit' : ''}">${num}</div>`;
+        }).join('');
+
+        let pickedCount = b.numbers.length;
+        let fakeWin = 0;
+        if (KENO_PAYOUT_ODDS[pickedCount] && KENO_PAYOUT_ODDS[pickedCount][hitCount]) {
+            let rawWin = b.bet * KENO_PAYOUT_ODDS[pickedCount][hitCount];
+            fakeWin = rawWin > 30000 ? 30000 : rawWin;
+        }
+
+        let statusHTML = fakeWin > 0 
+            ? `<span style="color:#4ade80;">🏆 +${fakeWin.toFixed(2)} ETB</span>` 
+            : `<span style="color:#facc15;">Waiting</span>`;
+
         combined.push({
             bet: b.bet,
-            html: `👤 ${b.userPhone} | ${b.bet} ETB - [${b.numbers.join(',')}]`
+            html: `
+                <div class="shamo-ticket-card">
+                    <div class="shamo-card-header">
+                        <span>👤 ${b.userPhone}</span>
+                        <span style="font-size:11px; color:#849a91;">${pickedCount} Picks</span>
+                    </div>
+                    <div class="shamo-nums-row">${numsBoxesHTML}</div>
+                    <div class="shamo-card-footer">
+                        <span style="color:#cbd5e1;">Bet ${b.bet} ETB</span>
+                        ${statusHTML}
+                    </div>
+                </div>`
         });
     });
 
     combined.sort((a, b) => b.bet - a.bet);
     combined.forEach(item => {
-        const div = document.createElement('div');
-        div.className = 'bt-sorted-item';
-        div.innerHTML = item.html;
-        sortedContainer.appendChild(div);
+        sortedContainer.innerHTML += item.html;
     });
 }
 
@@ -509,13 +584,33 @@ function renderTicketsToUI() {
     if (!ticketsContainer) return;
     ticketsContainer.innerHTML = ''; 
 
-    activeTickets.forEach(ticket => {
-        const ticketDiv = document.createElement('div'); ticketDiv.className = 'ticket-item';
-        let numbersHTML = ticket.numbers.map(num => ticket.hitNumbers.includes(num) ? '<span class="hit-num-text">' + num + '</span>' : num).join(',');
-        let winText = ticket.winAmount > 0 ? '<span style="color:#00ff00; font-weight:bold;">[🏆 +' + ticket.winAmount.toFixed(2) + ']</span> ' : '';
-        ticketDiv.innerHTML = `<span style="color:#94a3b8;">${ticket.ticketId}</span> | ` + winText + ticket.bet + ' ETB - [' + numbersHTML + ']'; 
-        ticketsContainer.appendChild(ticketDiv);
-    });
+    if (activeTickets.length === 0) {
+        ticketsContainer.innerHTML = '<div style="color:#849a91; font-size:12px; padding:15px;">በዚህ ዙር የቆረጡት ትኬት የለም።</div>';
+    } else {
+        activeTickets.forEach(ticket => {
+            let numsBoxesHTML = ticket.numbers.map(num => {
+                let isHit = ticket.hitNumbers.includes(num);
+                return `<div class="shamo-num-box ${isHit ? 'hit' : ''}">${num}</div>`;
+            }).join('');
+
+            let statusHTML = ticket.winAmount > 0 
+                ? `<span style="color:#4ade80;">🏆 +${ticket.winAmount.toFixed(2)} ETB</span>` 
+                : `<span style="color:#facc15;">Waiting</span>`;
+
+            ticketsContainer.innerHTML += `
+                <div class="shamo-ticket-card" style="border-color:#22c55e;">
+                    <div class="shamo-card-header">
+                        <span style="color:#4ade80;">🎫 ${ticket.ticketId}</span>
+                        <span style="font-size:11px; color:#849a91;">${ticket.numbers.length} Picks</span>
+                    </div>
+                    <div class="shamo-nums-row">${numsBoxesHTML}</div>
+                    <div class="shamo-card-footer">
+                        <span style="color:#cbd5e1;">Bet ${ticket.bet} ETB</span>
+                        ${statusHTML}
+                    </div>
+                </div>`;
+        });
+    }
 
     renderSortedCombinedList();
 }
@@ -564,7 +659,7 @@ function placeKenoBet() {
             renderTicketsToUI();
             document.getElementById('ticket-count-label').innerText = activeTickets.length; 
             document.getElementById('total-bet-label').innerText = totalActiveBetAmount.toFixed(2);
-            document.getElementById('my-bets-status-text').innerText = "✅ ቲኬትዎ ተቆርጧል!";
+            document.getElementById('my-bets-status-text').innerText = `✅ ${activeTickets.length} ትኬት ተቆርጧል!`;
             selectedNumbers = new Array(); 
             document.querySelectorAll('.keno-num').forEach(el => el.classList.remove('selected'));
         } else {
@@ -575,6 +670,7 @@ function placeKenoBet() {
 
 function startAnimatedKenoDraw(drawResults, drawnRoundNumber) {
     isDrawingActive = true; 
+    drawnNumbersSoFar = new Array();
     document.getElementById('bet-submit-btn').style.opacity = "0.5";
     let count = 0; 
     const elements = document.querySelectorAll('.keno-num');
@@ -599,6 +695,7 @@ function startAnimatedKenoDraw(drawResults, drawnRoundNumber) {
         }
         
         let num = drawResults[count]; 
+        drawnNumbersSoFar.push(num);
         if (elements[num - 1]) elements[num - 1].classList.add('drawn');
         activeTickets.forEach(ticket => {
             if (ticket.numbers.includes(num) && !ticket.hitNumbers.includes(num)) {
@@ -618,9 +715,9 @@ function executePostDrawHistoryAndCleanup(drawnRoundNumber) {
         roundCard.innerHTML = `<div class="history-round-header">📜 GAME ROUND #${drawnRoundNumber} HISTORY</div>`;
         
         activeTickets.forEach(t => {
-            const item = document.createElement('div'); item.style.fontSize = '12px'; item.style.marginBottom = '6px'; item.style.borderBottom = '1px dashed #24344d'; item.style.paddingBottom = '4px';
+            const item = document.createElement('div'); item.style.fontSize = '12px'; item.style.marginBottom = '6px'; item.style.borderBottom = '1px dashed #2b443b'; item.style.paddingBottom = '4px';
             let numbersHTML = t.numbers.map(num => t.hitNumbers.includes(num) ? '<span class="hit-num-text">' + num + '</span>' : num).join(',');
-            let winBadgeText = t.winAmount > 0 ? `<span style="color:#00ff00; font-weight:bold;">[🏆 ያሸነፈው፡ +${t.winAmount.toFixed(2)} ETB]</span>` : `<span style="color:#ef4444;">[❌ ያሸነፈው፡ 0.00 ETB]</span>`;
+            let winBadgeText = t.winAmount > 0 ? `<span style="color:#4ade80; font-weight:bold;">[🏆 ያሸነፈው፡ +${t.winAmount.toFixed(2)} ETB]</span>` : `<span style="color:#f87171;">[❌ ያሸነፈው፡ 0.00 ETB]</span>`;
             item.innerHTML = `🎫 <b>ID: ${t.ticketId}</b> | Bet: ${t.bet} ETB | ${winBadgeText}<br>🔢 የመረጣቸው ቁጥሮች፦ [${numbersHTML}]`; 
             roundCard.appendChild(item);
         });
@@ -628,7 +725,10 @@ function executePostDrawHistoryAndCleanup(drawnRoundNumber) {
     }
     
     setTimeout(() => {
-        activeTickets = new Array(); totalActiveBetAmount = 0; renderTicketsToUI();
+        activeTickets = new Array(); 
+        drawnNumbersSoFar = new Array();
+        totalActiveBetAmount = 0; 
+        renderTicketsToUI();
         document.getElementById('ticket-count-label').innerText = "0"; 
         document.getElementById('total-bet-label').innerText = "0";
         document.getElementById('my-bets-status-text').innerText = "እስካሁን የተጫወቱት ታሪክ የለም።";
@@ -647,6 +747,7 @@ document.addEventListener("DOMContentLoaded", () => {
             numBtn.onclick = () => selectNumber(numBtn, i); board.appendChild(numBtn); 
         } 
     }
+    renderTicketsToUI();
 });
 
 function selectNumber(element, num) {
@@ -659,12 +760,12 @@ function selectNumber(element, num) {
 function renderStatisticsToUI() {
     const container = document.getElementById('stats-numbers-list-container'); 
     if(!container) return;
-    container.innerHTML = '<div style="color:#94a3b8; font-size:12px;">📈 የቁጥሮች ታሪክ በመተንተን ላይ...</div>';
+    container.innerHTML = '<div style="color:#849a91; font-size:12px;">📈 የቁጥሮች ታሪክ በመተንተን ላይ...</div>';
     fetch(`${SERVER_URL}/api/draw-history`).then(res => res.json()).then(history => {
         container.innerHTML = ''; 
         let freqData = {}; for(let i=1; i<=80; i++) freqData[i] = 0;
         if(!history || history.length === 0) { 
-            container.innerHTML = '<div style="color:#94a3b8; font-size:13px; padding:10px;">📊 እስካሁን የተመዘገበ የዕጣ ታሪክ የለም።</div>'; 
+            container.innerHTML = '<div style="color:#849a91; font-size:13px; padding:10px;">📊 እስካሁን የተመዘገበ የዕጣ ታሪክ የለም።</div>'; 
             return; 
         }
         history.forEach(round => { round.results.forEach(num => { freqData[num] = (freqData[num] || 0) + 1; }); });
@@ -672,7 +773,7 @@ function renderStatisticsToUI() {
         sortedItems.sort((a, b) => b.count - a.count);
         sortedItems.slice(0, 15).forEach((item, index) => {
             const row = document.createElement('div'); row.className = 'stat-list-item';
-            row.innerHTML = '<span>🔥 ደረጃ ' + (index + 1) + ' ፡ ቁጥር <b style="color:#ffcc00; font-size:15px;">' + item.number + '</b></span> <span>📈 ' + item.count + ' ጊዜ ወጥቷል</span>';
+            row.innerHTML = '<span>🔥 ደረጃ ' + (index + 1) + ' ፡ ቁጥር <b style="color:#4ade80; font-size:15px;">' + item.number + '</b></span> <span>📈 ' + item.count + ' ጊዜ ወጥቷል</span>';
             container.appendChild(row);
         });
     }).catch(() => { container.innerHTML = '❌ ታሪክ መጫን አልተቻለም!'; });
@@ -680,5 +781,3 @@ function renderStatisticsToUI() {
 </script>
 </body>
 </html>
-
-
