@@ -63,8 +63,8 @@
         .live-draw-top-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         .big-drawn-ball { width: 52px; height: 52px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, #4ade80, #15803d); color: #051b11; font-size: 22px; font-weight: 900; display: flex; align-items: center; justify-content: center; margin: 0 auto; box-shadow: 0 0 15px rgba(34, 197, 94, 0.8); border: 2px solid #bbf7d0; }
         .draw-step-counter { font-size: 15px; font-weight: bold; color: #facc15; background: #121d19; padding: 4px 10px; border-radius: 6px; border: 1px solid #2b443b; }
-        .drawn-strip-container { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; min-height: 24px; }
-        .drawn-mini-pill { background: #22362f; color: #4ade80; border: 1px solid #22c55e; border-radius: 4px; padding: 2px 6px; font-size: 12px; font-weight: bold; }
+        .drawn-strip-container { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; min-height: 52px; }
+        .drawn-mini-pill { background: #22362f; color: #4ade80; border: 1px solid #22c55e; border-radius: 4px; padding: 4px 0; font-size: 12px; font-weight: bold; text-align: center; }
         @keyframes slideDown { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
@@ -525,9 +525,8 @@ function renderSortedCombinedList() {
     if (!sortedContainer) return;
     sortedContainer.innerHTML = '';
 
-    let combined = new Array();
-
-    // 1. የተጫዋቹ ትኬቶች (በ Shamo Fast Keno ካርድ ዲዛይን)
+    // 1. የተጫዋቹ ትኬቶች (ሁልጊዜ መጀመሪያ ከላይ ይደረደራሉ)
+    let userCards = new Array();
     activeTickets.forEach(t => {
         let numsBoxesHTML = t.numbers.map(num => {
             let isHit = t.hitNumbers.includes(num);
@@ -538,10 +537,10 @@ function renderSortedCombinedList() {
             ? `<span style="color:#4ade80;">🏆 +${t.winAmount.toFixed(2)} ETB</span>` 
             : `<span style="color:#facc15;">Waiting</span>`;
 
-        combined.push({
+        userCards.push({
             bet: t.bet,
             html: `
-                <div class="shamo-ticket-card" style="border-color:#22c55e;">
+                <div class="shamo-ticket-card" style="border-color:#22c55e; background:#152821;">
                     <div class="shamo-card-header">
                         <span style="color:#4ade80;">⭐ ${t.ticketId} (YOU)</span>
                         <span style="font-size:11px; color:#849a91;">${t.numbers.length} Picks</span>
@@ -555,7 +554,13 @@ function renderSortedCombinedList() {
         });
     });
 
-    // 2. የቦቱ ትኬቶች (በ Shamo Fast Keno ካርድ ዲዛይን)
+    userCards.sort((a, b) => b.bet - a.bet);
+    userCards.forEach(item => {
+        sortedContainer.innerHTML += item.html;
+    });
+
+    // 2. የቦቱ ትኬቶች (በፊት በነበረው ህግ ከትልቅ ወደ ትንሽ ተደርድረው ከታች ይቀጥላሉ)
+    let botCards = new Array();
     (window.latestFakeBets || new Array()).slice(0, 15).forEach(b => {
         let hitCount = 0;
         let numsBoxesHTML = b.numbers.map(num => {
@@ -575,7 +580,7 @@ function renderSortedCombinedList() {
             ? `<span style="color:#4ade80;">🏆 +${fakeWin.toFixed(2)} ETB</span>` 
             : `<span style="color:#facc15;">Waiting</span>`;
 
-        combined.push({
+        botCards.push({
             bet: b.bet,
             html: `
                 <div class="shamo-ticket-card">
@@ -592,8 +597,8 @@ function renderSortedCombinedList() {
         });
     });
 
-    combined.sort((a, b) => b.bet - a.bet);
-    combined.forEach(item => {
+    botCards.sort((a, b) => b.bet - a.bet);
+    botCards.forEach(item => {
         sortedContainer.innerHTML += item.html;
     });
 }
