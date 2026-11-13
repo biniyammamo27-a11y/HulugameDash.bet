@@ -31,6 +31,7 @@ let nextDrawTime = Date.now() + 60 * 1000;
 let latestDrawResults = new Array();   
 let fakePlayersLiveBets = new Array(); 
 let isBotMachineActive = false; 
+let isRoundDrawingNow = false;
 let botIntervalTimer = null;
 
 function generateFakePlayersForRound() {
@@ -60,7 +61,8 @@ function generateFakePlayersForRound() {
 function runThreeSecondBotEngine() {
     if (botIntervalTimer) clearInterval(botIntervalTimer);
     botIntervalTimer = setInterval(() => {
-        if (!isBotMachineActive) return;
+        if (!isBotMachineActive || isRoundDrawingNow) return;
+
         const prefixes = new Array("0911", "0912", "0920", "0930", "0940", "0909", "0915", "0922", "0935", "0700", "0799");
         const fakeAmounts = new Array(125, 150, 200, 300, 400, 500, 600, 1000, 2000, 3000);
         let fakePhone = prefixes[Math.floor(Math.random() * prefixes.length)] + Math.floor(100000 + Math.random() * 900000);
@@ -90,7 +92,9 @@ async function startKenoGameLoop() {
     nextDrawTime = Date.now() + 60 * 1000;
 
     setInterval(async () => {
-        let finalNumbers = [];
+        isRoundDrawingNow = true;
+
+        let finalNumbers = new Array();
         if (customKenoNumbers && customKenoNumbers.length === 20) {
             finalNumbers = [...customKenoNumbers];
             customKenoNumbers = null; 
@@ -124,15 +128,21 @@ async function startKenoGameLoop() {
                 }
             }
 
-            if (!isBotMachineActive) {
-                fakePlayersLiveBets = [];
-                generateFakePlayersForRound();
-            }
-
             currentRoundNumber++;
-            nextDrawTime = Date.now() + 60 * 1000; 
-        } catch (err) { console.error("Draw Error:", err); }
-    }, 60 * 1000); 
+            nextDrawTime = Date.now() + 76 * 1000; 
+
+            setTimeout(() => {
+                fakePlayersLiveBets = new Array();
+                generateFakePlayersForRound();
+                isRoundDrawingNow = false;
+                nextDrawTime = Date.now() + 60 * 1000;
+            }, 16000);
+
+        } catch (err) { 
+            console.error("Draw Error:", err); 
+            isRoundDrawingNow = false;
+        }
+    }, 76 * 1000); 
 }
 
 // --- FRONTEND ROUTES ---
