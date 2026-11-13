@@ -404,6 +404,222 @@ app.post('/admin/approve-deposit', requireAdmin, async (req, res) => {
 app.post('/admin/reject-deposit', requireAdmin, async (req, res) => { try { await Deposit.findOneAndUpdate({ id: req.body.id, status: 'PENDING' }, { status: 'REJECTED' }); res.json({ success: true }); } catch (e) { res.json({ success: false }); } });
 app.post('/admin/approve-withdraw', requireAdmin, async (req, res) => { try { await Withdrawal.findOneAndUpdate({ id: req.body.id, status: 'PENDING' }, { status: 'APPROVED' }); res.json({ success: true }); } catch (e) { res.json({ success: false }); } });
 app.post('/admin/reject-withdraw', requireAdmin, async (req, res) => { try { const withdrawal = await Withdrawal.findOneAndUpdate({ id: req.body.id, status: 'PENDING' }, { status: 'REJECTED' }); if (withdrawal) await User.findOneAndUpdate({ phone: withdrawal.userPhone }, { $inc: { balance: withdrawal.amount } }); res.json({ success: true }); } catch (e) { res.json({ success: false }); } });
+// ================= ✈️ AVIATOR LIVE ENGINE & BOT SYSTEM =================
+
+let customAviatorCrashPoint = null;
+let aviatorPhase = 'WAITING'; // 'WAITING', 'FLYING', 'CRASHED'
+let aviatorMultiplier = 1.00;
+let aviatorCrashTarget = 2.00;
+let aviatorRoundId = 5001;
+let aviatorWaitCountdown = 8;
+let aviatorHistory = [1.45, 3.82, 1.12, 12.40, 2.15, 1.89, 5.60, 1.04, 4.10, 2.75, 19.20, 1.33];
+let aviatorActiveBets = []; // { betId, playerId, userPhone, bet, panel, cashedOut, cashOutMultiplier, winAmount, isFake, targetCashOut }
+
+function generateAviatorCrashPoint() {
+    if (customAviatorCrashPoint && customAviatorCrashPoint >= 1.00) {
+        const locked = parseFloat(customAviatorCrashPoint);
+        customAviatorCrashPoint = null;
+        return locked;
+    }
+    const r = Math.random();
+    if (r < 0.04) return 1.00; // 4% ዕድል በ 1.00x እንዲፈነዳ
+    const raw = 0.96 / (1 - r);
+    const capped = Math.min(raw, 100.00);
+    return Math.max(1.01, parseFloat(capped.toFixed(2)));
+}
+
+function spawnAviatorFakePlayers() {
+    aviatorActiveBets = aviatorActiveBets.filter(b => !b.isFake);
+    const botAmounts =;
+    const numBots = Math.floor(Math.random() * 8) + 12; // ከ 12 እስከ 20 ቦቶች
+    for (let i = 0; i < numBots; i++) {
+        const botId = PERMANENT_BOT_PLAYERS[Math.floor(Math.random() * PERMANENT_BOT_PLAYERS.length)];
+        const betAmt = botAmounts[Math.floor(Math.random() * botAmounts.length)];
+        const targetMult = parseFloat((1.20 + Math.random() * 4.5).toFixed(2));
+        aviatorActiveBets.push({
+            betId: 'AV-BOT-' + Date.now() + '-' + i,
+            playerId: botId,
+            userPhone: botId,
+            bet: betAmt,
+            panel: 1,
+            cashedOut: false,
+            cashOutMultiplier: 0,
+            winAmount: 0,
+            isFake: true,
+            targetCashOut: targetMult
+        });
+    }
+}
+
+function startAviatorGameLoop() {
+    aviatorPhase = 'WAITING';
+    aviatorWaitCountdown = 8;
+    aviatorMultiplier = 1.00;
+    spawnAviatorFakePlayers();
+
+    let flightStartTime = 0;
+
+    setInterval(() => {
+        if (aviatorPhase === 'WAITING') {
+            aviatorWaitCountdown -= 0.1;
+            if (aviatorWaitCountdown <= 0) {
+                aviatorPhase = 'FLYING';
+                aviatorMultiplier = 1.00;
+                aviatorCrashTarget = generateAviatorCrashPoint();
+                flightStartTime = Date.now();
+            }
+        } else if (aviatorPhase === 'FLYING') {
+            const elapsedSec = (Date.now() - flightStartTime) / 1000;
+            aviatorMultiplier = parseFloat(Math.pow(Math.E, 0.095 * elapsedSec).toFixed(2));
+
+            // ቦቶች ዒላማቸው ላይ ሲደርሱ በራሳቸው Cash Out ያደርጋሉ
+            aviatorActiveBets.forEach(b => {
+                if (b.isFake && !b.cashedOut && aviatorMultiplier >= b.targetCashOut) {
+                    b.cashedOut = true;
+                    b.cashOutMultiplier = b.targetCashOut;
+                    b.winAmount = parseFloat((b.bet * b.targetCashOut).toFixed(2));
+                }
+            });
+
+            if (aviatorMultiplier >= aviatorCrashTarget) {
+                aviatorMultiplier = aviatorCrashTarget;
+                aviatorPhase = 'CRASHED';
+                aviatorHistory.unshift(aviatorCrashTarget);
+                if (aviatorHistory.length > 25) aviatorHistory.pop();
+
+                setTimeout(() => {
+                    aviatorRoundId++;
+                    aviatorPhase = 'WAITING';
+                    aviatorWaitCountdown = 8;
+                    aviatorMultiplier = 1.00;
+                    spawnAviatorFakePlayers();
+                }, 3500);
+            }
+        }
+    }, 100);
+}
+// --- ✈️ AVIATOR USER & ADMIN APIs ---
+
+app.get('/api/aviator-status', (req, res) => {
+    const publicBets = aviatorActiveBets.map(b => ({
+        betId: b.betId,
+        playerId: b.playerId,
+        bet: b.bet,
+        panel: b.panel,
+        cashedOut: b.cashedOut,
+        cashOutMultiplier: b.cashOutMultiplier,
+        winAmount: b.winAmount,
+        isFake: b.isFake
+    }));
+
+    res.json({
+        success: true,
+        roundId: aviatorRoundId,
+        phase: aviatorPhase,
+        multiplier: aviatorMultiplier,
+        waitCountdown: Math.max(0, parseFloat(aviatorWaitCountdown.toFixed(1))),
+        history: aviatorHistory,
+        bets: publicBets
+    });
+});
+
+app.post('/api/aviator-bet', requireUser, async (req, res) => {
+    const { betAmount, panel } = req.body;
+    const amount = parseFloat(betAmount);
+    const panelNum = Number(panel) === 2 ? 2 : 1;
+
+    if (aviatorPhase !== 'WAITING') {
+        return res.json({ success: false, message: "⚠️ ጨዋታው ተጀምሯል! ለቀጣዩ ዙር ይጠብቁ።" });
+    }
+    if (!amount || amount < 1 || isNaN(amount)) {
+        return res.json({ success: false, message: "❌ ትክክለኛ የብር መጠን ያስገቡ (ቢያንስ 1 ETB)!" });
+    }
+
+    const alreadyBet = aviatorActiveBets.find(b => !b.isFake && b.userPhone === req.userPhone && b.panel === panelNum);
+    if (alreadyBet) {
+        return res.json({ success: false, message: "⚠️ በዚህ ሳጥን ላይ ቀድመው ተወራርደዋል!" });
+    }
+
+    try {
+        const user = await User.findOneAndUpdate(
+            { phone: req.userPhone, balance: { $gte: amount } },
+            { $inc: { balance: -amount } },
+            { new: true }
+        );
+        if (!user) return res.json({ success: false, message: "❌ በቂ ቀሪ ሂሳብ የሎትም!" });
+
+        const betId = 'AV-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+        const playerId = getPlayerPermanentId(req.userPhone);
+
+        aviatorActiveBets.unshift({
+            betId,
+            playerId,
+            userPhone: req.userPhone,
+            bet: amount,
+            panel: panelNum,
+            cashedOut: false,
+            cashOutMultiplier: 0,
+            winAmount: 0,
+            isFake: false
+        });
+
+        res.json({ success: true, newBalance: user.balance, betId, playerId });
+    } catch (e) {
+        res.json({ success: false, message: "❌ ውርርዱን ማስቀመጥ አልተቻለም!" });
+    }
+});
+
+app.post('/api/aviator-cashout', requireUser, async (req, res) => {
+    const { betId } = req.body;
+
+    if (aviatorPhase !== 'FLYING') {
+        return res.json({ success: false, message: "💥 አውሮፕላኑ ቀድሞ በሯል (Flew Away)!" });
+    }
+
+    const betObj = aviatorActiveBets.find(b => !b.isFake && b.betId === betId && b.userPhone === req.userPhone);
+    if (!betObj) {
+        return res.json({ success: false, message: "❌ ትኬቱ አልተገኘም!" });
+    }
+    if (betObj.cashedOut) {
+        return res.json({ success: false, message: "⚠️ ቀድመው Cash Out አድርገዋል!" });
+    }
+
+    const currentMult = aviatorMultiplier;
+    if (currentMult >= aviatorCrashTarget) {
+        return res.json({ success: false, message: "💥 አውሮፕላኑ ቀድሞ በሯል!" });
+    }
+
+    betObj.cashedOut = true;
+    betObj.cashOutMultiplier = currentMult;
+    const rawWin = betObj.bet * currentMult;
+    const finalWin = parseFloat((rawWin > 50000 ? 50000 : rawWin).toFixed(2));
+    betObj.winAmount = finalWin;
+
+    try {
+        const updatedUser = await User.findOneAndUpdate(
+            { phone: req.userPhone },
+            { $inc: { balance: finalWin } },
+            { new: true }
+        );
+        res.json({
+            success: true,
+            winAmount: finalWin,
+            multiplier: currentMult,
+            newBalance: updatedUser ? updatedUser.balance : 0
+        });
+    } catch (e) {
+        res.json({ success: false, message: "❌ ክፍያውን ማስገባት አልተቻለም!" });
+    }
+});
+
+app.post('/admin/set-aviator-crash', requireAdmin, (req, res) => {
+    const val = parseFloat(req.body.crashPoint);
+    if (!val || val < 1.00 || val > 500) {
+        return res.json({ success: false, message: "❌ እባክዎ ከ 1.00 እስከ 500.00 ያለ ቁጥር ያስገቡ!" });
+    }
+    customAviatorCrashPoint = val;
+    res.json({ success: true, message: `🟢 ቀጣዩ Aviator በ ${val.toFixed(2)}x ላይ እንዲፈነዳ ተቆልፏል!` });
+});
 
 mongoose.connect(config.MONGO_URI).then(() => {
     console.log("✅ ከ MongoDB ዳታቤዝ ጋር በተሳካ ሁኔታ ተገናኝቷል!");
