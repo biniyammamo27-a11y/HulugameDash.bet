@@ -30,6 +30,7 @@ let currentRoundNumber = 1001;
 let nextDrawTime = Date.now() + 60 * 1000; 
 let latestDrawResults = new Array();   
 let fakePlayersLiveBets = new Array(); 
+let totalFakeBetsCount = 0;
 let isBotMachineActive = false; 
 let isRoundDrawingNow = false;
 let botIntervalTimer = null;
@@ -55,6 +56,7 @@ function generateFakePlayersForRound() {
                 isFake: true
             });
         }
+        totalFakeBetsCount = Math.floor(Math.random() * 120) + 180;
     }
 }
 
@@ -79,6 +81,7 @@ function runThreeSecondBotEngine() {
             isFake: true
         });
         if (fakePlayersLiveBets.length > 40) fakePlayersLiveBets.pop();
+        totalFakeBetsCount += Math.floor(Math.random() * 180) + 95;
     }, 3000); 
 }
 async function startKenoGameLoop() {
@@ -132,6 +135,7 @@ async function startKenoGameLoop() {
             nextDrawTime = Date.now() + 76 * 1000; 
 
             setTimeout(() => {
+                totalFakeBetsCount = 0;
                 fakePlayersLiveBets = new Array();
                 generateFakePlayersForRound();
                 isRoundDrawingNow = false;
@@ -158,7 +162,8 @@ app.get('/api/keno-status', (req, res) => {
         roundNumber: currentRoundNumber,
         timeLeft: Math.max(0, Math.floor((nextDrawTime - Date.now()) / 1000)), 
         latestResults: latestDrawResults,
-        fakeBets: fakePlayersLiveBets 
+        fakeBets: fakePlayersLiveBets,
+        totalBetsCount: totalFakeBetsCount
     });
 });
 
