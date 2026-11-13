@@ -35,14 +35,20 @@ let isBotMachineActive = false;
 let isRoundDrawingNow = false;
 let botIntervalTimer = null;
 
+function generateRandomTicketCode() {
+    const prefixes = ["TK", "GT", "HM", "JY", "UU", "FS", "AB", "MK", "ZR", "DN"];
+    const randomPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+    const randomDigits = Math.floor(100000 + Math.random() * 900000);
+    return `${randomPrefix}-${randomDigits}`;
+}
+
 function generateFakePlayersForRound() {
     if (fakePlayersLiveBets.length === 0) {
         let numberOfFakePlayers = Math.floor(Math.random() * 3) + 3;
-        const prefixes = new Array("0911", "0912", "0920", "0930", "0940", "0909", "0711");
         const fakeAmounts = new Array(125, 150, 200, 300, 400, 500, 600, 1000, 2000, 3000);
         
         for(let i = 0; i < numberOfFakePlayers; i++) {
-            let fakePhone = prefixes[Math.floor(Math.random() * prefixes.length)] + Math.floor(100000 + Math.random() * 900000);
+            let fakeTicketId = generateRandomTicketCode();
             let randomBet = fakeAmounts[Math.floor(Math.random() * fakeAmounts.length)];
             let fakePickedNumbers = new Array();
             while(fakePickedNumbers.length < 3) {
@@ -50,7 +56,7 @@ function generateFakePlayersForRound() {
                 if(!fakePickedNumbers.includes(r)) fakePickedNumbers.push(r);
             }
             fakePlayersLiveBets.push({
-                userPhone: fakePhone.substring(0, 4) + "****" + fakePhone.substring(8),
+                userPhone: fakeTicketId,
                 bet: randomBet,
                 numbers: fakePickedNumbers.sort((a, b) => a - b),
                 isFake: true
@@ -65,9 +71,8 @@ function runThreeSecondBotEngine() {
     botIntervalTimer = setInterval(() => {
         if (!isBotMachineActive || isRoundDrawingNow) return;
 
-        const prefixes = new Array("0911", "0912", "0920", "0930", "0940", "0909", "0915", "0922", "0935", "0700", "0799");
         const fakeAmounts = new Array(125, 150, 200, 300, 400, 500, 600, 1000, 2000, 3000);
-        let fakePhone = prefixes[Math.floor(Math.random() * prefixes.length)] + Math.floor(100000 + Math.random() * 900000);
+        let fakeTicketId = generateRandomTicketCode();
         let randomBet = fakeAmounts[Math.floor(Math.random() * fakeAmounts.length)];
         let fakePickedNumbers = new Array();
         while(fakePickedNumbers.length < 3) {
@@ -75,7 +80,7 @@ function runThreeSecondBotEngine() {
             if(!fakePickedNumbers.includes(r)) fakePickedNumbers.push(r);
         }
         fakePlayersLiveBets.unshift({
-            userPhone: fakePhone.substring(0, 4) + "****" + fakePhone.substring(8),
+            userPhone: fakeTicketId,
             bet: randomBet,
             numbers: fakePickedNumbers.sort((a, b) => a - b),
             isFake: true
@@ -248,7 +253,7 @@ app.post('/api/place-bet', requireUser, async (req, res) => {
         );
         if (!user) return res.json({ success: false, message: "❌ በቂ ቀሪ ሂሳብ የሎትም!" });
 
-        const ticketId = 'TK-' + Math.floor(100000 + Math.random() * 900000);
+        const ticketId = generateRandomTicketCode();
         const newTicket = new Ticket({
             ticketId,
             userPhone: req.userPhone,
