@@ -102,6 +102,7 @@ function runThreeSecondBotEngine() {
         totalFakeBetsCount += Math.floor(Math.random() * 180) + 95;
     }, 3000); 
 }
+
 async function startKenoGameLoop() {
     const lastDraw = await Draw.findOne().sort({ _id: -1 });
     if (lastDraw && lastDraw.roundNumber) {
@@ -166,19 +167,129 @@ async function startKenoGameLoop() {
         }
     }, 76 * 1000); 
 }
+// ================= 🌐 HTML & AUTH ROUTES =================
 
-// --- FRONTEND ROUTES ---
-app.get('/', (req, res) => { res.sendFile(path.join(__dirname, 'Dashbet3.html')); });
-app.get('/admin-login', (req, res) => { res.sendFile(path.join(__dirname, 'admin-login.html')); });
-app.get('/admin-panel', requireAdminPage, (req, res) => { res.sendFile(path.join(__dirname, 'admin.html')); });
-app.use(express.static(path.join(__dirname)));
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'Dashbet3.html')));
+app.get('/admin-login', (req, res) => res.sendFile(path.join(__dirname, 'admin-login.html')));
+app.get('/admin', requireAdminPage, (req, res) => res.sendFile(path.join(__dirname, 'admin.html')));
 
-// --- GAME & PUBLIC APIs ---
+app.post('/admin-auth', (req, res) => {
+    const { password } = req.body;
+    if (password === config.ADMIN_PASSWORD) {
+        const token = jwt.sign({ role: 'admin' }, config.JWT_SECRET, { expiresIn: '12h' });
+        res.cookie('adminToken', token, { httpOnly: true, maxAge: 12 * 3600 * 1000 });
+        return res.json({ success: true, token });
+    }
+    res.json({ success: false, message: "❌ የተሳሳተ የአድሚን የይለፍ ቃል!" });
+});
+
+app.post('/register', async (req, res) => {
+    const { phone, password } = req.body;
+    if (!phone || !password) return res.json({ success: false, message: "⚠️ እባክዎ ሁሉንም ቦታዎች ይሙሉ!" });
+    try {
+        const cleanPhone = String(phone).trim();
+        const existingUser = await User.findOne({ phone: cleanPhone });
+        if (existingUser) return res.json({ success: false, message: "⚠️ ይህ ስልክ ቁጥር ቀድሞ ተመዝግቧል!" });
+        const hashedPassword = await bcrypt.hash(String(password), 10);
+        const newUser = new User({ phone: cleanPhone, password: hashedPassword, balance: 0.00 });
+        await newUser.save();
+        res.json({ success: true, message: "✅ በተሳካ ሁኔታ ተመዝግበዋል! አሁን ይግቡ።" });
+    } catch (err) { res.json({ success: false, message: "❌ የምዝገባ ስህተት ተፈጥሯል!" }); }
+});
+
+app.post('/login', async (req, res) => {
+    const { phone, password } = req.body;
+    try {
+        const cleanPhone = String(phone || "").trim();
+        const user = await User.findOne({ phone: cleanPhone });
+        if (!user) return res.json({ success: false, message: "❌ ስልክ ቁጥር ወይም የይለፍ ቃል ተሳስቷል!" });
+
+        let isMatch = false;
+        if (user.password && user.password.startsWith('$2')) {
+            isMatch = await bcrypt.compare(String(password), user.password);
+        } else {
+            isMatch = (user.password === String(password));
+            if (isMatch) {
+                user.password = await bcrypt.hash(String(password), 10);
+                await user.save();
+            }
+        }
+        if (!isMatch) return res.json({ success: false, message: "❌ ስልክ ቁጥር ወይም የይለፍ ቃል ተሳስቷል!" });
+
+        const token = jwt.sign({ phone: user.phone }, config.JWT_SECRET, { expiresIn: '24h' });
+        res.json({ success: true, token, user: { phone: user.phone, balance: user.balance } });
+    } catch (err) { res.json({ success: false, message: "❌ የሰርቨር ስህተት ተፈጥሯል!" }); }
+});
+
+app.get('/api/my-balance', requireUser, async (req, res) => {
+    try {
+        const user = await User.findOne({ phone: req.userPhone });
+        if (!user) return res.json({ success: false });
+        res.json({ success: true, balance: user.balance });
+    } catch (e) { res.json({ success: false }); }
+});
+
+// ================= 💰 WALLET APIs =================
+
+app.post('/api/deposit', requireUser, async (req, res) => {
+    const { amount, senderPhone, method, screenshot } = req.body;
+    const depositAmount = parseFloat(amount);
+    if (!depositAmount || depositAmount <= 0 || isNaN(depositAmount) || !senderPhone) {
+        return res.json({ success: false, message: "❌ ትክክለኛ የብር መጠን እና ስልክ ቁጥር ያስገቡ!" });
+    }
+    try {
+        const newDep = new Deposit({
+            id: 'DEP-' + Date.now(),
+            userPhone: req.userPhone,
+            amount: depositAmount,
+            senderPhone: String(senderPhone).trim(),
+            method,
+            screenshot: screenshot || "",
+            status: 'PENDING',
+            date: new Date().toLocaleString()
+        });
+        await newDep.save();
+        res.json({ success: true, message: "✅ የዲፖዚት ጥያቄዎ እና ደረሰኝዎ ለአድሚን ተልኳል! በጥቂት ደቂቃዎች ውስጥ ይጸድቃል።" });
+    } catch (err) { res.json({ success: false, message: "❌ ጥያቄውን መላክ አልተቻለም!" }); }
+});
+
+app.post('/api/withdraw', requireUser, async (req, res) => {
+    const { amount, accountNumber, fullName, method } = req.body;
+    const withdrawAmount = parseFloat(amount);
+    if (!withdrawAmount || withdrawAmount <= 0 || isNaN(withdrawAmount) || !accountNumber || !fullName) {
+        return res.json({ success: false, message: "❌ እባክዎ ትክክለኛ መረጃ ያስገቡ!" });
+    }
+    try {
+        const user = await User.findOneAndUpdate(
+            { phone: req.userPhone, balance: { $gte: withdrawAmount } },
+            { $inc: { balance: -withdrawAmount } },
+            { new: true }
+        );
+        if (!user) return res.json({ success: false, message: "❌ በቂ ቀሪ ሂሳብ የሎትም!" });
+
+        const newWith = new Withdrawal({
+            id: 'WITH-' + Date.now(),
+            userPhone: req.userPhone,
+            amount: withdrawAmount,
+            accountNumber: String(accountNumber).trim(),
+            fullName: String(fullName).trim(),
+            method,
+            status: 'PENDING',
+            date: new Date().toLocaleString()
+        });
+        await newWith.save();
+        res.json({ success: true, message: "✅ የዊዝድሮው ጥያቄዎ ተልኳል! በጥቂት ደቂቃዎች ውስጥ ወደ ሂሳብዎ ይገባል።" });
+    } catch (err) { res.json({ success: false, message: "❌ ስህተት ተፈጥሯል!" }); }
+});
+
+// ================= 🎰 KENO GAME APIs =================
+
 app.get('/api/keno-status', (req, res) => {
+    const timeLeft = Math.max(0, Math.floor((nextDrawTime - Date.now()) / 1000));
     res.json({
         success: true,
         roundNumber: currentRoundNumber,
-        timeLeft: Math.max(0, Math.floor((nextDrawTime - Date.now()) / 1000)), 
+        timeLeft: timeLeft,
         latestResults: latestDrawResults,
         fakeBets: fakePlayersLiveBets,
         totalBetsCount: totalFakeBetsCount
@@ -187,223 +298,167 @@ app.get('/api/keno-status', (req, res) => {
 
 app.get('/api/draw-history', async (req, res) => {
     try {
-        const history = await Draw.find().sort({ _id: -1 }).limit(50);
+        const history = await Draw.find().sort({ _id: -1 }).limit(15);
         res.json(history.reverse());
-    } catch (e) { res.json([]); }
-});
-
-// --- AUTH APIs ---
-app.post('/admin/login', (req, res) => {
-    const password = req.body && req.body.password;
-    if (!password) return res.json({ success: false, message: "⚠️ እባክዎ መጀመሪያ የይለፍ ቃል ያስገቡ!" });
-    if (password.trim() === config.ADMIN_PASSWORD.trim()) {
-        const token = jwt.sign({ admin: true }, config.JWT_SECRET, { expiresIn: '24h' });
-        res.cookie('adminToken', token, { httpOnly: true, secure: true, sameSite: 'None', maxAge: 24 * 60 * 60 * 1000 });
-        return res.json({ success: true, token: token });
-    }
-    return res.json({ success: false, message: "❌ የይለፍ ቃል የተሳሳተ ነው!" });
-});
-
-app.post('/register', async (req, res) => {
-    let { phone, password } = req.body;
-    if (!phone || !password) return res.json({ success: false, message: "⚠️ ስልክ እና የይለፍ ቃል ያስገቡ!" });
-    try {
-        const existing = await User.findOne({ phone: phone.trim() });
-        if (existing) return res.json({ success: false, message: "❌ ይህ ስልክ ቀድሞ ተመዝግቧል!" });
-        const hashedPassword = await bcrypt.hash(password.trim(), 10);
-        const newUser = new User({ phone: phone.trim(), password: hashedPassword, balance: 0.00 });
-        await newUser.save(); 
-        res.json({ success: true, message: "✅ ምዝገባዎ ተጠናቋል!" });
-    } catch (e) { res.json({ success: false, message: "❌ ስህተት ተፈጥሯል!" }); }
-});
-
-app.post('/login', async (req, res) => {
-    let { phone, password } = req.body;
-    if (!phone || !password) return res.json({ success: false, message: "⚠️ ስልክ እና የይለፍ ቃል ያስገቡ!" });
-    try {
-        const user = await User.findOne({ phone: phone.trim() });
-        if (!user) return res.json({ success: false, message: "⚠️ ስልክ ወይም የይለፍ ቃል ተሳስቷል!" });
-        
-        const isMatch = user.password.startsWith('$2b$') 
-            ? await bcrypt.compare(password.trim(), user.password) 
-            : (user.password === password.trim());
-
-        if (isMatch) {
-            const token = jwt.sign({ phone: user.phone }, config.JWT_SECRET, { expiresIn: '24h' });
-            return res.json({ success: true, token: token, user: { phone: user.phone, balance: user.balance } });
-        }
-        return res.json({ success: false, message: "⚠️ ስልክ ወይም የይለፍ ቃል ተሳስቷል!" });
-    } catch (e) { res.json({ success: false }); }
-});
-
-// --- USER PROTECTED APIs ---
-app.get('/api/my-balance', requireUser, async (req, res) => {
-    try {
-        const user = await User.findOne({ phone: req.userPhone });
-        res.json({ success: true, balance: user ? user.balance : 0 });
-    } catch (e) { res.json({ success: false }); }
+    } catch (err) { res.json(new Array()); }
 });
 
 app.get('/api/my-history', requireUser, async (req, res) => {
     try {
-        const userTickets = await Ticket.find({ userPhone: req.userPhone }).sort({ _id: -1 }).limit(100);
-        if (!userTickets || userTickets.length === 0) return res.json({ success: true, history: [] });
-
+        const userTickets = await Ticket.find({ userPhone: req.userPhone }).sort({ _id: -1 }).limit(40);
         const roundNumbers = [...new Set(userTickets.map(t => t.roundNumber))];
         const draws = await Draw.find({ roundNumber: { $in: roundNumbers } });
+
         const drawMap = {};
         draws.forEach(d => { drawMap[d.roundNumber] = d.results; });
 
-        const groupedByRound = {};
+        const grouped = {};
         userTickets.forEach(t => {
-            if (!groupedByRound[t.roundNumber]) {
-                groupedByRound[t.roundNumber] = {
+            if (!grouped[t.roundNumber]) {
+                grouped[t.roundNumber] = {
                     roundNumber: t.roundNumber,
-                    drawnResults: drawMap[t.roundNumber] || null,
-                    tickets: []
+                    tickets: new Array()
                 };
             }
-            const drawn = drawMap[t.roundNumber] || [];
-            const hitNumbers = drawn.length > 0 ? t.numbers.filter(n => drawn.includes(n)) : [];
+            const results = drawMap[t.roundNumber] || null;
+            const hitNumbers = results ? t.numbers.filter(n => results.includes(n)) : new Array();
             let winAmount = 0;
-            if (drawn.length > 0) {
-                const pickedCount = t.numbers.length;
-                const hitCount = hitNumbers.length;
-                if (KENO_PAYOUT_ODDS[pickedCount] && KENO_PAYOUT_ODDS[pickedCount][hitCount]) {
-                    const rawWin = t.bet * KENO_PAYOUT_ODDS[pickedCount][hitCount];
+            if (results) {
+                const pickedCount = [...new Set(t.numbers)].length;
+                const matchedCount = hitNumbers.length;
+                if (KENO_PAYOUT_ODDS[pickedCount] && KENO_PAYOUT_ODDS[pickedCount][matchedCount]) {
+                    const rawWin = t.bet * KENO_PAYOUT_ODDS[pickedCount][matchedCount];
                     winAmount = rawWin > 30000 ? 30000 : rawWin;
                 }
             }
-            groupedByRound[t.roundNumber].tickets.push({
+
+            grouped[t.roundNumber].tickets.push({
                 ticketId: t.ticketId,
                 bet: t.bet,
                 numbers: t.numbers,
                 hitNumbers: hitNumbers,
                 winAmount: winAmount,
-                isFinished: drawn.length > 0
+                isFinished: Boolean(results)
             });
         });
 
-        const sortedRounds = Object.values(groupedByRound).sort((a, b) => b.roundNumber - a.roundNumber);
-        res.json({ success: true, history: sortedRounds });
+        const sortedHistory = Object.values(grouped).sort((a, b) => b.roundNumber - a.roundNumber);
+        res.json({ success: true, history: sortedHistory });
     } catch (e) {
-        res.json({ success: false, history: [] });
+        res.json({ success: false, history: new Array() });
     }
 });
+
 app.post('/api/place-bet', requireUser, async (req, res) => {
     const { betAmount, numbers } = req.body;
-    const amount = parseFloat(betAmount);
-
-    if (!amount || amount <= 0 || isNaN(amount)) {
-        return res.json({ success: false, message: "❌ ትክክለኛ የብር መጠን ያስገቡ!" });
-    }
-    if (!Array.isArray(numbers) || numbers.length < 1 || numbers.length > 10) {
-        return res.json({ success: false, message: "❌ ከ1 እስከ 10 ቁጥሮችን ብቻ ይምረጡ!" });
-    }
-    const cleanNumbers = [...new Set(numbers.map(Number))].filter(n => n >= 1 && n <= 80);
-    if (cleanNumbers.length !== numbers.length) {
-        return res.json({ success: false, message: "❌ ተደጋጋሚ ወይም የተሳሳቱ ቁጥሮች ተገኝተዋል!" });
-    }
+    const bet = parseFloat(betAmount);
+    if (!bet || bet <= 0 || isNaN(bet)) return res.json({ success: false, message: "❌ ትክክለኛ የብር መጠን ያስገቡ!" });
+    if (!Array.isArray(numbers) || numbers.length < 1 || numbers.length > 10) return res.json({ success: false, message: "❌ እባክዎ ከ 1 እስከ 10 ቁጥሮች ይምረጡ!" });
 
     try {
         const user = await User.findOneAndUpdate(
-            { phone: req.userPhone, balance: { $gte: amount } }, 
-            { $inc: { balance: -amount } }, 
+            { phone: req.userPhone, balance: { $gte: bet } },
+            { $inc: { balance: -bet } },
             { new: true }
         );
         if (!user) return res.json({ success: false, message: "❌ በቂ ቀሪ ሂሳብ የሎትም!" });
 
-        const ticketId = getPlayerPermanentId(req.userPhone);
+        const playerPermanentId = getPlayerPermanentId(req.userPhone);
         const newTicket = new Ticket({
-            ticketId,
+            ticketId: playerPermanentId,
             userPhone: req.userPhone,
             roundNumber: currentRoundNumber,
-            numbers: cleanNumbers,
-            bet: amount
+            numbers: numbers.map(Number),
+            bet: bet
         });
         await newTicket.save();
 
-        res.json({ success: true, newBalance: user.balance, ticketId, roundNumber: currentRoundNumber });
-    } catch (e) { res.json({ success: false, message: "❌ ትኬቱን መቁረጥ አልተቻለም!" }); }
+        res.json({ success: true, newBalance: user.balance, ticketId: playerPermanentId });
+    } catch (err) { res.json({ success: false, message: "❌ ውርርዱን ማስቀመጥ አልተቻለም!" }); }
 });
 
-app.post('/api/deposit', requireUser, async (req, res) => {
-    let { amount, senderPhone, method, screenshot } = req.body;
-    const depAmount = parseFloat(amount);
-    if (!depAmount || depAmount <= 0 || !screenshot) {
-        return res.json({ success: false, message: "❌ ትክክለኛ መረጃ እና ደረሰኝ ያስገቡ!" });
-    }
-    try {
-        const duplicate = await Deposit.findOne({ screenshot });
-        if (duplicate) return res.json({ success: false, message: "❌ ይህ የክፍያ ማረጋገጫ ቀድሞ ጥቅም ላይ ውሏል!" });
-        const newDep = new Deposit({ 
-            id: 'DEP-' + Date.now(), 
-            userPhone: req.userPhone, 
-            amount: depAmount, 
-            senderPhone, 
-            method, 
-            screenshot, 
-            status: 'PENDING' 
-        });
-        await newDep.save(); 
-        res.json({ success: true, message: "✅ ጥያቄዎ በተሳካ ሁኔታ አድሚን ላይ ደርሷል!" });
-    } catch (e) { res.json({ success: false }); }
+app.get('/admin/bot-status', requireAdmin, (req, res) => {
+    res.json({ success: true, isBotActive: isBotMachineActive });
 });
 
-app.post('/api/withdraw', requireUser, async (req, res) => {
-    const withdrawAmount = parseFloat(req.body.amount);
-    if (!withdrawAmount || withdrawAmount <= 0 || isNaN(withdrawAmount)) {
-        return res.json({ success: false, message: "❌ ትክክለኛ የብር መጠን ያስገቡ!" });
-    }
-    try {
-        const result = await User.findOneAndUpdate(
-            { phone: req.userPhone, balance: { $gte: withdrawAmount } }, 
-            { $inc: { balance: -withdrawAmount } }, 
-            { new: true }
-        );
-        if (!result) return res.json({ success: false, message: "❌ በቂ ቀሪ ሂሳብ የሎትም!" });
-        const newWith = new Withdrawal({ 
-            id: 'WITH-' + Date.now(), 
-            userPhone: req.userPhone, 
-            amount: withdrawAmount, 
-            accountNumber: req.body.accountNumber, 
-            fullName: req.body.fullName, 
-            method: req.body.method, 
-            status: 'PENDING' 
-        });
-        await newWith.save(); 
-        res.json({ success: true, message: "✅ የዊዝድሮው ጥያቄዎ አድሚን ላይ ደርሷል!" });
-    } catch (e) { res.json({ success: false }); }
-});
-
-// --- ADMIN PROTECTED APIs ---
-app.get('/admin/bot-status', requireAdmin, (req, res) => { res.json({ success: true, isBotActive: isBotMachineActive }); });
 app.post('/admin/toggle-bot', requireAdmin, (req, res) => {
-    isBotMachineActive = Boolean(req.body.activate);
-    res.json({ success: true, message: isBotMachineActive ? "🟢 የ 3 ሰከንድ ቦት ማሽን ስራ ጀምሯል!" : "🔴 ቦት ማሽኑ ቆሟል!" });
+    const { activate } = req.body;
+    isBotMachineActive = Boolean(activate);
+    res.json({
+        success: true,
+        isBotActive: isBotMachineActive,
+        message: isBotMachineActive ? "🟢 የ3 ሰከንድ ቦት ማሽን በተሳካ ሁኔታ ተጀምሯል!" : "🔴 የ3 ሰከንድ ቦት ማሽን ሙሉ በሙሉ ቆሟል!"
+    });
 });
-app.post('/admin/set-keno-numbers', requireAdmin, (req, res) => {
-    const { numbers } = req.body;
-    if (!numbers || numbers.length !== 20) return res.json({ success: false, message: "❌ እባክዎ በትክክል 20 ቁጥሮችን ይምረጡ!" });
-    customKenoNumbers = numbers.map(Number);
-    res.json({ success: true, message: "🟢 ቀጣዩ እጣ በአንተ ቁጥሮች እንዲወጣ በራስ-ሰር ተቆልፏል!" });
+// ================= 🛡️ ADMIN PANEL APIs =================
+
+app.get('/admin/users', requireAdmin, async (req, res) => {
+    try { 
+        const users = await User.find({}, { password: 0 }).sort({ _id: -1 }); 
+        res.json(users); 
+    } catch (e) { res.json(new Array()); }
 });
-app.get('/admin/users', requireAdmin, async (req, res) => { try { const list = await User.find().select('-password'); res.json(list); } catch(e) { res.json([]); } });
-app.get('/admin/deposits', requireAdmin, async (req, res) => { try { const list = await Deposit.find().select('-screenshot').sort({ _id: -1 }); res.json(list); } catch(e) { res.json([]); } });
-app.get('/admin/deposit-image/:id', requireAdmin, async (req, res) => { try { const dep = await Deposit.findOne({ id: req.params.id }).select('screenshot'); if (dep) res.json({ success: true, screenshot: dep.screenshot }); else res.json({ success: false }); } catch(e) { res.json({ success: false }); } });
-app.get('/admin/withdrawals', requireAdmin, async (req, res) => { try { const list = await Withdrawal.find().sort({ _id: -1 }); res.json(list); } catch(e) { res.json([]); } });
+
+app.get('/admin/deposits', requireAdmin, async (req, res) => {
+    try { 
+        const deps = await Deposit.find({}, { screenshot: 0 }).sort({ _id: -1 }).limit(100); 
+        res.json(deps); 
+    } catch (e) { res.json(new Array()); }
+});
+
+app.get('/admin/deposit-image/:id', requireAdmin, async (req, res) => {
+    try {
+        const dep = await Deposit.findOne({ id: req.params.id }, { screenshot: 1 });
+        if (!dep) return res.json({ success: false });
+        res.json({ success: true, screenshot: dep.screenshot });
+    } catch (e) { res.json({ success: false }); }
+});
+
+app.get('/admin/withdrawals', requireAdmin, async (req, res) => {
+    try { 
+        const withs = await Withdrawal.find().sort({ _id: -1 }).limit(100); 
+        res.json(withs); 
+    } catch (e) { res.json(new Array()); }
+});
 
 app.post('/admin/approve-deposit', requireAdmin, async (req, res) => {
     const { id, userPhone, amount } = req.body;
     try {
-        const deposit = await Deposit.findOneAndUpdate({ id, status: 'PENDING' }, { status: 'APPROVED' });
-        if(deposit) { await User.findOneAndUpdate({ phone: userPhone.trim() }, { $inc: { balance: parseFloat(amount) } }); return res.json({ success: true }); }
-        res.json({ success: false });
+        const dep = await Deposit.findOneAndUpdate({ id, status: 'PENDING' }, { status: 'APPROVED' }, { new: true });
+        if (!dep) return res.json({ success: false });
+        await User.findOneAndUpdate({ phone: userPhone }, { $inc: { balance: parseFloat(amount) } });
+        res.json({ success: true });
     } catch (e) { res.json({ success: false }); }
 });
-app.post('/admin/reject-deposit', requireAdmin, async (req, res) => { try { await Deposit.findOneAndUpdate({ id: req.body.id, status: 'PENDING' }, { status: 'REJECTED' }); res.json({ success: true }); } catch (e) { res.json({ success: false }); } });
-app.post('/admin/approve-withdraw', requireAdmin, async (req, res) => { try { await Withdrawal.findOneAndUpdate({ id: req.body.id, status: 'PENDING' }, { status: 'APPROVED' }); res.json({ success: true }); } catch (e) { res.json({ success: false }); } });
-app.post('/admin/reject-withdraw', requireAdmin, async (req, res) => { try { const withdrawal = await Withdrawal.findOneAndUpdate({ id: req.body.id, status: 'PENDING' }, { status: 'REJECTED' }); if (withdrawal) await User.findOneAndUpdate({ phone: withdrawal.userPhone }, { $inc: { balance: withdrawal.amount } }); res.json({ success: true }); } catch (e) { res.json({ success: false }); } });
+
+app.post('/admin/reject-deposit', requireAdmin, async (req, res) => {
+    try {
+        await Deposit.findOneAndUpdate({ id: req.body.id, status: 'PENDING' }, { status: 'REJECTED' });
+        res.json({ success: true });
+    } catch (e) { res.json({ success: false }); }
+});
+
+app.post('/admin/approve-withdraw', requireAdmin, async (req, res) => {
+    try {
+        await Withdrawal.findOneAndUpdate({ id: req.body.id, status: 'PENDING' }, { status: 'APPROVED' });
+        res.json({ success: true });
+    } catch (e) { res.json({ success: false }); }
+});
+
+app.post('/admin/reject-withdraw', requireAdmin, async (req, res) => {
+    try {
+        const w = await Withdrawal.findOneAndUpdate({ id: req.body.id, status: 'PENDING' }, { status: 'REJECTED' }, { new: true });
+        if (w) await User.findOneAndUpdate({ phone: w.userPhone }, { $inc: { balance: w.amount } });
+        res.json({ success: true });
+    } catch (e) { res.json({ success: false }); }
+});
+
+app.post('/admin/set-keno-numbers', requireAdmin, (req, res) => {
+    const { numbers } = req.body;
+    if (!Array.isArray(numbers) || numbers.length !== 20) return res.json({ success: false, message: "❌ በትክክል 20 ቁጥሮች መምረጥ አለብዎት!" });
+    customKenoNumbers = numbers.map(Number);
+    res.json({ success: true, message: "🟢 20ዎቹ ቁጥሮች ለቀጣዩ እጣ በተሳካ ሁኔታ ተቆልፈዋል!" });
+});
 // ================= ✈️ AVIATOR LIVE ENGINE & BOT SYSTEM =================
 
 let customAviatorCrashPoint = null;
@@ -412,8 +467,8 @@ let aviatorMultiplier = 1.00;
 let aviatorCrashTarget = 2.00;
 let aviatorRoundId = 5001;
 let aviatorWaitCountdown = 8;
-let aviatorHistory = [1.45, 3.82, 1.12, 12.40, 2.15, 1.89, 5.60, 1.04, 4.10, 2.75, 19.20, 1.33];
-let aviatorActiveBets = []; // { betId, playerId, userPhone, bet, panel, cashedOut, cashOutMultiplier, winAmount, isFake, targetCashOut }
+let aviatorHistory = new Array(1.45, 3.82, 1.12, 12.40, 2.15, 1.89, 5.60, 1.04, 4.10, 2.75, 19.20, 1.33);
+let aviatorActiveBets = new Array();
 
 function generateAviatorCrashPoint() {
     if (customAviatorCrashPoint && customAviatorCrashPoint >= 1.00) {
@@ -422,7 +477,7 @@ function generateAviatorCrashPoint() {
         return locked;
     }
     const r = Math.random();
-    if (r < 0.04) return 1.00; // 4% ዕድል በ 1.00x እንዲፈነዳ
+    if (r < 0.04) return 1.00;
     const raw = 0.96 / (1 - r);
     const capped = Math.min(raw, 100.00);
     return Math.max(1.01, parseFloat(capped.toFixed(2)));
@@ -430,8 +485,8 @@ function generateAviatorCrashPoint() {
 
 function spawnAviatorFakePlayers() {
     aviatorActiveBets = aviatorActiveBets.filter(b => !b.isFake);
-    const botAmounts =;
-    const numBots = Math.floor(Math.random() * 8) + 12; // ከ 12 እስከ 20 ቦቶች
+    const botAmounts = new Array(20, 50, 100, 150, 200, 300, 500, 1000, 1500, 2500);
+    const numBots = Math.floor(Math.random() * 8) + 12;
     for (let i = 0; i < numBots; i++) {
         const botId = PERMANENT_BOT_PLAYERS[Math.floor(Math.random() * PERMANENT_BOT_PLAYERS.length)];
         const betAmt = botAmounts[Math.floor(Math.random() * botAmounts.length)];
@@ -472,7 +527,6 @@ function startAviatorGameLoop() {
             const elapsedSec = (Date.now() - flightStartTime) / 1000;
             aviatorMultiplier = parseFloat(Math.pow(Math.E, 0.095 * elapsedSec).toFixed(2));
 
-            // ቦቶች ዒላማቸው ላይ ሲደርሱ በራሳቸው Cash Out ያደርጋሉ
             aviatorActiveBets.forEach(b => {
                 if (b.isFake && !b.cashedOut && aviatorMultiplier >= b.targetCashOut) {
                     b.cashedOut = true;
@@ -498,6 +552,7 @@ function startAviatorGameLoop() {
         }
     }, 100);
 }
+
 // --- ✈️ AVIATOR USER & ADMIN APIs ---
 
 app.get('/api/aviator-status', (req, res) => {
@@ -621,8 +676,11 @@ app.post('/admin/set-aviator-crash', requireAdmin, (req, res) => {
     res.json({ success: true, message: `🟢 ቀጣዩ Aviator በ ${val.toFixed(2)}x ላይ እንዲፈነዳ ተቆልፏል!` });
 });
 
+// ================= 🚀 START SERVER & DATABASE =================
+
 mongoose.connect(config.MONGO_URI).then(() => {
     console.log("✅ ከ MongoDB ዳታቤዝ ጋር በተሳካ ሁኔታ ተገናኝቷል!");
     startKenoGameLoop();
+    startAviatorGameLoop();
     app.listen(config.PORT, () => { console.log(`💼 ሰርቨሩ በፖርት ${config.PORT} ላይ በአስተማማኝ ሁኔታ ተነስቷል!`); });
 }).catch(err => console.error("❌ የዳታቤዝ ግንኙነት ስህተት:", err));
