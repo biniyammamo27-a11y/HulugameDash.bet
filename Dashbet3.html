@@ -11,6 +11,7 @@
         input, select { width: 95%; padding: 12px; margin: 10px 0; border: 1px solid #263d35; border-radius: 8px; background: #192823; color: #fff; font-size: 16px; box-sizing: border-box; }
         button { width: 95%; padding: 12px; background: #22c55e; color: #051b11; border: none; border-radius: 8px; font-weight: bold; font-size: 16px; cursor: pointer; margin-top: 10px; transition: 0.2s; }
         button:hover { background: #16a34a; color: #fff; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
         .tab-buttons { display: flex; justify-content: space-around; margin-bottom: 20px; background: #192823; border-radius: 8px; padding: 5px; border: 1px solid #263d35; }
         .tab-btn { background: none; color: #94a3b8; width: 48%; padding: 10px; margin: 0; border-radius: 6px; border: none; cursor: pointer; }
         .tab-btn.active { background: #22c55e; color: #051b11; font-weight: bold; }
@@ -127,7 +128,7 @@
                 <select id="deposit-method"><option value="telebirr">telebirr</option><option value="cbebirr">CBE birr</option></select>
                 <input type="number" id="deposit-amount" placeholder="Deposit Amount">
                 <input type="text" id="deposit-phone" placeholder="Your Phone Number">
-                <button style="background: #22c55e; color: #051b11; margin-top: 15px;" onclick="submitDeposit()">REQUEST DEPOSIT</button>
+                <button id="deposit-submit-btn" style="background: #22c55e; color: #051b11; margin-top: 15px;" onclick="submitDeposit()">REQUEST DEPOSIT</button>
             </div>
 
             <div id="withdraw-form-block" class="wallet-card" style="display: none;">
@@ -140,7 +141,7 @@
                 <input type="text" id="withdraw-account" placeholder="Your Account Number">
                 <input type="text" id="withdraw-name" placeholder="Full Name">
                 <select id="withdraw-method"><option value="telebirr">telebirr</option><option value="cbebirr">CBE birr</option></select>
-                <button style="background: #ef4444; color: #fff; margin-top: 10px;" onclick="submitWithdraw()">Request Withdrawal</button>
+                <button id="withdraw-submit-btn" style="background: #ef4444; color: #fff; margin-top: 10px;" onclick="submitWithdraw()">Request Withdrawal</button>
             </div>
         </div>
         <div id="game-tab" style="display: none;">
@@ -267,9 +268,11 @@ function executeUserLogoutAction() {
     balanceInterval = null;
     userToken = "";
     localStorage.removeItem('dashbet_token');
+    localStorage.removeItem('dashbet_phone');
     globalScreenshotBase64 = "";
     activeTickets = new Array();
     selectedNumbers = new Array();
+    lastProcessedRound = null;
     document.getElementById('login-phone').value = "";
     document.getElementById('login-password').value = "";
     document.getElementById('main-content-section').style.display = 'none';
@@ -296,7 +299,7 @@ function displaySelectedScreenshot(input) {
             uploadBox.innerHTML = '<img src="' + e.target.result + '" style="width: 100%; height: 100%; object-fit: contain; border-radius: 8px;">'; 
             globalScreenshotBase64 = e.target.result;
         };
-        reader.readAsDataURL(input.files); 
+        reader.readAsDataURL(input.files[0]); 
     }
 }
 
@@ -387,6 +390,7 @@ function loginUser() {
         if (data.success) {
             userToken = data.token;
             localStorage.setItem('dashbet_token', userToken);
+            localStorage.setItem('dashbet_phone', data.user.phone);
             document.getElementById('auth-section').style.display = 'none';
             document.getElementById('main-content-section').style.display = 'block';
             document.getElementById('user-phone-display').innerText = data.user.phone;
@@ -424,10 +428,13 @@ function submitDeposit() {
     const amount = document.getElementById('deposit-amount').value.trim(); 
     const senderPhone = document.getElementById('deposit-phone').value.trim(); 
     const method = document.getElementById('deposit-method').value; 
+    const depBtn = document.getElementById('deposit-submit-btn');
     
     if(!amount || !senderPhone) { alert("⚠️ እባክዎ ሁሉንም ፎርሞች ይሙሉ!"); return; }
     if(!globalScreenshotBase64) { alert("⚠️ እባክዎ መጀመሪያ የክፍያውን ማረጋገጫ ፎቶ ይጫኑ!"); return; }
     
+    if (depBtn) { depBtn.disabled = true; depBtn.innerText = "⏳ በመላክ ላይ..."; }
+
     fetch(`${SERVER_URL}/api/deposit`, { 
         method: 'POST', 
         headers: authHeaders(), 
@@ -435,6 +442,7 @@ function submitDeposit() {
     })
     .then(res => res.json())
     .then(data => {
+        if (depBtn) { depBtn.disabled = false; depBtn.innerText = "REQUEST DEPOSIT"; }
         alert(data.message); 
         if(data.success) {
             globalScreenshotBase64 = ""; 
@@ -443,7 +451,10 @@ function submitDeposit() {
             document.getElementById('deposit-phone').value = ""; 
             backToWalletMenu(); 
         }
-    }).catch(() => alert("❌ የዲፖዚት ጥያቄ መላክ አልተቻለም!"));
+    }).catch(() => {
+        if (depBtn) { depBtn.disabled = false; depBtn.innerText = "REQUEST DEPOSIT"; }
+        alert("❌ የዲፖዚት ጥያቄ መላክ አልተቻለም!");
+    });
 }
 
 function submitWithdraw() {
@@ -451,8 +462,12 @@ function submitWithdraw() {
     const accountNumber = document.getElementById('withdraw-account').value; 
     const fullName = document.getElementById('withdraw-name').value; 
     const method = document.getElementById('withdraw-method').value; 
+    const withBtn = document.getElementById('withdraw-submit-btn');
+
     if(!amount || !accountNumber || !fullName) { alert("⚠️ እባክዎ ሁሉንም ፎርሞች ይሙሉ!"); return; }
     
+    if (withBtn) { withBtn.disabled = true; withBtn.innerText = "⏳ በመላክ ላይ..."; }
+
     fetch(`${SERVER_URL}/api/withdraw`, { 
         method: 'POST', 
         headers: authHeaders(), 
@@ -460,12 +475,17 @@ function submitWithdraw() {
     })
     .then(res => res.json())
     .then(data => { 
+        if (withBtn) { withBtn.disabled = false; withBtn.innerText = "Request Withdrawal"; }
         alert(data.message);
         if(data.success) { 
+            document.getElementById('withdraw-amount').value = "";
             fetchLiveBalanceFromServer(); 
             backToWalletMenu(); 
         }
-    }).catch(() => alert("❌ የዊዝድሮው ጥያቄ መላክ አልተቻለም!"));
+    }).catch(() => {
+        if (withBtn) { withBtn.disabled = false; withBtn.innerText = "Request Withdrawal"; }
+        alert("❌ የዊዝድሮው ጥያቄ መላክ አልተቻለም!");
+    });
 }
 
 function updateLiveBalanceDisplays(newBalance) {
@@ -530,7 +550,7 @@ function backToWalletMenu() {
     document.getElementById('deposit-form-block').style.display = 'none'; 
     document.getElementById('withdraw-form-block').style.display = 'none'; 
 }
-// 🔄 ከሰርቨሩ ጋር የታሰረ ቀጥታ የ 60 ሰከንድ ሰዓት እና የዕጣ ማመሳሰያ
+// 🔄 ከሰርቨሩ ጋር የታሰረ ቀጥታ የ 60 ሰከንድ ሰዓት እና የዕጣ ማመሳሰያ (ያለምንም መዘግየት)
 setInterval(async () => {
     try {
         const res = await fetch(`${SERVER_URL}/api/keno-status`);
@@ -557,7 +577,11 @@ setInterval(async () => {
             renderSortedCombinedList();
         }
 
-        if (data.latestResults && data.latestResults.length === 20 && lastProcessedRound !== data.roundNumber && data.timeLeft >= 70) {
+        if (lastProcessedRound === null) {
+            lastProcessedRound = data.roundNumber;
+        }
+
+        if (data.latestResults && data.latestResults.length === 20 && lastProcessedRound !== data.roundNumber) {
             lastProcessedRound = data.roundNumber;
             startAnimatedKenoDraw(data.latestResults, data.roundNumber - 1);
         }
@@ -703,8 +727,11 @@ function placeKenoBet() {
         return;
     }
     const betInput = document.getElementById('bet-amount-input');
+    const betBtn = document.getElementById('bet-submit-btn');
     const typedBetAmount = parseFloat(betInput.value) || 0;
     if (typedBetAmount <= 0) { alert("⚠️ ትክክለኛ የብር መጠን ያስገቡ!"); return; }
+
+    if (betBtn) { betBtn.disabled = true; betBtn.innerText = "⏳ በመቁረጥ ላይ..."; }
 
     fetch(`${SERVER_URL}/api/place-bet`, { 
         method: 'POST', 
@@ -713,6 +740,7 @@ function placeKenoBet() {
     })
     .then(res => res.json())
     .then(data => {
+        if (betBtn) { betBtn.disabled = false; betBtn.innerText = "BET"; }
         if (data.success) {
             updateLiveBalanceDisplays(data.newBalance);
             const ticket = { 
@@ -734,13 +762,17 @@ function placeKenoBet() {
         } else {
             alert(data.message);
         }
-    }).catch(() => alert("❌ ከሰርቨር ጋር መገናኘት አልተቻለም!"));
+    }).catch(() => {
+        if (betBtn) { betBtn.disabled = false; betBtn.innerText = "BET"; }
+        alert("❌ ከሰርቨር ጋር መገናኘት አልተቻለም!");
+    });
 }
 
 function startAnimatedKenoDraw(drawResults, drawnRoundNumber) {
     isDrawingActive = true; 
     drawnNumbersSoFar = new Array();
-    document.getElementById('bet-submit-btn').style.opacity = "0.5";
+    const betBtn = document.getElementById('bet-submit-btn');
+    if (betBtn) { betBtn.disabled = true; betBtn.style.opacity = "0.5"; }
 
     const stageBox = document.getElementById('live-draw-stage-box');
     const bigBall = document.getElementById('big-drawn-ball');
@@ -806,7 +838,8 @@ function executePostDrawHistoryAndCleanup(drawnRoundNumber) {
         const stageBox = document.getElementById('live-draw-stage-box');
         if (stageBox) stageBox.style.display = 'none';
         isDrawingActive = false; 
-        document.getElementById('bet-submit-btn').style.opacity = "1"; 
+        const betBtn = document.getElementById('bet-submit-btn');
+        if (betBtn) { betBtn.disabled = false; betBtn.style.opacity = "1"; }
     }, 4000); 
 }
 
@@ -820,6 +853,28 @@ document.addEventListener("DOMContentLoaded", () => {
         } 
     }
     renderTicketsToUI();
+
+    if (userToken) {
+        fetch(`${SERVER_URL}/api/my-balance`, { headers: authHeaders() })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('auth-section').style.display = 'none';
+                    document.getElementById('main-content-section').style.display = 'block';
+                    const savedPhone = localStorage.getItem('dashbet_phone');
+                    if (savedPhone) document.getElementById('user-phone-display').innerText = savedPhone;
+                    updateLiveBalanceDisplays(data.balance);
+                    switchTab('game');
+                    loadDrawHistoryFromServer();
+                    loadUserHistoryFromServer();
+                    renderStatisticsToUI();
+                    if (balanceInterval) clearInterval(balanceInterval);
+                    balanceInterval = setInterval(fetchLiveBalanceFromServer, 3000);
+                } else {
+                    executeUserLogoutAction();
+                }
+            }).catch(() => {});
+    }
 });
 
 function selectNumber(element, num) {
