@@ -128,6 +128,9 @@ const SERVER_URL = window.location.origin.includes('localhost') || window.locati
     : "https://onrender.com";
 
 const adminToken = localStorage.getItem('adminToken') || "";
+    if (!adminToken) {
+    window.location.href = `${SERVER_URL}/admin-login`;
+}
 let adminPickedKeno = new Array();
 
 function adminHeaders() {
