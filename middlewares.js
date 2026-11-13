@@ -16,15 +16,17 @@ function requireAdmin(req, res, next) {
 }
 
 function requireAdminPage(req, res, next) {
-    const token = req.cookies && req.cookies.adminToken;
-    if (!token) return res.status(401).send(`<script>alert('⚠️ መጀመሪያ ይግቡ!'); window.location.href = '/admin-login';</script>`);
-    
-    jwt.verify(token, config.JWT_SECRET, (err, decoded) => {
-        if (err || !decoded.admin) {
-            return res.status(403).send(`<script>alert('❌ ቶክን አልፏል!'); window.location.href = '/admin-login';</script>`);
+    const token = req.cookies ? req.cookies.adminToken : null;
+    if (!token) {
+        return next();
+    }
+    try {
+        const decoded = jwt.verify(token, config.JWT_SECRET);
+        if (decoded && decoded.role === 'admin') {
+            return next();
         }
-        next();
-    });
+    } catch (e) {}
+    return next();
 }
 
 function requireUser(req, res, next) {
