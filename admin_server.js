@@ -743,7 +743,6 @@ app.post('/api/mini-roulette-spin', requireUser, async (req, res) => {
             return res.json({ success: false, message: "Not enough balance" });
         }
 
-        // የቤቱን ትርፍ የሚያስብ ስሌት (House Profit Smart Weighting)
         const candidates = new Array();
         for (let n = 1; n <= 12; n++) {
             const payout = calculateMrPayoutForNumber(bets, n);
@@ -774,6 +773,113 @@ app.post('/api/mini-roulette-spin', requireUser, async (req, res) => {
             isRed,
             totalBet,
             totalWin,
+            newBalance: finalBalance
+        });
+    } catch (e) {
+        res.json({ success: false, message: "❌ የሰርቨር ስህተት ተፈጥሯል!" });
+    }
+});
+
+// ================= 🦁 LION SPIN ENGINE (SHAMOBET + HOUSE PROFIT) =================
+
+const LION_SPIN_SLOTS = new Array(
+    { index: 0, symbol: 'drum', mult: 10 },
+    { index: 1, symbol: 'shield', mult: 20 },
+    { index: 2, symbol: 'dragonfly', mult: 50 },
+    { index: 3, symbol: 'dragonfly', mult: 120 },
+    { index: 4, symbol: 'mask', mult: 5 },
+    { index: 5, symbol: 'mask', mult: 3 },
+    { index: 6, symbol: 'banana', mult: 15 },
+    { index: 7, symbol: 'watermelon', mult: 20 },
+    { index: 8, symbol: 'watermelon', mult: 3 },
+    { index: 9, symbol: 'whitelion', mult: 0 },
+    { index: 10, symbol: 'mask', mult: 5 },
+    { index: 11, symbol: 'drum', mult: 3 },
+    { index: 12, symbol: 'drum', mult: 10 },
+    { index: 13, symbol: 'shield', mult: 20 },
+    { index: 14, symbol: 'mango', mult: 3 },
+    { index: 15, symbol: 'mango', mult: 40 },
+    { index: 16, symbol: 'mask', mult: 5 },
+    { index: 17, symbol: 'banana', mult: 3 },
+    { index: 18, symbol: 'banana', mult: 15 },
+    { index: 19, symbol: 'papaya', mult: 30 },
+    { index: 20, symbol: 'papaya', mult: 3 },
+    { index: 21, symbol: 'redlion', mult: 0 },
+    { index: 22, symbol: 'mask', mult: 5 },
+    { index: 23, symbol: 'mask', mult: 3 }
+);
+
+app.post('/api/lion-spin-play', requireUser, async (req, res) => {
+    const { bets } = req.body;
+    if (!bets || typeof bets !== 'object') {
+        return res.json({ success: false, message: "Please place a bet before playing" });
+    }
+
+    let totalStake = 0;
+    for (let sym in bets) {
+        const val = parseFloat(bets[sym]) || 0;
+        if (val > 0) totalStake += val;
+    }
+
+    if (totalStake < 2) {
+        return res.json({ success: false, message: "Please place a bet before playing" });
+    }
+
+    try {
+        const user = await User.findOneAndUpdate(
+            { phone: req.userPhone, balance: { $gte: totalStake } },
+            { $inc: { balance: -totalStake } },
+            { new: true }
+        );
+        if (!user) {
+            return res.json({ success: false, message: "Insufficient balance." });
+        }
+
+        // የቤቱን ትርፍ የሚያስብ ስሌት (House Profit Smart Weighting)
+        const candidates = new Array();
+        for (let i = 0; i < LION_SPIN_SLOTS.length; i++) {
+            const slot = LION_SPIN_SLOTS[i];
+            const betOnSymbol = parseFloat(bets[slot.symbol]) || 0;
+            const payout = betOnSymbol * slot.mult;
+
+            let weight = 1;
+            if (payout === 0) {
+                weight = 14;
+            } else if (payout <= totalStake) {
+                weight = 7;
+            } else if (slot.mult <= 15) {
+                weight = 3;
+            } else {
+                weight = 1;
+            }
+
+            for (let w = 0; w < weight; w++) {
+                candidates.push(slot);
+            }
+        }
+
+        const chosenSlot = candidates[Math.floor(Math.random() * candidates.length)];
+        const betOnChosen = parseFloat(bets[chosenSlot.symbol]) || 0;
+        const rawWin = betOnChosen * chosenSlot.mult;
+        const winAmount = parseFloat((rawWin > 50000 ? 50000 : rawWin).toFixed(2));
+
+        let finalBalance = user.balance;
+        if (winAmount > 0) {
+            const updatedUser = await User.findOneAndUpdate(
+                { phone: req.userPhone },
+                { $inc: { balance: winAmount } },
+                { new: true }
+            );
+            if (updatedUser) finalBalance = updatedUser.balance;
+        }
+
+        res.json({
+            success: true,
+            landedIndex: chosenSlot.index,
+            symbol: chosenSlot.symbol,
+            multiplier: chosenSlot.mult,
+            totalStake,
+            winAmount,
             newBalance: finalBalance
         });
     } catch (e) {
