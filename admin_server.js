@@ -75,7 +75,7 @@ function generateFakePlayersForRound() {
                 isFake: true
             });
         }
-        totalFakeBetsCount = Math.floor(Math.random() * 120) + 180;
+        totalFakeBetsCount = Math.floor(Math.random() * 400) + 800;
     }
 }
 
@@ -99,7 +99,9 @@ function runThreeSecondBotEngine() {
             isFake: true
         });
         if (fakePlayersLiveBets.length > 40) fakePlayersLiveBets.pop();
-        totalFakeBetsCount += Math.floor(Math.random() * 180) + 95;
+        if (totalFakeBetsCount < 10500) {
+            totalFakeBetsCount += Math.floor(Math.random() * 200) + 450;
+        }
     }, 3000); 
 }
 
