@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashbet - Ultimate Live KENO & AVIATOR</title>
+    <title>Dashbet - Ultimate Live KENO, AVIATOR & MINI ROULETTE</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0c1411; color: #ffffff; margin: 0; padding: 0; padding-bottom: 80px; text-align: center; }
         .container { max-width: 500px; margin: 0 auto; background: #121d19; padding: 16px; min-height: 100vh; box-sizing: border-box; position: relative; border-left: 1px solid #1e312a; border-right: 1px solid #1e312a; }
@@ -116,6 +116,40 @@
         .av-live-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 8px; border-radius: 6px; font-size: 12px; margin-bottom: 4px; background: #192823; border: 1px solid #22362f; }
         .av-live-row.won { background: rgba(34, 197, 94, 0.16); border-color: #22c55e; }
         .av-live-row.me { border: 1.5px solid #4ade80; }
+        /* ================= 🎡 SPRIBE MINI ROULETTE CSS (SHAMOBET STYLE) ================= */
+        .mr-casino-wrapper { background: radial-gradient(circle at center, #1b7a3d 0%, #0f4c24 100%); border-radius: 14px; border: 1.5px solid #287242; padding: 10px; position: relative; overflow: hidden; box-shadow: 0 8px 25px rgba(0,0,0,0.6); }
+        .mr-top-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; position: relative; }
+        .mr-badge-group { display: flex; align-items: center; gap: 6px; }
+        .mr-title-pill { background: #15803d; border: 1px solid #4ade80; color: #fff; font-weight: 900; font-size: 12px; padding: 5px 12px; border-radius: 20px; letter-spacing: 0.5px; }
+        .mr-help-btn { width: 26px; height: 26px; border-radius: 50%; background: rgba(250, 204, 21, 0.2); border: 1.5px solid #facc15; color: #facc15; font-weight: 900; font-size: 13px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .mr-wheel-area { position: relative; width: 175px; height: 175px; margin: 4px auto 8px auto; }
+        #mr-wheel-canvas { width: 175px; height: 175px; display: block; }
+        .mr-toast-alert { display: none; position: absolute; top: 8px; left: 50%; transform: translateX(-50%); background: #dc2626; color: #fff; font-weight: bold; font-size: 13px; padding: 8px 18px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.6); z-index: 50; white-space: nowrap; }
+        .mr-toast-alert.win { background: #16a34a; border: 1.5px solid #fde047; }
+        .mr-bet-info-bar { display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: bold; color: #e2e8f0; margin-bottom: 6px; padding: 0 4px; }
+        .mr-paytable-link { color: #86efac; text-decoration: underline; cursor: pointer; font-size: 13px; }
+        .mr-felt-grid { display: grid; grid-template-columns: repeat(6, 1fr); border: 1.5px solid rgba(255,255,255,0.65); border-radius: 6px; overflow: hidden; margin-bottom: 10px; background: rgba(10, 60, 28, 0.45); }
+        .mr-cell { border: 1px solid rgba(255,255,255,0.45); height: 50px; display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; user-select: none; transition: 0.15s; }
+        .mr-cell:active { transform: scale(0.95); }
+        .mr-cell.win-flash { background: rgba(250, 204, 21, 0.45) !important; box-shadow: inset 0 0 12px #facc15; }
+        .mr-num-circle { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 15px; color: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
+        .mr-red { background: #dc2626; border: 1.5px solid #fca5a5; }
+        .mr-black { background: #1e293b; border: 1.5px solid #94a3b8; }
+        .mr-outside-text { font-size: 12px; font-weight: 900; color: #ffffff; }
+        .mr-placed-chip { position: absolute; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 900; color: #fff; border: 2px dashed #fff; box-shadow: 0 3px 8px rgba(0,0,0,0.8); z-index: 5; pointer-events: none; }
+        .mr-action-strip { display: flex; justify-content: space-between; align-items: center; gap: 6px; margin-bottom: 12px; }
+        .mr-ctrl-btn { flex: 1; padding: 8px 4px; margin: 0; border-radius: 20px; background: rgba(15, 76, 36, 0.85); border: 1px solid rgba(255,255,255,0.4); color: #fff; font-size: 12px; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 4px; }
+        .mr-bottom-deck { display: flex; justify-content: space-between; align-items: center; gap: 6px; padding-top: 4px; }
+        .mr-chips-row { display: flex; align-items: center; gap: 6px; flex: 1; justify-content: space-around; }
+        .mr-chip-btn { width: 42px; height: 42px; border-radius: 50%; border: 3px dashed rgba(255,255,255,0.85); color: #fff; font-weight: 900; font-size: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.55); transition: 0.15s; user-select: none; }
+        .mr-chip-btn.selected { transform: translateY(-6px) scale(1.12); box-shadow: 0 0 15px #fde047; border-style: solid; border-color: #fde047; }
+        .mr-spin-big-btn { width: 64px; height: 64px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, #facc15, #ca8a04); border: 3px solid #fef08a; color: #1e293b; font-size: 28px; font-weight: 900; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.6); margin: 0; padding: 0; }
+        .mr-spin-big-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .mr-modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.82); z-index: 20000; align-items: center; justify-content: center; padding: 15px; box-sizing: border-box; }
+        .mr-modal-overlay.show { display: flex; }
+        .mr-modal-card { background: #1e2229; border: 1px solid #374151; border-radius: 14px; width: 100%; max-width: 400px; max-height: 82vh; overflow-y: auto; padding: 16px; text-align: left; color: #e2e8f0; }
+        .mr-modal-head { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #374151; padding-bottom: 10px; margin-bottom: 12px; font-size: 16px; font-weight: 900; color: #fff; }
+        .mr-close-x { width: 28px; height: 28px; border-radius: 50%; background: #374151; color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -198,7 +232,7 @@
                 <div class="menu-title-text">የጨዋታዎች ዝርዝር / GAMES MENU</div>
                 <div class="games-premium-grid">
                     <div class="game-premium-card" onclick="switchActiveGame('keno')">🎰<br><div class="game-title-text">Fast Keno</div><div class="game-status-active" style="color:#4ade80; font-size:12px; font-weight:bold;">ACTIVE</div></div>
-                    <div class="game-premium-card" onclick="switchActiveGame('spin')">🎡<br><div class="game-title-text">Lucky Spin</div><div class="game-status-soon" style="color:#94a3b8; font-size:12px;">SOON</div></div>
+                    <div class="game-premium-card" onclick="switchActiveGame('roulette')">🎡<br><div class="game-title-text">Mini Roulette</div><div class="game-status-active" style="color:#4ade80; font-size:12px; font-weight:bold;">ACTIVE</div></div>
                     <div class="game-premium-card" onclick="switchActiveGame('aviator')">🚀<br><div class="game-title-text">Aviator</div><div class="game-status-active" style="color:#4ade80; font-size:12px; font-weight:bold;">ACTIVE</div></div>
                     <div class="game-premium-card" onclick="switchActiveGame('chicken')">🐔<br><div class="game-title-text">Chicken Road 2</div><div class="game-status-soon" style="color:#94a3b8; font-size:12px;">SOON</div></div>
                 </div>
@@ -398,6 +432,107 @@
                     <div id="av-live-bets-list" style="max-height: 240px; overflow-y: auto;"></div>
                 </div>
             </div>
+            <!-- ================= 🎡 SPRIBE MINI ROULETTE HTML (SHAMOBET STYLE) ================= -->
+            <div id="roulette-game-main-block" style="display: none; margin-top: 8px;">
+                <button onclick="switchActiveGame('menu')" style="background:#21342d; color:#a7f3d0; border:1px solid #2b443b; padding:8px; font-size:14px; margin-bottom:8px;">⬅ ወደ ጌም ዝርዝር ይመለሱ</button>
+
+                <div class="mr-casino-wrapper">
+                    <div id="mr-toast-alert" class="mr-toast-alert">Not enough balance</div>
+
+                    <!-- Top Bar -->
+                    <div class="mr-top-header">
+                        <div class="mr-badge-group">
+                            <span class="mr-title-pill">MINI ROULETTE</span>
+                            <div class="mr-help-btn" onclick="openMrModal('howto')">?</div>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span style="color:#fff; font-weight:900; font-size:14px;" id="mr-header-bal-text">0.00 Birr</span>
+                            <div class="av-menu-hamburger" style="background:#14532d; border-color:#4ade80;" onclick="toggleMrDrawer(event)">≡</div>
+                        </div>
+
+                        <!-- ≡ Dropdown Menu (Shamobet Style) -->
+                        <div id="mr-dropdown-drawer" class="av-dropdown-drawer" onclick="event.stopPropagation()">
+                            <div class="av-drawer-item" onclick="toggleMrSound()">
+                                <span>🔊 Sound</span>
+                                <div id="mr-tog-sound" class="av-toggle-switch on"><div class="av-toggle-knob"></div></div>
+                            </div>
+                            <div class="av-drawer-item" onclick="openMrModal('rules')"><span>📋 Game Rules</span><span>›</span></div>
+                            <div class="av-drawer-item" onclick="openMrModal('limits')"><span>⚖️ Game Limits</span><span>›</span></div>
+                            <div class="av-drawer-item" onclick="openMrModal('history')"><span>📜 Bet History</span><span>›</span></div>
+                            <div class="av-drawer-item" onclick="openMrModal('howto')"><span>❓ How to Play</span><span>›</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Rotating Wheel -->
+                    <div class="mr-wheel-area">
+                        <canvas id="mr-wheel-canvas" width="175" height="175"></canvas>
+                    </div>
+
+                    <!-- Bet Total & Paytable -->
+                    <div class="mr-bet-info-bar">
+                        <span>Bet: <span id="mr-total-bet-text">0.00</span> Birr</span>
+                        <span class="mr-paytable-link" onclick="openMrModal('paytable')">Paytable</span>
+                    </div>
+
+                    <!-- 6x3 Betting Grid (Exact Spribe Layout) -->
+                    <div class="mr-felt-grid" id="mr-felt-grid">
+                        <!-- Row 1: 2, 4, 6, 8, 10, 12 -->
+                        <div class="mr-cell" id="mr-cell-num_2" onclick="placeMrChip('num_2')"><div class="mr-num-circle mr-black">2</div></div>
+                        <div class="mr-cell" id="mr-cell-num_4" onclick="placeMrChip('num_4')"><div class="mr-num-circle mr-black">4</div></div>
+                        <div class="mr-cell" id="mr-cell-num_6" onclick="placeMrChip('num_6')"><div class="mr-num-circle mr-black">6</div></div>
+                        <div class="mr-cell" id="mr-cell-num_8" onclick="placeMrChip('num_8')"><div class="mr-num-circle mr-red">8</div></div>
+                        <div class="mr-cell" id="mr-cell-num_10" onclick="placeMrChip('num_10')"><div class="mr-num-circle mr-red">10</div></div>
+                        <div class="mr-cell" id="mr-cell-num_12" onclick="placeMrChip('num_12')"><div class="mr-num-circle mr-red">12</div></div>
+
+                        <!-- Row 2: 1, 3, 5, 7, 9, 11 -->
+                        <div class="mr-cell" id="mr-cell-num_1" onclick="placeMrChip('num_1')"><div class="mr-num-circle mr-red">1</div></div>
+                        <div class="mr-cell" id="mr-cell-num_3" onclick="placeMrChip('num_3')"><div class="mr-num-circle mr-red">3</div></div>
+                        <div class="mr-cell" id="mr-cell-num_5" onclick="placeMrChip('num_5')"><div class="mr-num-circle mr-red">5</div></div>
+                        <div class="mr-cell" id="mr-cell-num_7" onclick="placeMrChip('num_7')"><div class="mr-num-circle mr-black">7</div></div>
+                        <div class="mr-cell" id="mr-cell-num_9" onclick="placeMrChip('num_9')"><div class="mr-num-circle mr-black">9</div></div>
+                        <div class="mr-cell" id="mr-cell-num_11" onclick="placeMrChip('num_11')"><div class="mr-num-circle mr-black">11</div></div>
+
+                        <!-- Row 3: 1-6, Even, Black, Red, Odd, 7-12 -->
+                        <div class="mr-cell" id="mr-cell-1-6" onclick="placeMrChip('1-6')"><span class="mr-outside-text">1-6</span></div>
+                        <div class="mr-cell" id="mr-cell-even" onclick="placeMrChip('even')"><span class="mr-outside-text">Even</span></div>
+                        <div class="mr-cell" id="mr-cell-black" onclick="placeMrChip('black')"><div class="mr-num-circle mr-black" style="width:28px; height:28px;"></div></div>
+                        <div class="mr-cell" id="mr-cell-red" onclick="placeMrChip('red')"><div class="mr-num-circle mr-red" style="width:28px; height:28px;"></div></div>
+                        <div class="mr-cell" id="mr-cell-odd" onclick="placeMrChip('odd')"><span class="mr-outside-text">Odd</span></div>
+                        <div class="mr-cell" id="mr-cell-7-12" onclick="placeMrChip('7-12')"><span class="mr-outside-text">7-12</span></div>
+                    </div>
+
+                    <!-- Back / Clear / Rebet Buttons -->
+                    <div class="mr-action-strip">
+                        <button class="mr-ctrl-btn" onclick="undoMrChip()">↩ Back</button>
+                        <button class="mr-ctrl-btn" onclick="clearMrBets()">✕ Clear</button>
+                        <button class="mr-ctrl-btn" onclick="rebetMrBets()">↻ Rebet</button>
+                    </div>
+
+                    <!-- Chips & Spin Button -->
+                    <div class="mr-bottom-deck">
+                        <div class="mr-chips-row">
+                            <div class="mr-chip-btn" style="background:#64748b;" data-val="1" onclick="selectMrChip(1)">1</div>
+                            <div class="mr-chip-btn selected" style="background:#dc2626;" data-val="10" onclick="selectMrChip(10)">10</div>
+                            <div class="mr-chip-btn" style="background:#2563eb;" data-val="50" onclick="selectMrChip(50)">50</div>
+                            <div class="mr-chip-btn" style="background:#7c3aed;" data-val="100" onclick="selectMrChip(100)">100</div>
+                            <div class="mr-chip-btn" style="background:#1e293b;" data-val="500" onclick="selectMrChip(500)">500</div>
+                        </div>
+                        <button id="mr-spin-btn" class="mr-spin-big-btn" onclick="spinMiniRoulette()">↻</button>
+                    </div>
+                    <div style="font-size:11px; color:#bbf7d0; margin-top:6px;">1 = 1 Birr</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mini Roulette Info / Paytable Modal -->
+        <div id="mr-info-modal" class="mr-modal-overlay" onclick="closeMrModal()">
+            <div class="mr-modal-card" onclick="event.stopPropagation()">
+                <div class="mr-modal-head">
+                    <span id="mr-modal-title">PAYTABLE</span>
+                    <div class="mr-close-x" onclick="closeMrModal()">✕</div>
+                </div>
+                <div id="mr-modal-body" style="font-size:13px; line-height:1.6;"></div>
+            </div>
         </div>
 
         <div class="navigation-bar">
@@ -465,6 +600,8 @@ window.onclick = function() {
     if(box) box.classList.remove("show");
     const avDrawer = document.getElementById("av-dropdown-drawer");
     if(avDrawer) avDrawer.classList.remove("open");
+    const mrDrawer = document.getElementById("mr-dropdown-drawer");
+    if(mrDrawer) mrDrawer.classList.remove("open");
 };
 
 function triggerFileInputClick() {
@@ -480,7 +617,7 @@ function displaySelectedScreenshot(input) {
             uploadBox.innerHTML = '<img src="' + e.target.result + '" style="width: 100%; height: 100%; object-fit: contain; border-radius: 8px;">'; 
             globalScreenshotBase64 = e.target.result;
         };
-        reader.readAsDataURL(input.files[0]); 
+        reader.readAsDataURL(input.files.item(0)); 
     }
 }
 
@@ -679,12 +816,18 @@ function updateLiveBalanceDisplays(newBalance) {
     if (withdrawDisplay) withdrawDisplay.innerText = formattedBal;
     const avHeaderBal = document.getElementById('av-header-bal-text');
     if (avHeaderBal) avHeaderBal.innerText = `${formattedBal} ETB`;
+    const mrHeaderBal = document.getElementById('mr-header-bal-text');
+    if (mrHeaderBal) mrHeaderBal.innerText = `${formattedBal} Birr`;
 }
 
 function switchActiveGame(gameName) {
     document.getElementById('games-visual-list-menu-block').style.display = gameName === 'menu' ? 'block' : 'none';
     document.getElementById('keno-game-main-block').style.display = gameName === 'keno' ? 'block' : 'none';
     document.getElementById('aviator-game-main-block').style.display = gameName === 'aviator' ? 'block' : 'none';
+    document.getElementById('roulette-game-main-block').style.display = gameName === 'roulette' ? 'block' : 'none';
+    if (gameName === 'roulette' && typeof drawMiniRouletteWheel === 'function') {
+        drawMiniRouletteWheel(mrState.wheelAngle, mrState.ballAngle, mrState.ballRadius);
+    }
 }
 
 function switchAuthTab(type) {
@@ -1108,7 +1251,7 @@ function setAviatorQuickBet(panel, val) {
 }
 
 function updateAviatorPanelButtons() {
-   const panels = new Array(1, 2);
+    const panels = new Array(1, 2);
     for (let i = 0; i < panels.length; i++) {
         const panel = panels[i];
         const btn = document.getElementById(`av-action-btn-${panel}`);
@@ -1174,11 +1317,12 @@ function updateAviatorPanelButtons() {
 
         const spans = btn.querySelectorAll('span');
         if (spans.length === 2) {
-            if (spans[0].innerText !== topText) spans[0].innerText = topText;
-            if (spans[1].innerText !== subText) spans[1].innerText = subText;
+            if (spans.item(0).innerText !== topText) spans.item(0).innerText = topText;
+            if (spans.item(1).innerText !== subText) spans.item(1).innerText = subText;
         }
     }
 }
+
 async function placeAviatorBetNow(panel, betAmount) {
     if (!userToken) { alert("⚠️ እባክዎ መጀመሪያ ይግቡ!"); return; }
     const btn = document.getElementById(`av-action-btn-${panel}`);
@@ -1274,7 +1418,6 @@ function drawShamoRedPlane(ctx, x, y, tiltAngle) {
     ctx.translate(x, y);
     ctx.rotate(tiltAngle);
 
-    // 1. ከኋላ የሚወጣ የእሳት ጭስ (Flame)
     const flameLen = 14 + Math.random() * 10;
     const flameGrad = ctx.createLinearGradient(-24 - flameLen, 0, -18, 0);
     flameGrad.addColorStop(0, 'rgba(250, 204, 21, 0)');
@@ -1288,7 +1431,6 @@ function drawShamoRedPlane(ctx, x, y, tiltAngle) {
     ctx.closePath();
     ctx.fill();
 
-    // 2. የቀይ አውሮፕላኑ አካል (Red Plane Body)
     ctx.fillStyle = '#e11d48';
     ctx.beginPath();
     ctx.moveTo(-24, 2);
@@ -1299,7 +1441,6 @@ function drawShamoRedPlane(ctx, x, y, tiltAngle) {
     ctx.closePath();
     ctx.fill();
 
-    // 3. የጅራቱ ክንፍ (Tail Fin)
     ctx.fillStyle = '#be123c';
     ctx.beginPath();
     ctx.moveTo(-18, -2);
@@ -1309,13 +1450,11 @@ function drawShamoRedPlane(ctx, x, y, tiltAngle) {
     ctx.closePath();
     ctx.fill();
 
-    // 4. የላይ እና የታች ክንፎች (Wings)
     ctx.fillStyle = '#fb7185';
     ctx.fillRect(-4, -12, 16, 3);
     ctx.fillStyle = '#f43f5e';
     ctx.fillRect(-2, 4, 15, 3);
 
-    // 5. የሚሽከረከር ፕሮፔለር (Spinning Propeller)
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
     ctx.lineWidth = 2.2;
     const propH = 8 + Math.sin(Date.now() * 0.09) * 6;
@@ -1324,7 +1463,6 @@ function drawShamoRedPlane(ctx, x, y, tiltAngle) {
     ctx.lineTo(31, 2 + propH);
     ctx.stroke();
 
-    // 6. በአውሮፕላኑ ጎን ላይ ያለው X ምልክት
     ctx.strokeStyle = '#ffffff';
     ctx.lineWidth = 1.8;
     ctx.beginPath();
@@ -1436,9 +1574,11 @@ function renderAviatorLiveBets(betsList) {
     if (countEl) countEl.innerText = betsList.length;
     if (stageCountEl) stageCountEl.innerText = totalDisplay;
 
+    const bet1 = avState.myBets[1];
+    const bet2 = avState.myBets[2];
     const myIds = new Array(
-        avState.myBets[1] ? avState.myBets[1].playerId : '',
-        avState.myBets[2] ? avState.myBets[2].playerId : ''
+        bet1 ? bet1.playerId : '',
+        bet2 ? bet2.playerId : ''
     );
 
     listBox.innerHTML = betsList.map(b => {
@@ -1454,6 +1594,7 @@ function renderAviatorLiveBets(betsList) {
             </div>`;
     }).join('');
 }
+
 setInterval(async () => {
     const avBlock = document.getElementById('aviator-game-main-block');
     if (!avBlock || avBlock.style.display === 'none') return;
@@ -1532,6 +1673,438 @@ setInterval(async () => {
         renderAviatorLiveBets(data.bets);
     } catch (e) {}
 }, 100);
+// ================= 🎡 SPRIBE MINI ROULETTE ENGINE (SHAMOBET STYLE) =================
+const MR_WHEEL_ORDER = new Array(
+    { num: 3, color: '#dc2626' },
+    { num: 11, color: '#111827' },
+    { num: 1, color: '#dc2626' },
+    { num: 9, color: '#111827' },
+    { num: 5, color: '#dc2626' },
+    { num: 4, color: '#111827' },
+    { num: 10, color: '#dc2626' },
+    { num: 12, color: '#dc2626' },
+    { num: 2, color: '#111827' },
+    { num: 8, color: '#dc2626' },
+    { num: 7, color: '#111827' },
+    { num: 6, color: '#111827' }
+);
+
+let mrState = {
+    selectedChip: 10,
+    bets: {},
+    actionHistory: new Array(),
+    lastRoundBets: {},
+    betHistoryList: new Array(),
+    isSpinning: false,
+    soundOn: true,
+    wheelAngle: 0,
+    ballAngle: Math.PI * 0.5,
+    ballRadius: 56
+};
+
+function playMrTone(freq, duration) {
+    if (!mrState.soundOn) return;
+    try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.08, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + duration);
+    } catch (e) {}
+}
+
+function showMrToast(msg, isWin) {
+    const toast = document.getElementById('mr-toast-alert');
+    if (!toast) return;
+    toast.innerText = msg;
+    toast.className = isWin ? 'mr-toast-alert win' : 'mr-toast-alert';
+    toast.style.display = 'block';
+    setTimeout(() => { toast.style.display = 'none'; }, 2800);
+}
+
+function toggleMrDrawer(event) {
+    event.stopPropagation();
+    const drawer = document.getElementById('mr-dropdown-drawer');
+    if (drawer) drawer.classList.toggle('open');
+}
+
+function toggleMrSound() {
+    mrState.soundOn = !mrState.soundOn;
+    const tog = document.getElementById('mr-tog-sound');
+    if (tog) tog.classList.toggle('on', mrState.soundOn);
+}
+
+function selectMrChip(val) {
+    mrState.selectedChip = val;
+    playMrTone(520, 0.06);
+    document.querySelectorAll('.mr-chip-btn').forEach(btn => {
+        btn.classList.toggle('selected', parseInt(btn.getAttribute('data-val'), 10) === val);
+    });
+}
+
+function getMrChipColor(amt) {
+    if (amt >= 500) return '#1e293b';
+    if (amt >= 100) return '#7c3aed';
+    if (amt >= 50) return '#2563eb';
+    if (amt >= 10) return '#dc2626';
+    return '#64748b';
+}
+
+function renderMrPlacedChips() {
+    document.querySelectorAll('.mr-placed-chip').forEach(el => el.remove());
+    let total = 0;
+
+    for (let key in mrState.bets) {
+        const amt = mrState.bets[key] || 0;
+        if (amt <= 0) continue;
+        total += amt;
+
+        const cell = document.getElementById(`mr-cell-${key}`);
+        if (cell) {
+            const chip = document.createElement('div');
+            chip.className = 'mr-placed-chip';
+            chip.style.background = getMrChipColor(amt);
+            chip.innerText = amt;
+            cell.appendChild(chip);
+        }
+    }
+
+    const betEl = document.getElementById('mr-total-bet-text');
+    if (betEl) betEl.innerText = total.toFixed(2);
+}
+
+function placeMrChip(key) {
+    if (mrState.isSpinning) return;
+    const val = mrState.selectedChip;
+    mrState.bets[key] = (mrState.bets[key] || 0) + val;
+    mrState.actionHistory.push({ key, val });
+    playMrTone(640, 0.06);
+    renderMrPlacedChips();
+}
+
+function undoMrChip() {
+    if (mrState.isSpinning || mrState.actionHistory.length === 0) return;
+    const last = mrState.actionHistory.pop();
+    mrState.bets[last.key] = Math.max(0, (mrState.bets[last.key] || 0) - last.val);
+    playMrTone(380, 0.06);
+    renderMrPlacedChips();
+}
+
+function clearMrBets() {
+    if (mrState.isSpinning) return;
+    mrState.bets = {};
+    mrState.actionHistory = new Array();
+    playMrTone(300, 0.08);
+    renderMrPlacedChips();
+}
+
+function rebetMrBets() {
+    if (mrState.isSpinning) return;
+    let hasLast = false;
+    for (let k in mrState.lastRoundBets) {
+        if (mrState.lastRoundBets[k] > 0) hasLast = true;
+    }
+    if (!hasLast) return;
+    mrState.bets = Object.assign({}, mrState.lastRoundBets);
+    mrState.actionHistory = new Array();
+    playMrTone(580, 0.08);
+    renderMrPlacedChips();
+}
+
+function closeMrModal() {
+    const modal = document.getElementById('mr-info-modal');
+    if (modal) modal.classList.remove('show');
+}
+
+function openMrModal(type) {
+    const drawer = document.getElementById('mr-dropdown-drawer');
+    if (drawer) drawer.classList.remove('open');
+
+    const modal = document.getElementById('mr-info-modal');
+    const titleEl = document.getElementById('mr-modal-title');
+    const bodyEl = document.getElementById('mr-modal-body');
+    if (!modal || !titleEl || !bodyEl) return;
+
+    if (type === 'paytable') {
+        titleEl.innerText = 'PAYTABLE';
+        bodyEl.innerHTML = `
+            <div style="background:#111827; padding:12px; border-radius:10px; border:1px solid #374151;">
+                <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #1f2937;">
+                    <span>🎯 Single Number (1 - 12)</span>
+                    <b style="color:#facc15; font-size:15px;">11.64x</b>
+                </div>
+                <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #1f2937;">
+                    <span>🔢 1 - 6 / 7 - 12</span>
+                    <b style="color:#4ade80; font-size:15px;">1.94x</b>
+                </div>
+                <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #1f2937;">
+                    <span>⚖️ Even / Odd</span>
+                    <b style="color:#4ade80; font-size:15px;">1.94x</b>
+                </div>
+                <div style="display:flex; justify-content:space-between; padding:8px 0;">
+                    <span>🔴 Red / ⚫ Black</span>
+                    <b style="color:#4ade80; font-size:15px;">1.94x</b>
+                </div>
+            </div>`;
+    } else if (type === 'howto') {
+        titleEl.innerText = 'HOW TO PLAY';
+        bodyEl.innerHTML = `
+            <p>Just like classic roulette, but with better odds! Select your chips (<b>1, 10, 50, 100, 500</b>), then place them where you want on the table.</p>
+            <p>When you are ready, press the big yellow <b>Spin (↻)</b> button to spin the wheel and drop the golden ball!</p>`;
+    } else if (type === 'rules') {
+        titleEl.innerText = 'GAME RULES';
+        bodyEl.innerHTML = `
+            <ul style="padding-left:18px; margin:0;">
+                <li style="margin-bottom:8px;">Mini Roulette is a game of chance with a rotating wheel of 12 numbers, each with red or black background.</li>
+                <li style="margin-bottom:8px;">Player can make a bet on a number, group of numbers, or different combinations.</li>
+                <li style="margin-bottom:8px;">Player wins if one of his selected numbers or combinations matches the number hit by the ball.</li>
+                <li>In the event of a malfunction of the gaming hardware/software, all affected bets are refunded.</li>
+            </ul>`;
+    } else if (type === 'limits') {
+        titleEl.innerText = 'GAME LIMITS';
+        bodyEl.innerHTML = `
+            <div style="background:#111827; padding:12px; border-radius:10px;">
+                <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #1f2937;">
+                    <span>Min Bet:</span><b>1.00 Birr</b>
+                </div>
+                <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #1f2937;">
+                    <span>Max Bet:</span><b>10,000.00 Birr</b>
+                </div>
+                <div style="display:flex; justify-content:space-between; padding:8px 0;">
+                    <span>Max Win Per Spin:</span><b style="color:#4ade80;">50,000.00 Birr</b>
+                </div>
+            </div>`;
+    } else if (type === 'history') {
+        titleEl.innerText = 'BET HISTORY';
+        if (mrState.betHistoryList.length === 0) {
+            bodyEl.innerHTML = '<div style="color:#94a3b8; text-align:center; padding:15px;">No Mini Roulette spins yet in this session.</div>';
+        } else {
+            bodyEl.innerHTML = mrState.betHistoryList.map(h => `
+                <div style="background:#111827; padding:8px 10px; border-radius:8px; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
+                    <span>🎯 Ball: <b>#${h.num}</b> | Bet: ${h.bet.toFixed(2)} Birr</span>
+                    <b style="color:${h.win > 0 ? '#4ade80' : '#f87171'};">${h.win > 0 ? '+' + h.win.toFixed(2) : '0.00'} Birr</b>
+                </div>
+            `).join('');
+        }
+    }
+
+    modal.classList.add('show');
+}
+function drawMiniRouletteWheel(wheelAngle, ballAngle, ballRadius) {
+    const canvas = document.getElementById('mr-wheel-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width;
+    const H = canvas.height;
+    const cx = W / 2;
+    const cy = H / 2;
+    const outerR = 82;
+    const innerR = 36;
+
+    ctx.clearRect(0, 0, W, H);
+
+    // 1. የውጪው የእንጨት ክፈፍ (Outer Wooden Rim)
+    ctx.beginPath();
+    ctx.arc(cx, cy, outerR + 4, 0, Math.PI * 2);
+    ctx.fillStyle = '#0a2915';
+    ctx.fill();
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = '#ca8a04';
+    ctx.stroke();
+
+    // 2. 12ቱ ቀይ እና ጥቁር ክፍሎች (12 Slices)
+    const sliceAngle = (Math.PI * 2) / 12;
+    for (let i = 0; i < 12; i++) {
+        const item = MR_WHEEL_ORDER[i];
+        const startA = wheelAngle + i * sliceAngle - Math.PI / 2 - sliceAngle / 2;
+        const endA = startA + sliceAngle;
+
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.arc(cx, cy, outerR, startA, endA);
+        ctx.closePath();
+        ctx.fillStyle = item.color;
+        ctx.fill();
+        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = '#d1d5db';
+        ctx.stroke();
+
+        // ቁጥሮቹን በየክፍሉ መሃል መጻፍ
+        const midA = startA + sliceAngle / 2;
+        const textR = 67;
+        const tx = cx + Math.cos(midA) * textR;
+        const ty = cy + Math.sin(midA) * textR;
+
+        ctx.save();
+        ctx.translate(tx, ty);
+        ctx.rotate(midA + Math.PI / 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 12px Segoe UI, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(String(item.num), 0, 0);
+        ctx.restore();
+    }
+
+    // 3. የመሃሉ ነጭ ክብ እና የሚሽከረከር X ቅርጽ (Center Spindle)
+    ctx.beginPath();
+    ctx.arc(cx, cy, innerR, 0, Math.PI * 2);
+    ctx.fillStyle = '#e5e7eb';
+    ctx.fill();
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = '#9ca3af';
+    ctx.stroke();
+
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(wheelAngle);
+    ctx.strokeStyle = '#111827';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(-12, -12); ctx.lineTo(12, 12);
+    ctx.moveTo(12, -12); ctx.lineTo(-12, 12);
+    ctx.stroke();
+    ctx.fillStyle = '#111827';
+    for (let k = 0; k < 4; k++) {
+        const a = (k * Math.PI) / 2;
+        ctx.beginPath();
+        ctx.arc(Math.cos(a) * 14, Math.sin(a) * 14, 3, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    ctx.restore();
+
+    // 4. ወርቃማው ኳስ (Gold Ball)
+    const bx = cx + Math.cos(ballAngle) * ballRadius;
+    const by = cy + Math.sin(ballAngle) * ballRadius;
+    ctx.beginPath();
+    ctx.arc(bx, by, 6.5, 0, Math.PI * 2);
+    const ballGrad = ctx.createRadialGradient(bx - 2, by - 2, 1, bx, by, 7);
+    ballGrad.addColorStop(0, '#fef08a');
+    ballGrad.addColorStop(0.6, '#facc15');
+    ballGrad.addColorStop(1, '#a16207');
+    ctx.fillStyle = ballGrad;
+    ctx.fill();
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = '#713f12';
+    ctx.stroke();
+}
+
+async function spinMiniRoulette() {
+    if (mrState.isSpinning) return;
+    if (!userToken) { showMrToast("⚠️ እባክዎ መጀመሪያ ይግቡ!", false); return; }
+
+    let totalBet = 0;
+    for (let k in mrState.bets) {
+        totalBet += (mrState.bets[k] || 0);
+    }
+
+    if (totalBet < 1) {
+        showMrToast("⚠️ እባክዎ መጀመሪያ ቺፕ ያስቀምጡ!", false);
+        return;
+    }
+
+    const balEl = document.getElementById('user-balance-display');
+    const currentBal = parseFloat(balEl ? balEl.innerText : 0) || 0;
+    if (currentBal < totalBet) {
+        showMrToast("Not enough balance", false);
+        playMrTone(220, 0.25);
+        return;
+    }
+
+    mrState.isSpinning = true;
+    mrState.lastRoundBets = Object.assign({}, mrState.bets);
+    const spinBtn = document.getElementById('mr-spin-btn');
+    if (spinBtn) spinBtn.disabled = true;
+
+    try {
+        const res = await fetch(`${SERVER_URL}/api/mini-roulette-spin`, {
+            method: 'POST',
+            headers: authHeaders(),
+            body: JSON.stringify({ bets: mrState.bets })
+        });
+        const data = await res.json();
+
+        if (!data.success) {
+            mrState.isSpinning = false;
+            if (spinBtn) spinBtn.disabled = false;
+            showMrToast(data.message || "Not enough balance", false);
+            return;
+        }
+
+        // ብሩን ወዲያውኑ ቀንሶ ያሳያል
+        updateLiveBalanceDisplays(currentBal - totalBet);
+
+        // ኳሱ የሚያርፍበትን ትክክለኛ አንግል ያሰላል
+        const winIdx = MR_WHEEL_ORDER.findIndex(item => item.num === data.winningNumber);
+        const sliceAngle = (Math.PI * 2) / 12;
+        const startWheelA = mrState.wheelAngle;
+        const targetWheelA = startWheelA + Math.PI * 6;
+        const targetBallA = targetWheelA + winIdx * sliceAngle - Math.PI / 2;
+
+        const duration = 2400;
+        const startTime = performance.now();
+        const startBallA = mrState.ballAngle;
+
+        function animateSpin(now) {
+            const elapsed = now - startTime;
+            const progress = Math.min(1, elapsed / duration);
+            const ease = 1 - Math.pow(1 - progress, 3);
+
+            const curWheelA = startWheelA + (targetWheelA - startWheelA) * ease;
+            const curBallA = startBallA - Math.PI * 8 * (1 - ease) + (targetBallA - startBallA) * ease;
+            const curBallR = 72 - 22 * ease;
+
+            drawMiniRouletteWheel(curWheelA, curBallA, curBallR);
+
+            if (progress < 1) {
+                requestAnimationFrame(animateSpin);
+            } else {
+                mrState.wheelAngle = targetWheelA % (Math.PI * 2);
+                mrState.ballAngle = targetBallA;
+                mrState.ballRadius = 50;
+                mrState.isSpinning = false;
+                if (spinBtn) spinBtn.disabled = false;
+
+                updateLiveBalanceDisplays(data.newBalance);
+
+                mrState.betHistoryList.unshift({
+                    num: data.winningNumber,
+                    bet: data.totalBet,
+                    win: data.totalWin
+                });
+                if (mrState.betHistoryList.length > 20) mrState.betHistoryList.pop();
+
+                const winCell = document.getElementById(`mr-cell-num_${data.winningNumber}`);
+                if (winCell) {
+                    winCell.classList.add('win-flash');
+                    setTimeout(() => winCell.classList.remove('win-flash'), 1800);
+                }
+
+                if (data.totalWin > 0) {
+                    playMrTone(880, 0.35);
+                    showMrToast(`🎉 #${data.winningNumber} • WON +${data.totalWin.toFixed(2)} Birr!`, true);
+                } else {
+                    playMrTone(320, 0.18);
+                    showMrToast(`🎯 Ball landed on #${data.winningNumber}`, false);
+                }
+            }
+        }
+
+        requestAnimationFrame(animateSpin);
+    } catch (e) {
+        mrState.isSpinning = false;
+        if (spinBtn) spinBtn.disabled = false;
+        showMrToast("❌ ከሰርቨር ጋር መገናኘት አልተቻለም!", false);
+    }
+}
 
 document.addEventListener("DOMContentLoaded", () => {
     const board = document.getElementById('keno-board');
@@ -1543,6 +2116,7 @@ document.addEventListener("DOMContentLoaded", () => {
         } 
     }
     renderTicketsToUI();
+    drawMiniRouletteWheel(0, Math.PI * 0.5, 50);
 
     if (userToken) {
         fetch(`${SERVER_URL}/api/my-balance`, { headers: authHeaders() })
