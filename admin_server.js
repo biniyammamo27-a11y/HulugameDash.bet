@@ -555,8 +555,6 @@ function startAviatorGameLoop() {
     }, 100);
 }
 
-// --- ✈️ AVIATOR USER & ADMIN APIs ---
-
 app.get('/api/aviator-status', (req, res) => {
     const publicBets = aviatorActiveBets.map(b => ({
         betId: b.betId,
@@ -676,6 +674,93 @@ app.post('/admin/set-aviator-crash', requireAdmin, (req, res) => {
     }
     customAviatorCrashPoint = val;
     res.json({ success: true, message: `🟢 ቀጣዩ Aviator በ ${val.toFixed(2)}x ላይ እንዲፈነዳ ተቆልፏል!` });
+});
+// ================= 🎡 MINI ROULETTE ENGINE (SPRIBE / SHAMOBET STYLE) =================
+
+const MINI_ROULETTE_RED = new Array(1, 3, 5, 8, 10, 12);
+const MINI_ROULETTE_BLACK = new Array(2, 4, 6, 7, 9, 11);
+
+app.post('/api/mini-roulette-spin', requireUser, async (req, res) => {
+    const { bets } = req.body;
+    if (!bets || typeof bets !== 'object') {
+        return res.json({ success: false, message: "⚠️ እባክዎ መጀመሪያ ቺፕ ያስቀምጡ!" });
+    }
+
+    let totalBet = 0;
+    for (let key in bets) {
+        const val = parseFloat(bets[key]) || 0;
+        if (val > 0) totalBet += val;
+    }
+
+    if (totalBet < 1) {
+        return res.json({ success: false, message: "⚠️ ቢያንስ 1.00 ETB መመደብ አለብዎት!" });
+    }
+
+    try {
+        const user = await User.findOneAndUpdate(
+            { phone: req.userPhone, balance: { $gte: totalBet } },
+            { $inc: { balance: -totalBet } },
+            { new: true }
+        );
+        if (!user) {
+            return res.json({ success: false, message: "❌ Not enough balance (በቂ ቀሪ ሂሳብ የሎትም)!" });
+        }
+
+        const winningNumber = Math.floor(Math.random() * 12) + 1;
+        const isRed = MINI_ROULETTE_RED.includes(winningNumber);
+        const isBlack = MINI_ROULETTE_BLACK.includes(winningNumber);
+        const isEven = (winningNumber % 2 === 0);
+        const isOdd = !isEven;
+
+        let totalWin = 0;
+
+        for (let key in bets) {
+            const amt = parseFloat(bets[key]) || 0;
+            if (amt <= 0) continue;
+
+            if (key.startsWith('num_')) {
+                const pickedNum = parseInt(key.replace('num_', ''), 10);
+                if (pickedNum === winningNumber) {
+                    totalWin += amt * 11.64;
+                }
+            } else if (key === '1-6' && winningNumber >= 1 && winningNumber <= 6) {
+                totalWin += amt * 1.94;
+            } else if (key === '7-12' && winningNumber >= 7 && winningNumber <= 12) {
+                totalWin += amt * 1.94;
+            } else if (key === 'even' && isEven) {
+                totalWin += amt * 1.94;
+            } else if (key === 'odd' && isOdd) {
+                totalWin += amt * 1.94;
+            } else if (key === 'red' && isRed) {
+                totalWin += amt * 1.94;
+            } else if (key === 'black' && isBlack) {
+                totalWin += amt * 1.94;
+            }
+        }
+
+        totalWin = parseFloat(totalWin.toFixed(2));
+        let finalBalance = user.balance;
+
+        if (totalWin > 0) {
+            const updatedUser = await User.findOneAndUpdate(
+                { phone: req.userPhone },
+                { $inc: { balance: totalWin } },
+                { new: true }
+            );
+            if (updatedUser) finalBalance = updatedUser.balance;
+        }
+
+        res.json({
+            success: true,
+            winningNumber,
+            isRed,
+            totalBet,
+            totalWin,
+            newBalance: finalBalance
+        });
+    } catch (e) {
+        res.json({ success: false, message: "❌ የሰርቨር ስህተት ተፈጥሯል!" });
+    }
 });
 
 // ================= 🚀 START SERVER & DATABASE =================
