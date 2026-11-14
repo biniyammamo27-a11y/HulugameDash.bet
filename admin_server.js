@@ -886,6 +886,155 @@ app.post('/api/lion-spin-play', requireUser, async (req, res) => {
         res.json({ success: false, message: "❌ የሰርቨር ስህተት ተፈጥሯል!" });
     }
 });
+// ================= 🎱 ETHIO-LOTTERY BINGO ENGINE (75-BALL + HOUSE PROFIT) =================
+
+function generateBingoCartelaById(cartelaId) {
+    let seed = Number(cartelaId) * 9301 + 49297;
+    function nextRand() {
+        seed = (seed * 1664525 + 1013904223) % 4294967296;
+        return seed / 4294967296;
+    }
+
+    const ranges = new Array(
+        { min: 1, max: 15 },
+        { min: 16, max: 30 },
+        { min: 31, max: 45 },
+        { min: 46, max: 60 },
+        { min: 61, max: 75 }
+    );
+
+    const grid = new Array(5);
+    for (let r = 0; r < 5; r++) {
+        grid[r] = new Array(5);
+    }
+
+    for (let c = 0; c < 5; c++) {
+        const pool = new Array();
+        for (let n = ranges[c].min; n <= ranges[c].max; n++) {
+            pool.push(n);
+        }
+        for (let r = 0; r < 5; r++) {
+            if (c === 2 && r === 2) {
+                grid[r][c] = 0; // FREE CENTER
+            } else {
+                const idx = Math.floor(nextRand() * pool.length);
+                grid[r][c] = pool.splice(idx, 1)[0];
+            }
+        }
+    }
+    return grid;
+}
+
+function evaluateBingoGrid(grid, drawnSet) {
+    const marked = new Array(5);
+    for (let r = 0; r < 5; r++) {
+        marked[r] = new Array(5);
+        for (let c = 0; c < 5; c++) {
+            marked[r][c] = (grid[r][c] === 0 || drawnSet.has(grid[r][c]));
+        }
+    }
+
+    let linesCount = 0;
+    for (let r = 0; r < 5; r++) {
+        if (marked[r][0] && marked[r][1] && marked[r][2] && marked[r][3] && marked[r][4]) linesCount++;
+    }
+    for (let c = 0; c < 5; c++) {
+        if (marked[0][c] && marked[1][c] && marked[2][c] && marked[3][c] && marked[4][c]) linesCount++;
+    }
+    if (marked[0][0] && marked[1][1] && marked[2][2] && marked[3][3] && marked[4][4]) linesCount++;
+    if (marked[0][4] && marked[1][3] && marked[2][2] && marked[3][1] && marked[4][0]) linesCount++;
+
+    const fourCorners = marked[0][0] && marked[0][4] && marked[4][0] && marked[4][4];
+    let totalMarked = 0;
+    for (let r = 0; r < 5; r++) {
+        for (let c = 0; c < 5; c++) {
+            if (marked[r][c]) totalMarked++;
+        }
+    }
+
+    if (totalMarked === 25) return { pattern: 'FULL HOUSE', mult: 50 };
+    if (linesCount >= 2) return { pattern: '2 LINES BINGO', mult: 12 };
+    if (fourCorners && linesCount >= 1) return { pattern: 'LINE + 4 CORNERS', mult: 8 };
+    if (fourCorners) return { pattern: '4 CORNERS', mult: 5 };
+    if (linesCount === 1) return { pattern: '1 LINE BINGO', mult: 3 };
+    return { pattern: 'NO BINGO', mult: 0 };
+}
+
+app.post('/api/ethio-bingo-play', requireUser, async (req, res) => {
+    const cartelaId = parseInt(req.body.cartelaId, 10) || 1;
+    const betAmount = parseFloat(req.body.betAmount) || 0;
+
+    if (cartelaId < 1 || cartelaId > 100) {
+        return res.json({ success: false, message: "⚠️ እባክዎ ከ 1 እስከ 100 ያለ ካርቴላ ይምረጡ!" });
+    }
+    if (betAmount < 5) {
+        return res.json({ success: false, message: "⚠️ ዝቅተኛው የቢንጎ ውርርድ 5.00 ETB ነው!" });
+    }
+
+    try {
+        const user = await User.findOneAndUpdate(
+            { phone: req.userPhone, balance: { $gte: betAmount } },
+            { $inc: { balance: -betAmount } },
+            { new: true }
+        );
+        if (!user) {
+            return res.json({ success: false, message: "❌ በቂ ቀሪ ሂሳብ የሎትም!" });
+        }
+
+        const grid = generateBingoCartelaById(cartelaId);
+
+        // የቤቱን ትርፍ የሚያስብ ስሌት (House Profit Smart Weighting - 32 ኳሶች ይወጣሉ)
+        const scenarios = new Array();
+        for (let s = 0; s < 15; s++) {
+            const all75 = new Array();
+            for (let n = 1; n <= 75; n++) all75.push(n);
+
+            const drawnBalls = new Array();
+            for (let b = 0; b < 32; b++) {
+                const idx = Math.floor(Math.random() * all75.length);
+                drawnBalls.push(all75.splice(idx, 1)[0]);
+            }
+
+            const evalRes = evaluateBingoGrid(grid, new Set(drawnBalls));
+            let weight = 1;
+            if (evalRes.mult === 0) weight = 12;        // ቤቱ 100% ትርፍ የሚያገኝበት
+            else if (evalRes.mult <= 5) weight = 3;    // ትንሽ/መካከለኛ ድል (1 Line / 4 Corners)
+            else weight = 1;                           // ትልቅ ድል (2 Lines / Full House)
+
+            for (let w = 0; w < weight; w++) {
+                scenarios.push({ drawnBalls, evalRes });
+            }
+        }
+
+        const chosen = scenarios[Math.floor(Math.random() * scenarios.length)];
+        const rawWin = betAmount * chosen.evalRes.mult;
+        const winAmount = parseFloat((rawWin > 50000 ? 50000 : rawWin).toFixed(2));
+
+        let finalBalance = user.balance;
+        if (winAmount > 0) {
+            const updatedUser = await User.findOneAndUpdate(
+                { phone: req.userPhone },
+                { $inc: { balance: winAmount } },
+                { new: true }
+            );
+            if (updatedUser) finalBalance = updatedUser.balance;
+        }
+
+        res.json({
+            success: true,
+            cartelaId,
+            grid,
+            drawnBalls: chosen.drawnBalls,
+            pattern: chosen.evalRes.pattern,
+            multiplier: chosen.evalRes.mult,
+            betAmount,
+            winAmount,
+            newBalance: finalBalance
+        });
+    } catch (e) {
+        res.json({ success: false, message: "❌ የሰርቨር ስህተት ተፈጥሯል!" });
+    }
+});
 
 // ================= 🚀 START SERVER & DATABASE =================
 
