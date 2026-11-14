@@ -11,7 +11,7 @@
         input, select { width: 95%; padding: 12px; margin: 10px 0; border: 1px solid #263d35; border-radius: 8px; background: #192823; color: #fff; font-size: 16px; box-sizing: border-box; }
         button { width: 95%; padding: 12px; background: #22c55e; color: #051b11; border: none; border-radius: 8px; font-weight: bold; font-size: 16px; cursor: pointer; margin-top: 10px; transition: 0.2s; }
         button:hover { background: #16a34a; color: #fff; }
-        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        button:disabled { opacity: 0.6; cursor: not-allowed; }
         .tab-buttons { display: flex; justify-content: space-around; margin-bottom: 20px; background: #192823; border-radius: 8px; padding: 5px; border: 1px solid #263d35; }
         .tab-btn { background: none; color: #94a3b8; width: 48%; padding: 10px; margin: 0; border-radius: 6px; border: none; cursor: pointer; }
         .tab-btn.active { background: #22c55e; color: #051b11; font-weight: bold; }
@@ -94,11 +94,10 @@
         .av-bet-input { width: 75px; padding: 4px; margin: 0; text-align: center; font-weight: 900; font-size: 16px; color: #fff; background: transparent; border: none; }
         .av-quick-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
         .av-quick-btn { padding: 4px 0; margin: 0; font-size: 11px; font-weight: bold; background: #1d2f29; color: #a7f3d0; border: 1px solid #2b443b; border-radius: 5px; }
-        .av-action-btn { width: 44%; height: 68px; margin: 0; border-radius: 12px; font-size: 16px; font-weight: 900; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.2; box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
+        .av-action-btn { width: 44%; height: 68px; margin: 0; border-radius: 12px; font-size: 16px; font-weight: 900; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.2; box-shadow: 0 4px 12px rgba(0,0,0,0.4); touch-action: manipulation; user-select: none; }
         .av-btn-bet { background: #22c55e; color: #ffffff; border: 1px solid #4ade80; text-shadow: 0 1px 2px rgba(0,0,0,0.4); }
         .av-btn-waiting { background: #dc2626; color: #ffffff; border: 1px solid #f87171; }
-        .av-btn-cashout { background: #f59e0b; color: #ffffff; border: 1px solid #fde047; text-shadow: 0 1px 2px rgba(0,0,0,0.5); animation: pulseCashout 0.7s infinite alternate; }
-        @keyframes pulseCashout { from { transform: scale(1); } to { transform: scale(1.03); } }
+        .av-btn-cashout { background: #f59e0b; color: #ffffff; border: 1px solid #fde047; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
         .av-auto-row { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; padding-top: 6px; border-top: 1px dashed #263d35; font-size: 12px; color: #94a3b8; }
         .av-live-bets-box { background: #14201c; border: 1px solid #263d35; border-radius: 10px; padding: 10px; margin-top: 10px; text-align: left; }
         .av-live-header { display: flex; justify-content: space-between; font-size: 12px; font-weight: bold; color: #4ade80; border-bottom: 1px solid #263d35; padding-bottom: 6px; margin-bottom: 6px; }
@@ -299,7 +298,7 @@
                                 <button class="av-quick-btn" onclick="setAviatorQuickBet(1, 500)">500</button>
                             </div>
                         </div>
-                        <button id="av-action-btn-1" class="av-action-btn av-btn-bet" onclick="handleAviatorPanelAction(1)">
+                        <button id="av-action-btn-1" class="av-action-btn av-btn-bet" onpointerdown="handleAviatorPanelAction(1)">
                             <span>BET</span>
                             <span style="font-size:13px; font-weight:bold;">10.00 ETB</span>
                         </button>
@@ -330,7 +329,7 @@
                                 <button class="av-quick-btn" onclick="setAviatorQuickBet(2, 500)">500</button>
                             </div>
                         </div>
-                        <button id="av-action-btn-2" class="av-action-btn av-btn-bet" onclick="handleAviatorPanelAction(2)">
+                        <button id="av-action-btn-2" class="av-action-btn av-btn-bet" onpointerdown="handleAviatorPanelAction(2)">
                             <span>BET</span>
                             <span style="font-size:13px; font-weight:bold;">20.00 ETB</span>
                         </button>
@@ -1005,7 +1004,7 @@ function renderStatisticsToUI() {
         });
     }).catch(() => { container.innerHTML = '❌ ታሪክ መጫን አልተቻለም!'; });
 }
-// ================= ✈️ SHAMOBET AVIATOR LIVE ENGINE & CANVAS GRAPH =================
+// ================= ✈️ SHAMOBET AVIATOR LIVE ENGINE & INSTANT CASH OUT =================
 let avState = {
     roundId: 0,
     phase: 'WAITING',
@@ -1044,41 +1043,63 @@ function updateAviatorPanelButtons() {
         const myBet = avState.myBets[panel];
         const queued = avState.queuedBets[panel];
 
+        let targetClass = 'av-action-btn av-btn-bet';
+        let targetDisabled = false;
+        let topText = 'BET';
+        let subText = `${amt} ETB`;
+
         if (avState.phase === 'WAITING') {
             if (myBet) {
-                btn.className = 'av-action-btn av-btn-waiting';
-                btn.disabled = true;
-                btn.innerHTML = `<span>BET PLACED</span><span style="font-size:12px;">-${myBet.bet.toFixed(2)} ETB</span>`;
-            } else {
-                btn.className = 'av-action-btn av-btn-bet';
-                btn.disabled = false;
-                btn.innerHTML = `<span>BET</span><span style="font-size:13px;">${amt} ETB</span>`;
+                targetClass = 'av-action-btn av-btn-waiting';
+                targetDisabled = true;
+                topText = 'BET PLACED';
+                subText = `-${myBet.bet.toFixed(2)} ETB`;
             }
         } else if (avState.phase === 'FLYING') {
             if (myBet && !myBet.cashedOut) {
                 const currentWin = (myBet.bet * avState.multiplier).toFixed(2);
-                btn.className = 'av-action-btn av-btn-cashout';
-                btn.disabled = false;
-                btn.innerHTML = `<span>CASH OUT</span><span style="font-size:14px;">${currentWin} ETB</span>`;
+                targetClass = 'av-action-btn av-btn-cashout';
+                targetDisabled = false;
+                topText = 'CASH OUT';
+                subText = `${currentWin} ETB`;
+            } else if (myBet && myBet.cashedOut) {
+                targetClass = 'av-action-btn av-btn-bet';
+                targetDisabled = true;
+                topText = 'WON ✅';
+                subText = `+${myBet.winAmount.toFixed(2)} ETB`;
             } else if (queued) {
-                btn.className = 'av-action-btn av-btn-waiting';
-                btn.disabled = false;
-                btn.innerHTML = `<span>CANCEL</span><span style="font-size:11px;">Next: ${queued.toFixed(2)} ETB</span>`;
+                targetClass = 'av-action-btn av-btn-waiting';
+                targetDisabled = false;
+                topText = 'CANCEL';
+                subText = `Next: ${queued.toFixed(2)} ETB`;
             } else {
-                btn.className = 'av-action-btn av-btn-bet';
-                btn.disabled = false;
-                btn.innerHTML = `<span>BET</span><span style="font-size:12px;">${amt} ETB (Next)</span>`;
+                topText = 'BET';
+                subText = `${amt} ETB (Next)`;
             }
         } else {
-            if (queued) {
-                btn.className = 'av-action-btn av-btn-waiting';
-                btn.disabled = false;
-                btn.innerHTML = `<span>CANCEL</span><span style="font-size:11px;">Next: ${queued.toFixed(2)} ETB</span>`;
+            if (myBet && myBet.cashedOut) {
+                targetClass = 'av-action-btn av-btn-bet';
+                targetDisabled = true;
+                topText = 'WON ✅';
+                subText = `+${myBet.winAmount.toFixed(2)} ETB`;
+            } else if (queued) {
+                targetClass = 'av-action-btn av-btn-waiting';
+                targetDisabled = false;
+                topText = 'CANCEL';
+                subText = `Next: ${queued.toFixed(2)} ETB`;
             } else {
-                btn.className = 'av-action-btn av-btn-bet';
-                btn.disabled = false;
-                btn.innerHTML = `<span>BET</span><span style="font-size:12px;">${amt} ETB (Next)</span>`;
+                topText = 'BET';
+                subText = `${amt} ETB (Next)`;
             }
+        }
+
+        if (btn.className !== targetClass) btn.className = targetClass;
+        if (btn.disabled !== targetDisabled) btn.disabled = targetDisabled;
+
+        const spans = btn.querySelectorAll('span');
+        if (spans.length === 2) {
+            if (spans.innerText !== topText) spans.innerText = topText;
+            if (spans.innerText !== subText) spans.innerText = subText;
         }
     });
 }
@@ -1142,9 +1163,18 @@ async function triggerAviatorCashout(panel) {
     const myBet = avState.myBets[panel];
     if (!myBet || myBet.cashedOut) return;
 
-    const btn = document.getElementById(`av-action-btn-${panel}`);
-    if (btn) btn.disabled = true;
+    // 1. ቁልፉ እንደተነካ ወዲያውኑ (0.00 ሰከንድ) መውጣቱን ያሳያል!
+    const instantMult = avState.multiplier;
+    const instantWin = parseFloat((myBet.bet * instantMult).toFixed(2));
+    myBet.cashedOut = true;
+    myBet.winAmount = instantWin;
 
+    const balEl = document.getElementById('user-balance-display');
+    const currentBal = parseFloat(balEl ? balEl.innerText : 0) || 0;
+    updateLiveBalanceDisplays(currentBal + instantWin);
+    updateAviatorPanelButtons();
+
+    // 2. ከጀርባ ወደ ሰርቨር ልኮ ትክክለኛውን ሂሳብ ያረጋግጣል
     try {
         const res = await fetch(`${SERVER_URL}/api/aviator-cashout`, {
             method: 'POST',
@@ -1153,15 +1183,17 @@ async function triggerAviatorCashout(panel) {
         });
         const data = await res.json();
         if (data.success) {
-            myBet.cashedOut = true;
             myBet.winAmount = data.winAmount;
             updateLiveBalanceDisplays(data.newBalance);
             updateAviatorPanelButtons();
         } else {
+            myBet.cashedOut = false;
+            myBet.winAmount = 0;
+            fetchLiveBalanceFromServer();
             updateAviatorPanelButtons();
         }
     } catch (e) {
-        updateAviatorPanelButtons();
+        fetchLiveBalanceFromServer();
     }
 }
 function drawShamoRedPlane(ctx, x, y, tiltAngle) {
@@ -1169,7 +1201,6 @@ function drawShamoRedPlane(ctx, x, y, tiltAngle) {
     ctx.translate(x, y);
     ctx.rotate(tiltAngle);
 
-    // የሞተር ነበልባል (Engine Glow)
     const flameLen = 12 + Math.random() * 8;
     const flameGrad = ctx.createLinearGradient(-22 - flameLen, 0, -18, 0);
     flameGrad.addColorStop(0, 'rgba(250, 204, 21, 0)');
@@ -1183,7 +1214,6 @@ function drawShamoRedPlane(ctx, x, y, tiltAngle) {
     ctx.closePath();
     ctx.fill();
 
-    // የአውሮፕላኑ ዋና ቀይ አካል (Red Fuselage)
     ctx.fillStyle = '#e11d48';
     ctx.beginPath();
     ctx.moveTo(-22, 2);
@@ -1194,7 +1224,6 @@ function drawShamoRedPlane(ctx, x, y, tiltAngle) {
     ctx.closePath();
     ctx.fill();
 
-    // ጅራት (Tail Fin)
     ctx.fillStyle = '#be123c';
     ctx.beginPath();
     ctx.moveTo(-16, -2);
@@ -1204,13 +1233,11 @@ function drawShamoRedPlane(ctx, x, y, tiltAngle) {
     ctx.closePath();
     ctx.fill();
 
-    // የላይኛው እና የታችኛው ክንፎች (Biplane Wings - Shamobet Style)
     ctx.fillStyle = '#fb7185';
     ctx.fillRect(-3, -11, 14, 2.5);
     ctx.fillStyle = '#f43f5e';
     ctx.fillRect(-2, 4, 13, 2.5);
 
-    // የፊት ፕሮፔለር (Spinning Propeller)
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
     ctx.lineWidth = 2;
     const propH = 7 + Math.sin(Date.now() * 0.08) * 5;
@@ -1219,7 +1246,6 @@ function drawShamoRedPlane(ctx, x, y, tiltAngle) {
     ctx.lineTo(28, 2 + propH);
     ctx.stroke();
 
-    // ነጭ X ምልክት በአካሉ ላይ
     ctx.strokeStyle = '#ffffff';
     ctx.lineWidth = 1.6;
     ctx.beginPath();
@@ -1239,7 +1265,6 @@ function drawAviatorCanvas() {
 
     ctx.clearRect(0, 0, W, H);
 
-    // 1. የሚሽከረከር የፀሐይ ጨረር ዳራ (Shamobet Rotating Sunburst Rays)
     avState.sunAngle += 0.004;
     ctx.save();
     ctx.translate(45, H - 30);
@@ -1272,7 +1297,6 @@ function drawAviatorCanvas() {
         avState.wavePhase += 0.085;
         const climbRatio = Math.min(1, (avState.multiplier - 1) / 2.2);
 
-        // ጠርዝ (Corner) ሲደርስ ቀጥ ሳይል ወደ ታችና ወደ ላይ እየተወዛወዘ ይቀጥላል!
         const hoverY = climbRatio >= 0.95 ? Math.sin(avState.wavePhase) * 20 : Math.sin(avState.wavePhase) * 4;
         const hoverX = climbRatio >= 0.95 ? Math.cos(avState.wavePhase * 0.7) * 6 : 0;
 
@@ -1282,7 +1306,6 @@ function drawAviatorCanvas() {
         const ctrlX = startX + (endX - startX) * 0.58;
         const ctrlY = startY;
 
-        // ከመስመሩ በታች ያለ ቀይ ጥላ (Shamobet Red Area Fill)
         const grad = ctx.createLinearGradient(0, endY, 0, startY);
         grad.addColorStop(0, 'rgba(225, 29, 72, 0.45)');
         grad.addColorStop(1, 'rgba(225, 29, 72, 0.04)');
@@ -1295,7 +1318,6 @@ function drawAviatorCanvas() {
         ctx.fillStyle = grad;
         ctx.fill();
 
-        // ቀይ የበረራ መስመር (Red Trajectory Curve)
         ctx.beginPath();
         ctx.moveTo(startX, startY);
         ctx.quadraticCurveTo(ctrlX, ctrlY, endX, endY);
@@ -1303,7 +1325,6 @@ function drawAviatorCanvas() {
         ctx.lineWidth = 4;
         ctx.stroke();
 
-        // አውሮፕላኑ ወደ ላይና ወደ ታች ሲወዛወዝ አንግሉም አብሮ ይለዋወጣል
         const dynamicTilt = climbRatio >= 0.95
             ? -0.12 + Math.cos(avState.wavePhase) * 0.16
             : -0.24;
@@ -1352,7 +1373,6 @@ function renderAviatorLiveBets(betsList) {
             </div>`;
     }).join('');
 }
-// 🔄 የ Aviator ቀጥታ ሰርቨር ማመሳሰያ (በየ 100 ሚሊሰከንድ ለስላሳ አኒሜሽን)
 setInterval(async () => {
     const avBlock = document.getElementById('aviator-game-main-block');
     if (!avBlock || avBlock.style.display === 'none') return;
@@ -1368,7 +1388,6 @@ setInterval(async () => {
                 avState.myBets = { 1: null, 2: null };
                 avState.autoTriggered = { 1: false, 2: false };
 
-                // ለቀጣዩ ዙር የተመዘገቡ (Queued) ውርርዶችን ወዲያውኑ ይቆርጣል
                 new Array(1, 2).forEach(panel => {
                     if (avState.queuedBets[panel]) {
                         const qAmt = avState.queuedBets[panel];
