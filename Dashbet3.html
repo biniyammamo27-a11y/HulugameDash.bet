@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashbet - Ultimate Live KENO, AVIATOR & MINI ROULETTE</title>
+    <title>Dashbet - KENO, AVIATOR, MINI ROULETTE & LION SPIN</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0c1411; color: #ffffff; margin: 0; padding: 0; padding-bottom: 80px; text-align: center; }
         .container { max-width: 500px; margin: 0 auto; background: #121d19; padding: 16px; min-height: 100vh; box-sizing: border-box; position: relative; border-left: 1px solid #1e312a; border-right: 1px solid #1e312a; }
@@ -56,8 +56,10 @@
         .history-round-header { color: #4ade80; font-weight: bold; font-size: 14px; border-bottom: 1px solid #263d35; padding-bottom: 5px; margin-bottom: 8px; }
         .result-round-block { background: #192823; border: 1px solid #263d35; border-radius: 8px; padding: 12px; margin-bottom: 12px; text-align: left; }
         .games-premium-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; padding: 5px; margin-top: 10px; }
-        .game-premium-card { background: #192823; border: 1px solid #283f37; border-radius: 14px; padding: 24px 10px; text-align: center; cursor: pointer; transition: 0.3s; position: relative; }
+        .game-premium-card { background: #192823; border: 1px solid #283f37; border-radius: 14px; padding: 20px 10px; text-align: center; cursor: pointer; transition: 0.3s; position: relative; overflow: hidden; }
         .game-premium-card:hover { transform: translateY(-3px); border-color: #22c55e; }
+        .lion-banner-card { background: radial-gradient(circle at center, #1b4328 0%, #07170d 100%) !important; border: 1.5px solid #f59e0b !important; box-shadow: 0 4px 16px rgba(245, 158, 11, 0.25); }
+        .lion-logo-stack { font-size: 18px; font-weight: 900; line-height: 0.95; color: #facc15; text-shadow: 0 2px 6px rgba(0,0,0,0.9), 0 0 10px #ea580c; letter-spacing: 1px; margin-bottom: 4px; }
         .custom-file-upload-box { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 120px; background: #121d19; border: 2px dashed #22c55e; border-radius: 10px; cursor: pointer; margin: 12px 0; box-sizing: border-box; overflow: hidden; padding: 5px; }
         .withdraw-available-badge { background: #0f241c; color: #4ade80; padding: 10px; border-radius: 6px; text-align: center; font-weight: bold; margin: 10px 0; border: 1px solid #22c55e; font-size: 15px; }
         .live-draw-stage-box { display: none; background: #192823; border: 1px solid #22c55e; border-radius: 10px; padding: 10px; margin-bottom: 10px; }
@@ -157,6 +159,96 @@
         .mr-modal-card { background: #1e2229; border: 1px solid #374151; border-radius: 14px; width: 100%; max-width: 400px; max-height: 82vh; overflow-y: auto; padding: 16px; text-align: left; color: #e2e8f0; }
         .mr-modal-head { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #374151; padding-bottom: 10px; margin-bottom: 12px; font-size: 16px; font-weight: 900; color: #fff; }
         .mr-close-x { width: 28px; height: 28px; border-radius: 50%; background: #374151; color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: bold; }
+
+        /* ================= 🦁 SHAMOBET LION SPIN CSS ================= */
+        .ls-wrapper { background: #12151a; border-radius: 14px; border: 1.5px solid #2b303a; padding: 10px; position: relative; overflow: hidden; box-shadow: 0 8px 25px rgba(0,0,0,0.75); }
+        .ls-top-bar { display: flex; justify-content: space-between; align-items: center; padding: 4px 4px 10px 4px; position: relative; }
+        .ls-brand-badge { font-size: 14px; font-weight: 900; line-height: 0.95; color: #facc15; text-shadow: 0 2px 4px #000, 0 0 8px #ea580c; text-align: left; }
+        .ls-toast { display: none; position: absolute; top: 44px; left: 50%; transform: translateX(-50%); background: rgba(127, 29, 29, 0.95); border: 1px solid #f87171; color: #fecaca; font-size: 12px; font-weight: bold; padding: 8px 14px; border-radius: 8px; z-index: 60; white-space: nowrap; box-shadow: 0 4px 15px rgba(0,0,0,0.8); }
+        .ls-toast.win { background: rgba(20, 83, 45, 0.95); border-color: #4ade80; color: #bbf7d0; }
+        .ls-board-7x7 { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; background: #0a0c0f; padding: 4px; border-radius: 10px; border: 1px solid #2a2f3a; margin-bottom: 8px; }
+        .ls-slot { aspect-ratio: 1 / 1; background: #1d2129; border: 1px solid #2f3542; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; font-size: 20px; transition: 0.08s; user-select: none; }
+        .ls-slot.active { background: radial-gradient(circle, #fef08a 0%, #f59e0b 100%) !important; border: 2px solid #ffffff !important; box-shadow: 0 0 14px #facc15; transform: scale(1.06); z-index: 5; }
+        .ls-slot-mult { position: absolute; bottom: 1px; right: 2px; font-size: 8px; font-weight: 900; color: #e2e8f0; background: rgba(0,0,0,0.75); padding: 0 3px; border-radius: 3px; }
+        .ls-center-lion { grid-column: 2 / 7; grid-row: 2 / 7; background: radial-gradient(circle at center, #1b4328 0%, #07170d 100%); border-radius: 8px; border: 1.5px solid #245233; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+        .ls-center-lion-emoji { font-size: 88px; filter: drop-shadow(0 6px 14px rgba(0,0,0,0.9)); line-height: 1; }
+        .ls-meters-row { display: grid; grid-template-columns: repeat(8, 1fr); gap: 3px; margin-bottom: 4px; }
+        .ls-meter-box { background: #1a1e26; border: 1px solid #2e3440; border-radius: 4px; padding: 3px 0; font-size: 11px; font-weight: bold; color: #94a3b8; }
+        .ls-meter-box.has-bet { color: #facc15; border-color: #f59e0b; background: #272215; }
+        .ls-sym-btns-row { display: grid; grid-template-columns: repeat(8, 1fr); gap: 3px; margin-bottom: 8px; }
+        .ls-sym-btn { aspect-ratio: 1 / 1; background: #222731; border: 1px solid #353c4a; border-radius: 7px; font-size: 21px; display: flex; align-items: center; justify-content: center; cursor: pointer; user-select: none; transition: 0.1s; }
+        .ls-sym-btn:active { transform: scale(0.92); background: #374151; }
+        .ls-mid-controls { display: flex; justify-content: space-between; align-items: center; gap: 5px; margin-bottom: 8px; }
+        /* ================= 🎡 SPRIBE MINI ROULETTE CSS (SHAMOBET STYLE) ================= */
+        .mr-casino-wrapper { background: radial-gradient(circle at center, #1b7a3d 0%, #0f4c24 100%); border-radius: 14px; border: 1.5px solid #287242; padding: 10px; position: relative; overflow: hidden; box-shadow: 0 8px 25px rgba(0,0,0,0.6); }
+        .mr-top-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; position: relative; }
+        .mr-badge-group { display: flex; align-items: center; gap: 6px; }
+        .mr-title-pill { background: #15803d; border: 1px solid #4ade80; color: #fff; font-weight: 900; font-size: 12px; padding: 5px 12px; border-radius: 20px; letter-spacing: 0.5px; }
+        .mr-help-btn { width: 26px; height: 26px; border-radius: 50%; background: rgba(250, 204, 21, 0.2); border: 1.5px solid #facc15; color: #facc15; font-weight: 900; font-size: 13px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .mr-wheel-area { position: relative; width: 175px; height: 175px; margin: 4px auto 6px auto; }
+        #mr-wheel-canvas { width: 175px; height: 175px; display: block; }
+        .mr-recent-strip { display: flex; justify-content: center; gap: 5px; margin-bottom: 8px; min-height: 24px; flex-wrap: wrap; }
+        .mr-hist-ball { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; color: #fff; border: 1px solid rgba(255,255,255,0.65); box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
+        .mr-toast-alert { display: none; position: absolute; top: 8px; left: 50%; transform: translateX(-50%); background: #dc2626; color: #fff; font-weight: bold; font-size: 13px; padding: 8px 18px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.6); z-index: 50; white-space: nowrap; }
+        .mr-toast-alert.win { background: #16a34a; border: 1.5px solid #fde047; }
+        .mr-bet-info-bar { display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: bold; color: #e2e8f0; margin-bottom: 6px; padding: 0 4px; }
+        .mr-paytable-link { color: #86efac; text-decoration: underline; cursor: pointer; font-size: 13px; }
+        .mr-grid-outer { position: relative; margin-bottom: 10px; }
+        .mr-felt-grid { display: grid; grid-template-columns: repeat(6, 1fr); border: 1.5px solid rgba(255,255,255,0.65); border-radius: 6px; overflow: hidden; background: rgba(10, 60, 28, 0.45); }
+        .mr-cell { border: 1px solid rgba(255,255,255,0.45); height: 50px; display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; user-select: none; transition: 0.15s; }
+        .mr-cell:active { transform: scale(0.95); }
+        .mr-cell.win-flash { background: rgba(250, 204, 21, 0.45) !important; box-shadow: inset 0 0 12px #facc15; }
+        .mr-num-circle { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 15px; color: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
+        .mr-red { background: #dc2626; border: 1.5px solid #fca5a5; }
+        .mr-black { background: #1e293b; border: 1.5px solid #94a3b8; }
+        .mr-outside-text { font-size: 12px; font-weight: 900; color: #ffffff; }
+        .mr-placed-chip { position: absolute; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 900; color: #fff; border: 2px dashed #fff; box-shadow: 0 3px 8px rgba(0,0,0,0.8); z-index: 5; pointer-events: none; }
+        .mr-hotspot-layer { position: absolute; top: 0; left: 0; width: 100%; height: 66.66%; pointer-events: none; z-index: 8; }
+        .mr-spot { position: absolute; width: 22px; height: 22px; transform: translate(-50%, -50%); pointer-events: auto; cursor: pointer; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .mr-spot:hover { background: rgba(250, 204, 21, 0.35); }
+        .mr-spot .mr-placed-chip { position: static; width: 26px; height: 26px; font-size: 9px; }
+        .mr-action-strip { display: flex; justify-content: space-between; align-items: center; gap: 6px; margin-bottom: 12px; }
+        .mr-ctrl-btn { flex: 1; padding: 8px 4px; margin: 0; border-radius: 20px; background: rgba(15, 76, 36, 0.85); border: 1px solid rgba(255,255,255,0.4); color: #fff; font-size: 12px; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 4px; }
+        .mr-bottom-deck { display: flex; justify-content: space-between; align-items: center; gap: 6px; padding-top: 4px; }
+        .mr-chips-row { display: flex; align-items: center; gap: 6px; flex: 1; justify-content: space-around; }
+        .mr-chip-btn { width: 42px; height: 42px; border-radius: 50%; border: 3px dashed rgba(255,255,255,0.85); color: #fff; font-weight: 900; font-size: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.55); transition: 0.15s; user-select: none; }
+        .mr-chip-btn.selected { transform: translateY(-6px) scale(1.12); box-shadow: 0 0 15px #fde047; border-style: solid; border-color: #fde047; }
+        .mr-spin-big-btn { width: 64px; height: 64px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, #facc15, #ca8a04); border: 3px solid #fef08a; color: #1e293b; font-size: 28px; font-weight: 900; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.6); margin: 0; padding: 0; }
+        .mr-spin-big-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .mr-modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.82); z-index: 20000; align-items: center; justify-content: center; padding: 15px; box-sizing: border-box; }
+        .mr-modal-overlay.show { display: flex; }
+        .mr-modal-card { background: #1e2229; border: 1px solid #374151; border-radius: 14px; width: 100%; max-width: 400px; max-height: 82vh; overflow-y: auto; padding: 16px; text-align: left; color: #e2e8f0; }
+        .mr-modal-head { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #374151; padding-bottom: 10px; margin-bottom: 12px; font-size: 16px; font-weight: 900; color: #fff; }
+        .mr-close-x { width: 28px; height: 28px; border-radius: 50%; background: #374151; color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: bold; }
+        /* ================= 🦁 SHAMOBET LION SPIN CSS ================= */
+        .ls-wrapper { background: #12151a; border-radius: 14px; border: 1.5px solid #2b303a; padding: 10px; position: relative; overflow: hidden; box-shadow: 0 8px 25px rgba(0,0,0,0.75); }
+        .ls-top-bar { display: flex; justify-content: space-between; align-items: center; padding: 4px 4px 10px 4px; position: relative; }
+        .ls-brand-badge { font-size: 14px; font-weight: 900; line-height: 0.95; color: #facc15; text-shadow: 0 2px 4px #000, 0 0 8px #ea580c; text-align: left; }
+        .ls-toast { display: none; position: absolute; top: 44px; left: 50%; transform: translateX(-50%); background: rgba(127, 29, 29, 0.95); border: 1px solid #f87171; color: #fecaca; font-size: 12px; font-weight: bold; padding: 8px 14px; border-radius: 8px; z-index: 60; white-space: nowrap; box-shadow: 0 4px 15px rgba(0,0,0,0.8); }
+        .ls-toast.win { background: rgba(20, 83, 45, 0.95); border-color: #4ade80; color: #bbf7d0; }
+        .ls-board-7x7 { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; background: #0a0c0f; padding: 4px; border-radius: 10px; border: 1px solid #2a2f3a; margin-bottom: 8px; }
+        .ls-slot { aspect-ratio: 1 / 1; background: #1d2129; border: 1px solid #2f3542; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; font-size: 20px; transition: 0.08s; user-select: none; }
+        .ls-slot.active { background: radial-gradient(circle, #fef08a 0%, #f59e0b 100%) !important; border: 2px solid #ffffff !important; box-shadow: 0 0 14px #facc15; transform: scale(1.06); z-index: 5; }
+        .ls-slot-mult { position: absolute; bottom: 1px; right: 2px; font-size: 8px; font-weight: 900; color: #e2e8f0; background: rgba(0,0,0,0.75); padding: 0 3px; border-radius: 3px; }
+        .ls-center-lion { grid-column: 2 / 7; grid-row: 2 / 7; background: radial-gradient(circle at center, #1b4328 0%, #07170d 100%); border-radius: 8px; border: 1.5px solid #245233; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+        .ls-center-lion-emoji { font-size: 88px; filter: drop-shadow(0 6px 14px rgba(0,0,0,0.9)); line-height: 1; }
+        .ls-meters-row { display: grid; grid-template-columns: repeat(8, 1fr); gap: 3px; margin-bottom: 4px; }
+        .ls-meter-box { background: #1a1e26; border: 1px solid #2e3440; border-radius: 4px; padding: 3px 0; font-size: 11px; font-weight: bold; color: #94a3b8; }
+        .ls-meter-box.has-bet { color: #facc15; border-color: #f59e0b; background: #272215; }
+        .ls-sym-btns-row { display: grid; grid-template-columns: repeat(8, 1fr); gap: 3px; margin-bottom: 8px; }
+        .ls-sym-btn { aspect-ratio: 1 / 1; background: #222731; border: 1px solid #353c4a; border-radius: 7px; font-size: 21px; display: flex; align-items: center; justify-content: center; cursor: pointer; user-select: none; transition: 0.1s; }
+        .ls-sym-btn:active { transform: scale(0.92); background: #374151; }
+        .ls-mid-controls { display: flex; justify-content: space-between; align-items: center; gap: 5px; margin-bottom: 8px; }
+        .ls-small-btn { flex: 1; padding: 8px 4px; margin: 0; background: #262b36; border: 1px solid #384050; border-radius: 7px; color: #e2e8f0; font-size: 12px; font-weight: bold; }
+        .ls-stake-display { flex: 1.3; text-align: center; font-size: 11px; color: #94a3b8; line-height: 1.2; }
+        .ls-low-high-row { display: flex; gap: 8px; margin-bottom: 8px; }
+        .ls-lh-btn { flex: 1; padding: 9px; margin: 0; background: #1d222b; border: 1px solid #323946; border-radius: 8px; color: #cbd5e1; font-size: 13px; font-weight: bold; }
+        .ls-lh-btn.active { border-color: #38bdf8; color: #ffffff; background: #232c3b; }
+        .ls-bottom-play-row { display: flex; gap: 8px; align-items: center; }
+        .ls-stepper-box { flex: 1; display: flex; align-items: center; justify-content: space-between; background: #1d222b; border: 1px solid #323946; border-radius: 10px; padding: 6px 10px; height: 48px; box-sizing: border-box; }
+        .ls-step-sign { font-size: 20px; font-weight: bold; color: #cbd5e1; cursor: pointer; padding: 0 8px; user-select: none; }
+        .ls-play-btn { flex: 1; height: 48px; margin: 0; border-radius: 10px; background: linear-gradient(180deg, #4b5563 0%, #374151 100%); border: 1px solid #6b7280; color: #ffffff; font-size: 17px; font-weight: 900; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .ls-play-btn.ready { background: linear-gradient(180deg, #22c55e 0%, #15803d 100%); border-color: #4ade80; }
     </style>
 </head>
 <body>
@@ -241,7 +333,11 @@
                     <div class="game-premium-card" onclick="switchActiveGame('keno')">🎰<br><div class="game-title-text">Fast Keno</div><div class="game-status-active" style="color:#4ade80; font-size:12px; font-weight:bold;">ACTIVE</div></div>
                     <div class="game-premium-card" onclick="switchActiveGame('roulette')">🎡<br><div class="game-title-text">Mini Roulette</div><div class="game-status-active" style="color:#4ade80; font-size:12px; font-weight:bold;">ACTIVE</div></div>
                     <div class="game-premium-card" onclick="switchActiveGame('aviator')">🚀<br><div class="game-title-text">Aviator</div><div class="game-status-active" style="color:#4ade80; font-size:12px; font-weight:bold;">ACTIVE</div></div>
-                    <div class="game-premium-card" onclick="switchActiveGame('chicken')">🐔<br><div class="game-title-text">Chicken Road 2</div><div class="game-status-soon" style="color:#94a3b8; font-size:12px;">SOON</div></div>
+                    <div class="game-premium-card lion-banner-card" onclick="switchActiveGame('lionspin')">
+                        <div style="font-size:32px; line-height:1.1; filter:drop-shadow(0 3px 6px #000);">🦁</div>
+                        <div class="lion-logo-stack">LION<br>SPIN</div>
+                        <div class="game-status-active" style="color:#facc15; font-size:11px; font-weight:bold;">ACTIVE</div>
+                    </div>
                 </div>
             </div>
 
@@ -457,7 +553,7 @@
                             <div class="av-menu-hamburger" style="background:#14532d; border-color:#4ade80;" onclick="toggleMrDrawer(event)">≡</div>
                         </div>
 
-                        <!-- ≡ Dropdown Menu (Shamobet Style) -->
+                        <!-- ≡ Dropdown Menu -->
                         <div id="mr-dropdown-drawer" class="av-dropdown-drawer" onclick="event.stopPropagation()">
                             <div class="av-drawer-item" onclick="toggleMrSound()">
                                 <span>🔊 Sound</span>
@@ -487,7 +583,6 @@
                     <!-- 6x3 Betting Grid + Split (5.82x) & Corner (2.91x) Hotspots -->
                     <div class="mr-grid-outer">
                         <div class="mr-felt-grid" id="mr-felt-grid">
-                            <!-- Row 1: 2, 4, 6, 8, 10, 12 -->
                             <div class="mr-cell" id="mr-cell-num_2" onclick="placeMrChip('num_2')"><div class="mr-num-circle mr-black">2</div></div>
                             <div class="mr-cell" id="mr-cell-num_4" onclick="placeMrChip('num_4')"><div class="mr-num-circle mr-black">4</div></div>
                             <div class="mr-cell" id="mr-cell-num_6" onclick="placeMrChip('num_6')"><div class="mr-num-circle mr-black">6</div></div>
@@ -495,7 +590,6 @@
                             <div class="mr-cell" id="mr-cell-num_10" onclick="placeMrChip('num_10')"><div class="mr-num-circle mr-red">10</div></div>
                             <div class="mr-cell" id="mr-cell-num_12" onclick="placeMrChip('num_12')"><div class="mr-num-circle mr-red">12</div></div>
 
-                            <!-- Row 2: 1, 3, 5, 7, 9, 11 -->
                             <div class="mr-cell" id="mr-cell-num_1" onclick="placeMrChip('num_1')"><div class="mr-num-circle mr-red">1</div></div>
                             <div class="mr-cell" id="mr-cell-num_3" onclick="placeMrChip('num_3')"><div class="mr-num-circle mr-red">3</div></div>
                             <div class="mr-cell" id="mr-cell-num_5" onclick="placeMrChip('num_5')"><div class="mr-num-circle mr-red">5</div></div>
@@ -503,7 +597,6 @@
                             <div class="mr-cell" id="mr-cell-num_9" onclick="placeMrChip('num_9')"><div class="mr-num-circle mr-black">9</div></div>
                             <div class="mr-cell" id="mr-cell-num_11" onclick="placeMrChip('num_11')"><div class="mr-num-circle mr-black">11</div></div>
 
-                            <!-- Row 3: 1-6, Even, Black, Red, Odd, 7-12 -->
                             <div class="mr-cell" id="mr-cell-1-6" onclick="placeMrChip('1-6')"><span class="mr-outside-text">1-6</span></div>
                             <div class="mr-cell" id="mr-cell-even" onclick="placeMrChip('even')"><span class="mr-outside-text">Even</span></div>
                             <div class="mr-cell" id="mr-cell-black" onclick="placeMrChip('black')"><div class="mr-num-circle mr-black" style="width:28px; height:28px;"></div></div>
@@ -512,7 +605,6 @@
                             <div class="mr-cell" id="mr-cell-7-12" onclick="placeMrChip('7-12')"><span class="mr-outside-text">7-12</span></div>
                         </div>
 
-                        <!-- Interactive Split (5.82x) & Corner (2.91x) Layer -->
                         <div class="mr-hotspot-layer" id="mr-hotspot-layer"></div>
                     </div>
 
@@ -537,13 +629,77 @@
                     <div style="font-size:11px; color:#bbf7d0; margin-top:6px;">1 = 1 Birr</div>
                 </div>
             </div>
+            <!-- ================= 🦁 SHAMOBET LION SPIN HTML ================= -->
+            <div id="lionspin-game-main-block" style="display: none; margin-top: 8px;">
+                <button onclick="switchActiveGame('menu')" style="background:#21342d; color:#a7f3d0; border:1px solid #2b443b; padding:8px; font-size:14px; margin-bottom:8px;">⬅ ወደ ጌም ዝርዝር ይመለሱ</button>
+
+                <div class="ls-wrapper">
+                    <div id="ls-toast-box" class="ls-toast">Please place a bet before playing</div>
+
+                    <!-- Top Header -->
+                    <div class="ls-top-bar">
+                        <div class="ls-brand-badge">LION<br>SPIN</div>
+                        <div style="text-align:center;">
+                            <div style="font-size:10px; color:#94a3b8;">Balance</div>
+                            <div style="font-size:14px; font-weight:900; color:#fff;" id="ls-header-bal-text">0.00 ETB</div>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span id="ls-sound-icon" style="font-size:18px; cursor:pointer;" onclick="toggleLsSound()">🔊</span>
+                            <div class="av-menu-hamburger" style="background:#1f242d; border-color:#374151;" onclick="toggleLsDrawer(event)">≡</div>
+                        </div>
+
+                        <!-- ≡ Dropdown Menu (Rules & Bet History) -->
+                        <div id="ls-dropdown-drawer" class="av-dropdown-drawer" onclick="event.stopPropagation()">
+                            <div class="av-drawer-item" onclick="openLsModal('rules')"><span>📋 Rules</span><span>›</span></div>
+                            <div class="av-drawer-item" onclick="openLsModal('history')"><span>🕒 Bet History</span><span>›</span></div>
+                        </div>
+                    </div>
+
+                    <!-- 24-Slot Square Wheel + Big Lion Head Center -->
+                    <div class="ls-board-7x7" id="ls-board-grid"></div>
+
+                    <!-- 8 Stake Meters Row -->
+                    <div class="ls-meters-row" id="ls-meters-row"></div>
+
+                    <!-- 8 Bettable Symbol Buttons Row -->
+                    <div class="ls-sym-btns-row" id="ls-sym-btns-row"></div>
+
+                    <!-- Clear / Undo / Total Stake / X2 / All -->
+                    <div class="ls-mid-controls">
+                        <button class="ls-small-btn" onclick="clearLsBets()">Clear</button>
+                        <button class="ls-small-btn" onclick="undoLsBet()">Undo</button>
+                        <div class="ls-stake-display">
+                            <div>Total Stake</div>
+                            <div style="color:#fff; font-weight:900; font-size:12px;"><span id="ls-total-stake-text">0.00</span> ETB</div>
+                        </div>
+                        <button class="ls-small-btn" onclick="doubleLsBets()">X2</button>
+                        <button class="ls-small-btn" onclick="betAllLsSymbols()">All</button>
+                    </div>
+
+                    <!-- Low / High Selector -->
+                    <div class="ls-low-high-row">
+                        <button id="ls-low-btn" class="ls-lh-btn active" onclick="setLsMode('low')">Low</button>
+                        <button id="ls-high-btn" class="ls-lh-btn" onclick="setLsMode('high')">High</button>
+                    </div>
+
+                    <!-- Stepper (- 2.00 ETB +) & ▶ Play Button -->
+                    <div class="ls-bottom-play-row">
+                        <div class="ls-stepper-box">
+                            <span class="ls-step-sign" onclick="stepLsUnit(-1)">−</span>
+                            <span style="font-weight:900; font-size:15px; color:#fff;"><span id="ls-unit-val">2.00</span> <span style="font-size:11px; color:#94a3b8;">ETB</span></span>
+                            <span class="ls-step-sign" onclick="stepLsUnit(1)">+</span>
+                        </div>
+                        <button id="ls-play-btn" class="ls-play-btn" onclick="playLionSpin()">▶ Play</button>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <!-- Mini Roulette Info / Paytable Modal -->
+        <!-- Shared Info / Paytable / Rules Modal -->
         <div id="mr-info-modal" class="mr-modal-overlay" onclick="closeMrModal()">
             <div class="mr-modal-card" onclick="event.stopPropagation()">
                 <div class="mr-modal-head">
-                    <span id="mr-modal-title">PAYTABLE</span>
+                    <span id="mr-modal-title">RULES</span>
                     <div class="mr-close-x" onclick="closeMrModal()">✕</div>
                 </div>
                 <div id="mr-modal-body" style="font-size:13px; line-height:1.6;"></div>
@@ -617,6 +773,8 @@ window.onclick = function() {
     if(avDrawer) avDrawer.classList.remove("open");
     const mrDrawer = document.getElementById("mr-dropdown-drawer");
     if(mrDrawer) mrDrawer.classList.remove("open");
+    const lsDrawer = document.getElementById("ls-dropdown-drawer");
+    if(lsDrawer) lsDrawer.classList.remove("open");
 };
 
 function triggerFileInputClick() {
@@ -833,6 +991,8 @@ function updateLiveBalanceDisplays(newBalance) {
     if (avHeaderBal) avHeaderBal.innerText = `${formattedBal} ETB`;
     const mrHeaderBal = document.getElementById('mr-header-bal-text');
     if (mrHeaderBal) mrHeaderBal.innerText = `${formattedBal} Birr`;
+    const lsHeaderBal = document.getElementById('ls-header-bal-text');
+    if (lsHeaderBal) lsHeaderBal.innerText = `${formattedBal} ETB`;
 }
 
 function switchActiveGame(gameName) {
@@ -840,6 +1000,7 @@ function switchActiveGame(gameName) {
     document.getElementById('keno-game-main-block').style.display = gameName === 'keno' ? 'block' : 'none';
     document.getElementById('aviator-game-main-block').style.display = gameName === 'aviator' ? 'block' : 'none';
     document.getElementById('roulette-game-main-block').style.display = gameName === 'roulette' ? 'block' : 'none';
+    document.getElementById('lionspin-game-main-block').style.display = gameName === 'lionspin' ? 'block' : 'none';
     if (gameName === 'roulette' && typeof drawMiniRouletteWheel === 'function') {
         drawMiniRouletteWheel(mrState.wheelAngle, mrState.ballAngle, mrState.ballRadius);
     }
@@ -1589,8 +1750,8 @@ function renderAviatorLiveBets(betsList) {
     if (countEl) countEl.innerText = betsList.length;
     if (stageCountEl) stageCountEl.innerText = totalDisplay;
 
-    const bet1 = avState.myBets[1];
-    const bet2 = avState.myBets[2];
+    const bet1 = avState.myBets;
+    const bet2 = avState.myBets;
     const myIds = new Array(
         bet1 ? bet1.playerId : '',
         bet2 ? bet2.playerId : ''
@@ -1988,7 +2149,6 @@ function drawMiniRouletteWheel(wheelAngle, ballAngle, ballRadius) {
 
     ctx.clearRect(0, 0, W, H);
 
-    // 1. የውጪው የእንጨት ክፈፍ (Outer Wooden Rim)
     ctx.beginPath();
     ctx.arc(cx, cy, outerR + 4, 0, Math.PI * 2);
     ctx.fillStyle = '#0a2915';
@@ -1997,7 +2157,6 @@ function drawMiniRouletteWheel(wheelAngle, ballAngle, ballRadius) {
     ctx.strokeStyle = '#ca8a04';
     ctx.stroke();
 
-    // 2. 12ቱ ቀይ እና ጥቁር ክፍሎች (12 Slices)
     const sliceAngle = (Math.PI * 2) / 12;
     for (let i = 0; i < 12; i++) {
         const item = MR_WHEEL_ORDER[i];
@@ -2030,7 +2189,6 @@ function drawMiniRouletteWheel(wheelAngle, ballAngle, ballRadius) {
         ctx.restore();
     }
 
-    // 3. የመሃሉ ነጭ ክብ እና የሚሽከረከር X ቅርጽ (Center Spindle)
     ctx.beginPath();
     ctx.arc(cx, cy, innerR, 0, Math.PI * 2);
     ctx.fillStyle = '#e5e7eb';
@@ -2057,7 +2215,6 @@ function drawMiniRouletteWheel(wheelAngle, ballAngle, ballRadius) {
     }
     ctx.restore();
 
-    // 4. ወርቃማው ኳስ (Gold Ball)
     const bx = cx + Math.cos(ballAngle) * ballRadius;
     const by = cy + Math.sin(ballAngle) * ballRadius;
     ctx.beginPath();
@@ -2183,6 +2340,313 @@ async function spinMiniRoulette() {
         showMrToast("❌ ከሰርቨር ጋር መገናኘት አልተቻለም!", false);
     }
 }
+// ================= 🦁 SHAMOBET LION SPIN ENGINE (24 SLOTS & 8 SYMBOLS) =================
+const LS_BOARD_SLOTS = new Array(
+    { index: 0, row: 1, col: 1, emoji: '🪘', mult: 10 },
+    { index: 1, row: 1, col: 2, emoji: '🛡️', mult: 20 },
+    { index: 2, row: 1, col: 3, emoji: '🦟', mult: 50 },
+    { index: 3, row: 1, col: 4, emoji: '🦟', mult: 120 },
+    { index: 4, row: 1, col: 5, emoji: '🗿', mult: 5 },
+    { index: 5, row: 1, col: 6, emoji: '🗿', mult: 3 },
+    { index: 6, row: 1, col: 7, emoji: '🍌', mult: 15 },
+    { index: 7, row: 2, col: 7, emoji: '🍉', mult: 20 },
+    { index: 8, row: 3, col: 7, emoji: '🍉', mult: 3 },
+    { index: 9, row: 4, col: 7, emoji: '🦁', mult: 0 },
+    { index: 10, row: 5, col: 7, emoji: '🗿', mult: 5 },
+    { index: 11, row: 6, col: 7, emoji: '🪘', mult: 3 },
+    { index: 12, row: 7, col: 7, emoji: '🪘', mult: 10 },
+    { index: 13, row: 7, col: 6, emoji: '🛡️', mult: 20 },
+    { index: 14, row: 7, col: 5, emoji: '🥭', mult: 3 },
+    { index: 15, row: 7, col: 4, emoji: '🥭', mult: 40 },
+    { index: 16, row: 7, col: 3, emoji: '🗿', mult: 5 },
+    { index: 17, row: 7, col: 2, emoji: '🍌', mult: 3 },
+    { index: 18, row: 7, col: 1, emoji: '🍌', mult: 15 },
+    { index: 19, row: 6, col: 1, emoji: '🥭', mult: 30 },
+    { index: 20, row: 5, col: 1, emoji: '🥭', mult: 3 },
+    { index: 21, row: 4, col: 1, emoji: '🦁', mult: 0 },
+    { index: 22, row: 3, col: 1, emoji: '🗿', mult: 5 },
+    { index: 23, row: 2, col: 1, emoji: '🗿', mult: 3 }
+);
+
+const LS_BET_SYMBOLS = new Array(
+    { key: 'mask', emoji: '🗿', mult: 'x5' },
+    { key: 'drum', emoji: '🪘', mult: 'x10' },
+    { key: 'banana', emoji: '🍌', mult: 'x15' },
+    { key: 'shield', emoji: '🛡️', mult: 'x20' },
+    { key: 'watermelon', emoji: '🍉', mult: 'x20' },
+    { key: 'papaya', emoji: '🥭', mult: 'x30' },
+    { key: 'mango', emoji: '🥭', mult: 'x40' },
+    { key: 'dragonfly', emoji: '🦟', mult: 'x120' }
+);
+
+let lsState = {
+    bets: {},
+    historyStack: new Array(),
+    betLogs: new Array(),
+    unitBet: 2.00,
+    mode: 'low',
+    isSpinning: false,
+    soundOn: true,
+    activeSlot: -1
+};
+
+function initLionSpinUI() {
+    const grid = document.getElementById('ls-board-grid');
+    if (grid) {
+        grid.innerHTML = '<div class="ls-center-lion"><div class="ls-center-lion-emoji">🦁</div></div>';
+        for (let i = 0; i < LS_BOARD_SLOTS.length; i++) {
+            const s = LS_BOARD_SLOTS[i];
+            const el = document.createElement('div');
+            el.className = 'ls-slot';
+            el.id = `ls-slot-${s.index}`;
+            el.style.gridRow = String(s.row);
+            el.style.gridColumn = String(s.col);
+            const badge = s.mult > 0 ? `<span class="ls-slot-mult">x${s.mult}</span>` : '';
+            el.innerHTML = `<span>${s.emoji}</span>${badge}`;
+            grid.appendChild(el);
+        }
+    }
+
+    const metersRow = document.getElementById('ls-meters-row');
+    const btnsRow = document.getElementById('ls-sym-btns-row');
+    if (metersRow && btnsRow) {
+        metersRow.innerHTML = '';
+        btnsRow.innerHTML = '';
+        for (let i = 0; i < LS_BET_SYMBOLS.length; i++) {
+            const sym = LS_BET_SYMBOLS[i];
+            metersRow.innerHTML += `<div id="ls-meter-${sym.key}" class="ls-meter-box">-</div>`;
+            btnsRow.innerHTML += `<div class="ls-sym-btn" onclick="addLsSymbolBet('${sym.key}')">${sym.emoji}</div>`;
+        }
+    }
+}
+
+function showLsToast(msg, isWin) {
+    const t = document.getElementById('ls-toast-box');
+    if (!t) return;
+    t.innerText = msg;
+    t.className = isWin ? 'ls-toast win' : 'ls-toast';
+    t.style.display = 'block';
+    setTimeout(() => { t.style.display = 'none'; }, 2800);
+}
+
+function toggleLsSound() {
+    lsState.soundOn = !lsState.soundOn;
+    const ic = document.getElementById('ls-sound-icon');
+    if (ic) ic.innerText = lsState.soundOn ? '🔊' : '🔇';
+}
+
+function toggleLsDrawer(event) {
+    event.stopPropagation();
+    const d = document.getElementById('ls-dropdown-drawer');
+    if (d) d.classList.toggle('open');
+}
+
+function setLsMode(m) {
+    lsState.mode = m;
+    document.getElementById('ls-low-btn').classList.toggle('active', m === 'low');
+    document.getElementById('ls-high-btn').classList.toggle('active', m === 'high');
+    lsState.unitBet = m === 'high' ? 20.00 : 2.00;
+    document.getElementById('ls-unit-val').innerText = lsState.unitBet.toFixed(2);
+}
+
+function stepLsUnit(dir) {
+    const step = lsState.mode === 'high' ? 10 : 2;
+    lsState.unitBet = Math.max(2, lsState.unitBet + dir * step);
+    document.getElementById('ls-unit-val').innerText = lsState.unitBet.toFixed(2);
+}
+
+function updateLsMetersUI() {
+    let total = 0;
+    for (let i = 0; i < LS_BET_SYMBOLS.length; i++) {
+        const key = LS_BET_SYMBOLS[i].key;
+        const val = lsState.bets[key] || 0;
+        total += val;
+        const mEl = document.getElementById(`ls-meter-${key}`);
+        if (mEl) {
+            mEl.innerText = val > 0 ? String(val) : '-';
+            mEl.classList.toggle('has-bet', val > 0);
+        }
+    }
+    const stakeEl = document.getElementById('ls-total-stake-text');
+    if (stakeEl) stakeEl.innerText = total.toFixed(2);
+    const playBtn = document.getElementById('ls-play-btn');
+    if (playBtn) playBtn.classList.toggle('ready', total >= 2);
+}
+
+function addLsSymbolBet(key) {
+    if (lsState.isSpinning) return;
+    const amt = lsState.unitBet;
+    lsState.bets[key] = (lsState.bets[key] || 0) + amt;
+    lsState.historyStack.push({ key, amt });
+    if (lsState.soundOn) playMrTone(620, 0.05);
+    updateLsMetersUI();
+}
+
+function clearLsBets() {
+    if (lsState.isSpinning) return;
+    lsState.bets = {};
+    lsState.historyStack = new Array();
+    updateLsMetersUI();
+}
+
+function undoLsBet() {
+    if (lsState.isSpinning || lsState.historyStack.length === 0) return;
+    const last = lsState.historyStack.pop();
+    lsState.bets[last.key] = Math.max(0, (lsState.bets[last.key] || 0) - last.amt);
+    updateLsMetersUI();
+}
+
+function doubleLsBets() {
+    if (lsState.isSpinning) return;
+    for (let key in lsState.bets) {
+        if (lsState.bets[key] > 0) lsState.bets[key] *= 2;
+    }
+    updateLsMetersUI();
+}
+
+function betAllLsSymbols() {
+    if (lsState.isSpinning) return;
+    const amt = lsState.unitBet;
+    for (let i = 0; i < LS_BET_SYMBOLS.length; i++) {
+        const key = LS_BET_SYMBOLS[i].key;
+        lsState.bets[key] = (lsState.bets[key] || 0) + amt;
+    }
+    updateLsMetersUI();
+}
+function openLsModal(type) {
+    const drawer = document.getElementById('ls-dropdown-drawer');
+    if (drawer) drawer.classList.remove('open');
+
+    const modal = document.getElementById('mr-info-modal');
+    const titleEl = document.getElementById('mr-modal-title');
+    const bodyEl = document.getElementById('mr-modal-body');
+    if (!modal || !titleEl || !bodyEl) return;
+
+    if (type === 'rules') {
+        titleEl.innerText = 'LION SPIN RULES';
+        bodyEl.innerHTML = `
+            <div style="text-align:center; font-size:44px; margin-bottom:6px;">🦁</div>
+            <p><b>1. Introduction:</b> Welcome to Lion Spin, a fast and exciting instant spin game where every spin reveals a symbol that determines your reward. Winnings are calculated as: <b>Win = Bet × Multiplier</b>.</p>
+            <p><b>2. How To Play:</b> Select your bet amount using the + and - buttons, tap the symbols you want to bet on, and press <b>▶ Play</b>.</p>
+            <p><b>3. Multipliers:</b><br>
+            🗿 Mask: <b>x5</b> | 🪘 Drum: <b>x10</b> | 🍌 Banana: <b>x15</b><br>
+            🛡️ Shield: <b>x20</b> | 🍉 Watermelon: <b>x20</b> | 🥭 Papaya: <b>x30</b><br>
+            🥭 Mango: <b>x40</b> | 🦟 Dragonfly: <b>x120</b></p>
+            <p><b>4. Game Limits & RTP:</b> RTP is set at <b>96%</b>.<br>• Minimum Bet: <b>2.00 ETB</b><br>• Maximum Bet: <b>4,000.00 ETB</b><br>• Maximum Win: <b>4,200,000.00 ETB</b></p>`;
+    } else if (type === 'history') {
+        titleEl.innerText = 'LION SPIN BET HISTORY';
+        if (lsState.betLogs.length === 0) {
+            bodyEl.innerHTML = '<div style="color:#94a3b8; text-align:center; padding:15px;">No Lion Spin rounds played yet in this session.</div>';
+        } else {
+            bodyEl.innerHTML = lsState.betLogs.map(h => `
+                <div style="background:#111827; padding:8px 10px; border-radius:8px; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
+                    <span>${h.emoji} <b>${h.symbol.toUpperCase()} (x${h.mult})</b> | Stake: ${h.stake.toFixed(2)} ETB</span>
+                    <b style="color:${h.win > 0 ? '#4ade80' : '#f87171'};">${h.win > 0 ? '+' + h.win.toFixed(2) : '0.00'} ETB</b>
+                </div>
+            `).join('');
+        }
+    }
+
+    modal.classList.add('show');
+}
+
+async function playLionSpin() {
+    if (lsState.isSpinning) return;
+    if (!userToken) { showLsToast("Please login first", false); return; }
+
+    let totalStake = 0;
+    for (let k in lsState.bets) {
+        totalStake += (lsState.bets[k] || 0);
+    }
+
+    if (totalStake < 2) {
+        showLsToast("Please place a bet before playing", false);
+        if (lsState.soundOn) playMrTone(260, 0.15);
+        return;
+    }
+
+    const balEl = document.getElementById('user-balance-display');
+    const currentBal = parseFloat(balEl ? balEl.innerText : 0) || 0;
+    if (currentBal < totalStake) {
+        showLsToast("Insufficient balance.", false);
+        if (lsState.soundOn) playMrTone(220, 0.25);
+        return;
+    }
+
+    lsState.isSpinning = true;
+    const playBtn = document.getElementById('ls-play-btn');
+    if (playBtn) playBtn.disabled = true;
+
+    try {
+        const res = await fetch(`${SERVER_URL}/api/lion-spin-play`, {
+            method: 'POST',
+            headers: authHeaders(),
+            body: JSON.stringify({ bets: lsState.bets })
+        });
+        const data = await res.json();
+
+        if (!data.success) {
+            lsState.isSpinning = false;
+            if (playBtn) playBtn.disabled = false;
+            showLsToast(data.message || "Insufficient balance.", false);
+            return;
+        }
+
+        updateLiveBalanceDisplays(currentBal - totalStake);
+
+        const targetIdx = data.landedIndex;
+        const startIdx = lsState.activeSlot >= 0 ? lsState.activeSlot : 0;
+        const totalSteps = 48 + ((targetIdx - startIdx + 24) % 24);
+        let step = 0;
+
+        function runLightStep() {
+            const curIdx = (startIdx + step) % 24;
+            document.querySelectorAll('.ls-slot').forEach(el => el.classList.remove('active'));
+            const activeEl = document.getElementById(`ls-slot-${curIdx}`);
+            if (activeEl) activeEl.classList.add('active');
+            lsState.activeSlot = curIdx;
+
+            if (lsState.soundOn) playMrTone(400 + (curIdx * 12), 0.04);
+
+            if (step < totalSteps) {
+                step++;
+                const remaining = totalSteps - step;
+                let delay = 45;
+                if (remaining < 12) delay = 90 + (12 - remaining) * 28;
+                setTimeout(runLightStep, delay);
+            } else {
+                lsState.isSpinning = false;
+                if (playBtn) playBtn.disabled = false;
+                updateLiveBalanceDisplays(data.newBalance);
+
+                const landedSlot = LS_BOARD_SLOTS[targetIdx] || { emoji: '🦁' };
+                lsState.betLogs.unshift({
+                    emoji: landedSlot.emoji,
+                    symbol: data.symbol,
+                    mult: data.multiplier,
+                    stake: data.totalStake,
+                    win: data.winAmount
+                });
+                if (lsState.betLogs.length > 25) lsState.betLogs.pop();
+
+                if (data.winAmount > 0) {
+                    if (lsState.soundOn) playMrTone(880, 0.35);
+                    showLsToast(`🎉 ${landedSlot.emoji} x${data.multiplier} • WON +${data.winAmount.toFixed(2)} ETB!`, true);
+                } else {
+                    if (lsState.soundOn) playMrTone(310, 0.18);
+                    showLsToast(`${landedSlot.emoji} Landed on ${data.symbol.toUpperCase()}`, false);
+                }
+            }
+        }
+
+        runLightStep();
+    } catch (e) {
+        lsState.isSpinning = false;
+        if (playBtn) playBtn.disabled = false;
+        showLsToast("❌ ከሰርቨር ጋር መገናኘት አልተቻለም!", false);
+    }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     const board = document.getElementById('keno-board');
     if(board) { 
@@ -2196,6 +2660,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initMrHotspots();
     renderMrRecentStrip();
     drawMiniRouletteWheel(0, Math.PI * 0.5, 50);
+    initLionSpinUI();
 
     if (userToken) {
         fetch(`${SERVER_URL}/api/my-balance`, { headers: authHeaders() })
