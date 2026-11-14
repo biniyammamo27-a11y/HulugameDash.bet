@@ -675,10 +675,47 @@ app.post('/admin/set-aviator-crash', requireAdmin, (req, res) => {
     customAviatorCrashPoint = val;
     res.json({ success: true, message: `🟢 ቀጣዩ Aviator በ ${val.toFixed(2)}x ላይ እንዲፈነዳ ተቆልፏል!` });
 });
-// ================= 🎡 MINI ROULETTE ENGINE (SPRIBE / SHAMOBET STYLE) =================
+// ================= 🎡 MINI ROULETTE ENGINE (HOUSE PROFIT + SPLIT & CORNER) =================
 
 const MINI_ROULETTE_RED = new Array(1, 3, 5, 8, 10, 12);
 const MINI_ROULETTE_BLACK = new Array(2, 4, 6, 7, 9, 11);
+
+function calculateMrPayoutForNumber(bets, winNum) {
+    const isRed = MINI_ROULETTE_RED.includes(winNum);
+    const isBlack = MINI_ROULETTE_BLACK.includes(winNum);
+    const isEven = (winNum % 2 === 0);
+    const isOdd = !isEven;
+    let totalWin = 0;
+
+    for (let key in bets) {
+        const amt = parseFloat(bets[key]) || 0;
+        if (amt <= 0) continue;
+
+        if (key.startsWith('num_')) {
+            const n = parseInt(key.replace('num_', ''), 10);
+            if (n === winNum) totalWin += amt * 11.64;
+        } else if (key.startsWith('split_')) {
+            const parts = key.replace('split_', '').split('_').map(Number);
+            if (parts.includes(winNum)) totalWin += amt * 5.82;
+        } else if (key.startsWith('corner_')) {
+            const parts = key.replace('corner_', '').split('_').map(Number);
+            if (parts.includes(winNum)) totalWin += amt * 2.91;
+        } else if (key === '1-6' && winNum >= 1 && winNum <= 6) {
+            totalWin += amt * 1.94;
+        } else if (key === '7-12' && winNum >= 7 && winNum <= 12) {
+            totalWin += amt * 1.94;
+        } else if (key === 'even' && isEven) {
+            totalWin += amt * 1.94;
+        } else if (key === 'odd' && isOdd) {
+            totalWin += amt * 1.94;
+        } else if (key === 'red' && isRed) {
+            totalWin += amt * 1.94;
+        } else if (key === 'black' && isBlack) {
+            totalWin += amt * 1.94;
+        }
+    }
+    return parseFloat(totalWin.toFixed(2));
+}
 
 app.post('/api/mini-roulette-spin', requireUser, async (req, res) => {
     const { bets } = req.body;
@@ -693,7 +730,7 @@ app.post('/api/mini-roulette-spin', requireUser, async (req, res) => {
     }
 
     if (totalBet < 1) {
-        return res.json({ success: false, message: "⚠️ ቢያንስ 1.00 ETB መመደብ አለብዎት!" });
+        return res.json({ success: false, message: "⚠️ ቢያንስ 1.00 Birr መመደብ አለብዎት!" });
     }
 
     try {
@@ -703,44 +740,25 @@ app.post('/api/mini-roulette-spin', requireUser, async (req, res) => {
             { new: true }
         );
         if (!user) {
-            return res.json({ success: false, message: "❌ Not enough balance (በቂ ቀሪ ሂሳብ የሎትም)!" });
+            return res.json({ success: false, message: "Not enough balance" });
         }
 
-        const winningNumber = Math.floor(Math.random() * 12) + 1;
-        const isRed = MINI_ROULETTE_RED.includes(winningNumber);
-        const isBlack = MINI_ROULETTE_BLACK.includes(winningNumber);
-        const isEven = (winningNumber % 2 === 0);
-        const isOdd = !isEven;
-
-        let totalWin = 0;
-
-        for (let key in bets) {
-            const amt = parseFloat(bets[key]) || 0;
-            if (amt <= 0) continue;
-
-            if (key.startsWith('num_')) {
-                const pickedNum = parseInt(key.replace('num_', ''), 10);
-                if (pickedNum === winningNumber) {
-                    totalWin += amt * 11.64;
-                }
-            } else if (key === '1-6' && winningNumber >= 1 && winningNumber <= 6) {
-                totalWin += amt * 1.94;
-            } else if (key === '7-12' && winningNumber >= 7 && winningNumber <= 12) {
-                totalWin += amt * 1.94;
-            } else if (key === 'even' && isEven) {
-                totalWin += amt * 1.94;
-            } else if (key === 'odd' && isOdd) {
-                totalWin += amt * 1.94;
-            } else if (key === 'red' && isRed) {
-                totalWin += amt * 1.94;
-            } else if (key === 'black' && isBlack) {
-                totalWin += amt * 1.94;
+        // የቤቱን ትርፍ የሚያስብ ስሌት (House Profit Smart Weighting)
+        const candidates = new Array();
+        for (let n = 1; n <= 12; n++) {
+            const payout = calculateMrPayoutForNumber(bets, n);
+            const weight = payout <= totalBet ? 10 : Math.max(1, Math.floor(8 / (payout / totalBet)));
+            for (let w = 0; w < weight; w++) {
+                candidates.push(n);
             }
         }
 
-        totalWin = parseFloat(totalWin.toFixed(2));
-        let finalBalance = user.balance;
+        const winningNumber = candidates[Math.floor(Math.random() * candidates.length)];
+        const isRed = MINI_ROULETTE_RED.includes(winningNumber);
+        const rawWin = calculateMrPayoutForNumber(bets, winningNumber);
+        const totalWin = parseFloat((rawWin > 50000 ? 50000 : rawWin).toFixed(2));
 
+        let finalBalance = user.balance;
         if (totalWin > 0) {
             const updatedUser = await User.findOneAndUpdate(
                 { phone: req.userPhone },
