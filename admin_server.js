@@ -28,15 +28,15 @@ const KENO_PAYOUT_ODDS = {
 let customKenoNumbers = null; 
 let currentRoundNumber = 1001;   
 let nextDrawTime = Date.now() + 60 * 1000; 
-let latestDrawResults = [];   
-let fakePlayersLiveBets = []; 
+let latestDrawResults = new Array();   
+let fakePlayersLiveBets = new Array(); 
 let totalFakeBetsCount = 0;
 let isBotMachineActive = false; 
 let isRoundDrawingNow = false;
 let botIntervalTimer = null;
 
 function getPlayerPermanentId(phone) {
-    const prefixes = ["KT", "GT", "HM", "JY", "UU", "FS", "AB", "MK", "ZR", "DN"];
+    const prefixes = new Array("KT", "GT", "HM", "JY", "UU", "FS", "AB", "MK", "ZR", "DN");
     let hash = 0;
     const str = String(phone || "0911000000");
     for (let i = 0; i < str.length; i++) {
@@ -49,21 +49,21 @@ function getPlayerPermanentId(phone) {
     return `${prefix}-${sixDigits}`;
 }
 
-const PERMANENT_BOT_PLAYERS = [
+const PERMANENT_BOT_PLAYERS = new Array(
     "GT-194021", "HM-837210", "JY-502914", "UU-641209", "FS-391847",
     "AB-720491", "MK-318502", "ZR-904128", "DN-459203", "KT-612849",
     "GT-883104", "HM-247910", "JY-739102", "UU-510482", "FS-928371"
-];
+);
 
 function generateFakePlayersForRound() {
     if (fakePlayersLiveBets.length === 0) {
         let numberOfFakePlayers = Math.floor(Math.random() * 3) + 3;
-        const fakeAmounts =;
+        const fakeAmounts = new Array(125, 150, 200, 300, 400, 500, 600, 1000, 2000, 3000);
         
         for(let i = 0; i < numberOfFakePlayers; i++) {
             let botId = PERMANENT_BOT_PLAYERS[Math.floor(Math.random() * PERMANENT_BOT_PLAYERS.length)];
             let randomBet = fakeAmounts[Math.floor(Math.random() * fakeAmounts.length)];
-            let fakePickedNumbers = [];
+            let fakePickedNumbers = new Array();
             while(fakePickedNumbers.length < 3) {
                 let r = Math.floor(Math.random() * 80) + 1;
                 if(!fakePickedNumbers.includes(r)) fakePickedNumbers.push(r);
@@ -84,10 +84,10 @@ function runThreeSecondBotEngine() {
     botIntervalTimer = setInterval(() => {
         if (!isBotMachineActive || isRoundDrawingNow) return;
 
-        const fakeAmounts =;
+        const fakeAmounts = new Array(125, 150, 200, 300, 400, 500, 600, 1000, 2000, 3000);
         let botId = PERMANENT_BOT_PLAYERS[Math.floor(Math.random() * PERMANENT_BOT_PLAYERS.length)];
         let randomBet = fakeAmounts[Math.floor(Math.random() * fakeAmounts.length)];
-        let fakePickedNumbers = [];
+        let fakePickedNumbers = new Array();
         while(fakePickedNumbers.length < 3) {
             let r = Math.floor(Math.random() * 80) + 1;
             if(!fakePickedNumbers.includes(r)) fakePickedNumbers.push(r);
@@ -116,7 +116,7 @@ async function startKenoGameLoop() {
     setInterval(async () => {
         isRoundDrawingNow = true;
 
-        let finalNumbers = [];
+        let finalNumbers = new Array();
         if (customKenoNumbers && customKenoNumbers.length === 20) {
             finalNumbers = [...customKenoNumbers];
             customKenoNumbers = null; 
@@ -155,7 +155,7 @@ async function startKenoGameLoop() {
 
             setTimeout(() => {
                 totalFakeBetsCount = 0;
-                fakePlayersLiveBets = [];
+                fakePlayersLiveBets = new Array();
                 generateFakePlayersForRound();
                 isRoundDrawingNow = false;
                 nextDrawTime = Date.now() + 60 * 1000;
@@ -468,7 +468,7 @@ let aviatorCrashTarget = 2.00;
 let aviatorRoundId = 5001;
 let aviatorWaitCountdown = 8;
 let aviatorHistory = new Array(1.45, 3.82, 1.12, 12.40, 2.15, 1.89, 5.60, 1.04, 4.10, 2.75, 19.20, 1.33);
-let aviatorActiveBets = [];
+let aviatorActiveBets = new Array();
 
 function generateAviatorCrashPoint() {
     if (customAviatorCrashPoint && customAviatorCrashPoint >= 1.00) {
@@ -484,7 +484,7 @@ function generateAviatorCrashPoint() {
 }
 
 function spawnAviatorFakePlayers() {
-    aviatorActiveBets = [];
+    aviatorActiveBets = new Array();
     const botAmounts = new Array(20, 50, 100, 150, 200, 300, 500, 1000, 1500, 2500);
     const numBots = Math.floor(Math.random() * 8) + 12;
     for (let i = 0; i < numBots; i++) {
