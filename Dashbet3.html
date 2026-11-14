@@ -1108,7 +1108,7 @@ function setAviatorQuickBet(panel, val) {
 }
 
 function updateAviatorPanelButtons() {
-    const panels =;
+   const panels = new Array(1, 2);
     for (let i = 0; i < panels.length; i++) {
         const panel = panels[i];
         const btn = document.getElementById(`av-action-btn-${panel}`);
